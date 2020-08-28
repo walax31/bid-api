@@ -2,14 +2,14 @@ CREATE DATABASE IF NOT EXISTS `bidDB`;
 
 USE `bidDB`;
 
-DROP TABLE IF EXISIS `customers`;
-DROP TABLE IF EXISIS `login`;
-DROP TABLE IF EXISIS `bid`;
-DROP TABLE IF EXISIS `product`;
-DROP TABLE IF EXISIS `product_details`;
-DROP TABLE IF EXISIS `orders`;
-DROP TABLE IF EXISIS `order_details`;
-DROP TABLE IF EXISIS `payments`;
+DROP TABLE IF EXISTS `customers`;
+DROP TABLE IF EXISTS `login`;
+DROP TABLE IF EXISTS `bid`;
+DROP TABLE IF EXISTS `product`;
+DROP TABLE IF EXISTS `product_details`;
+DROP TABLE IF EXISTS `orders`;
+DROP TABLE IF EXISTS `order_details`;
+DROP TABLE IF EXISTS `payments`;
 
 CREATE TABLE `login`(
 `customer_id` AUTO_INCREMENT INT NOT NULL ,
@@ -28,7 +28,7 @@ CREATE TABLE `customers`(
 `phone_number`INT(10) NOT NULL UNIQUE,
 
 PRIMARY KEY(`customer_id`),
-CONSTRAINT `login_ibfk_1` FOREIGN KEY(`customer_id`)REFERENCES `login`,`customer_id`
+CONSTRAINT `login_ibfk_1` FOREIGN KEY(`customer_id`)REFERENCES `login`(`customer_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4;
 
 CREATE TABLE `bid`(
@@ -38,7 +38,7 @@ CREATE TABLE `bid`(
 `timestamp`TIMESTAMP,
 
 PRIMARY KEY(`product_id`),
-CONSTRAINT `products_ibfk_1` FOREIGN KEY(`product_id`)REFERENCES `products`,`product_id`,
+CONSTRAINT `products_ibfk_1` FOREIGN KEY(`product_id`)REFERENCES `products`(`product_id`),
 CONSTRAINT `customers_ibfk_2` FOREIGN KEY(`customer_id`)REFERENCES `customers`,`customer_id`
 ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4;
 
@@ -50,7 +50,7 @@ CREATE TABLE `products`(
 `stock`INT NOT NULL,
 
 PRIMARY KEY(`product_id`),
-CONSTRAINT `customers_ibfk_1` FOREIGN KEY(`customer_id`)REFERENCES `customers`,`customer_id`
+CONSTRAINT `customers_ibfk_1` FOREIGN KEY(`customer_id`)REFERENCES `customers`(`customer_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4;
 
 CREATE TABLE `products_details`(
@@ -59,7 +59,7 @@ CREATE TABLE `products_details`(
 `description`VARCHAR(120) NOT NULL,
 
 PRIMARY KEY(`product_id`),
-CONSTRAINT `products_ibfk_1` FOREIGN KEY(`product_id`)REFERENCES `products`,`product_id`,
+CONSTRAINT `products_ibfk_1` FOREIGN KEY(`product_id`)REFERENCES `products`,(`product_id`),
 ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4;
 
 CREATE TABLE `orders`(
@@ -67,7 +67,7 @@ CREATE TABLE `orders`(
 `customer_id`INT NOT NULL ,
 
 PRIMARY KEY(`order_id`),
-CONSTRAINT `customers_ibfk_1` FOREIGN KEY(`customer_id`)REFERENCES `customers`,`customer_id`
+CONSTRAINT `customers_ibfk_1` FOREIGN KEY(`customer_id`)REFERENCES `customers`(`customer_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4;
 
 CREATE TABLE `order_details`(
@@ -76,8 +76,8 @@ CREATE TABLE `order_details`(
 `quantity`INT NOT NULL ,
 
 PRIMARY KEY(`order_id`),
-CONSTRAINT `orders_ibfk_1` FOREIGN KEY(`order_id`)REFERENCES `orders`,`order_id`,
-CONSTRAINT `products_ibfk_2` FOREIGN KEY(`product_id`)REFERENCES `products`,`product_id`
+CONSTRAINT `orders_ibfk_1` FOREIGN KEY(`order_id`)REFERENCES `orders`(`order_id`),
+CONSTRAINT `products_ibfk_2` FOREIGN KEY(`product_id`)REFERENCES `products`(`product_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4;
 
 CREATE TABLE `payments`(
@@ -87,6 +87,6 @@ CREATE TABLE `payments`(
 `total`INT NOT NULL ,
 
 PRIMARY KEY(`order_id`),
-CONSTRAINT `orders_ibfk_1` FOREIGN KEY(`order_id`)REFERENCES `orders`,`order_id`
+CONSTRAINT `orders_ibfk_1` FOREIGN KEY(`order_id`)REFERENCES `orders`(`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4;
 
