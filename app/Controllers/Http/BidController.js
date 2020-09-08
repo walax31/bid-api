@@ -75,7 +75,3 @@ class BidController {
 }
 
 module.exports = BidController;
-<<<<<<< HEAD
-
-=======
->>>>>>> 40e72b388a77b340f577058a4d94c2039c3278ce
