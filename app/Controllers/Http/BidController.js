@@ -33,7 +33,7 @@ class BidController {
   }
 
   async store({ request }) {
-    const { customer_id, bid_amount, product_id } = require.request.hasBody();
+    const { customer_id, bid_amount, product_id } = request.body;
 
     const rules = {
       customer_id: "required",
@@ -42,7 +42,7 @@ class BidController {
     };
     const bid = await makeBidUtil(Bid).create(
       { customer_id, bid_amount, product_id },
-      references
+      rules
     );
     return {
       status: 200,
@@ -75,4 +75,7 @@ class BidController {
 }
 
 module.exports = BidController;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 40e72b388a77b340f577058a4d94c2039c3278ce
