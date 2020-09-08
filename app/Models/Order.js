@@ -15,6 +15,10 @@ class Order extends Model {
   orderDetails() {
     return this.hasMany("App/Models/OrderDetail");
   }
+
+  payment() {
+    return this.hasOne("App/Models/Payment");
+  }
 }
 
 module.exports = Order;
