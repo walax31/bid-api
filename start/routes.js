@@ -1,4 +1,4 @@
-'use strict'
+"use strict";
 
 /*
 |--------------------------------------------------------------------------
@@ -14,8 +14,26 @@
 */
 
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
-const Route = use('Route')
+const Route = use("Route");
 
-Route.get('/', () => {
-  return { greeting: 'Hello world in JSON' }
-})
+Route.get("/", () => {
+  return { greeting: "Hello world in JSON" };
+});
+Route.group(() => {
+  //api rount start here na ka
+  Route.resource("/bids", "BidController");
+
+  Route.resource("/credentials", "CredentialController");
+
+  Route.resource("/customers", "CustomerController");
+
+  Route.resource("/orders", "OrderController");
+
+  Route.resource("/ordersDetail", "OrderDetailController");
+
+  Route.resource('/payments','PaymentController')
+
+  Route.resource('/products','ProductDetailController')
+
+  Route.resource('/productsDetail','ProductDetailController')
+}).prefix("api/v1");
