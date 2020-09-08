@@ -15,16 +15,16 @@ function numberTypeParamValidator(number) {
 }
 
 class BidController {
-  async index({ require }) {
-    const { references = undefined } = require.qs;
+  async index({ request }) {
+    const { references = undefined } = request.qs;
     const bid = await MakeBidUtil(Bid).getAll(references);
 
     return { status: 200, error: undefined, data: Bid };
   }
 
-  async show({ require }) {
-    const { id } = require.params;
-    const { references } = require.qs;
+  async show({ request }) {
+    const { id } = request.params;
+    const { references } = request.qs;
     const validateValue = numberTypeParamValidator(id);
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
@@ -32,7 +32,7 @@ class BidController {
     return { status: 200, error: undefined, data: bid || {} };
   }
 
-  async store({ require }) {
+  async store({ request }) {
     const { customer_id, bid_amount, product_id } = require.request.hasBody();
 
     const rules = {

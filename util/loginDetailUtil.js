@@ -16,9 +16,9 @@ class loginDetailUtil {
   }
 
   async getAll(references) {
-    const loginDetail = this._Login.query();
+    const loginDetails = this._Login.query();
 
-    return this._withReferences(loginDetail, references).fetch();
+    return this._withReferences(loginDetails, references).fetch();
   }
 
   async getById(customer_id, references) {
@@ -59,9 +59,7 @@ class loginDetailUtil {
   async destroyById(customer_id) {
     const customer = await this._Login.find(customer_id);
 
-    const deletedCustomer = await customer.delete();
-
-    return deletedCustomer;
+    return customer.delete();
   }
 }
 
