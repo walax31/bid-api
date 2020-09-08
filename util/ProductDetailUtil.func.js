@@ -1,14 +1,16 @@
-module.exports = function (ProductModel) {
+module.exports = function (ProductDetailModel) {
   const _withReferences = (references) => {
-    const _Product = ProductModel.query();
+    const _ProductDetail = ProductDetailModel.query();
 
     if (references) {
       const extractedReferences = references.split(",");
 
-      extractedReferences.forEach((reference) => _Product.with(reference));
+      extractedReferences.forEach((reference) =>
+        _ProductDetail.with(reference)
+      );
     }
 
-    return _Product;
+    return _ProductDetail;
   };
 
   return {
@@ -22,7 +24,7 @@ module.exports = function (ProductModel) {
         .then((response) => response.first());
     },
     create: async (attributes, references) => {
-      const { product_id } = await ProductModel.create(attributes);
+      const { product_id } = await ProductDetailModel.create(attributes);
 
       return _withReferences(references)
         .where({ product_id })
@@ -30,7 +32,7 @@ module.exports = function (ProductModel) {
         .then((response) => response.first());
     },
     updateById: async (product_id, references) => {
-      let productDetail = await ProductModel.find(product_id);
+      let productDetail = await ProductDetailModel.find(product_id);
 
       productDetail.merge(attributes);
 
@@ -42,7 +44,7 @@ module.exports = function (ProductModel) {
         .then((response) => response.first());
     },
     deleteById: async (product_id) => {
-      const productDetail = await ProductModel.find(product_id);
+      const productDetail = await ProductDetailModel.find(product_id);
 
       return productDetail.delete();
     },
