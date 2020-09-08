@@ -23,17 +23,19 @@ Route.group(() => {
   //api rount start here na ka
   Route.resource("/bids", "BidController");
 
-  Route.resource("/credentials", "CredentialController");
+  Route.resource("/users", "UserController");
+
+  Route.resource("/credentialRatings", "CredentialRatingController");
 
   Route.resource("/customers", "CustomerController");
 
   Route.resource("/orders", "OrderController");
 
-  Route.resource("/ordersDetail", "OrderDetailController");
+  Route.resource("/orderDetails", "OrderDetailController");
 
   Route.resource('/payments','PaymentController')
 
-  Route.resource('/products','ProductDetailController')
+  Route.resource('/products','ProductController')
 
-  Route.resource('/productsDetail','ProductDetailController')
+  Route.resource('/productDetails','ProductDetailController')
 }).prefix("api/v1");
