@@ -33,7 +33,7 @@ class BidController {
   }
 
   async store({ request }) {
-    const { customer_id, bid_amount, product_id } = request.body
+    const { customer_id, bid_amount, product_id } = request.body;
 
     const rules = {
       customer_id: "required",
