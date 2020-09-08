@@ -1,9 +1,9 @@
 "use strict";
 
 const Database = use(`Database`);
-const Validator = use("Validator");
+// const Validator = use("Validator");
 const Bid = use("App/Models/Bid");
-const bitUtil = require("../../..util/Bid");
+const makeBidUtil = require("../../../util/BidUtil.func");
 
 function numberTypeParamValidator(number) {
   if (Number.isNaN(parseInt(number))) {
@@ -17,9 +17,9 @@ function numberTypeParamValidator(number) {
 class BidController {
   async index({ request }) {
     const { references = undefined } = request.qs;
-    const bid = await MakeBidUtil(Bid).getAll(references);
+    const bid = await makeBidUtil(Bid).getAll(references);
 
-    return { status: 200, error: undefined, data: Bid };
+    return { status: 200, error: undefined, data: bid };
   }
 
   async show({ request }) {
@@ -33,7 +33,7 @@ class BidController {
   }
 
   async store({ request }) {
-    const { customer_id, bid_amount, product_id } = require.request.hasBody();
+    const { customer_id, bid_amount, product_id } = request.body;
 
     const rules = {
       customer_id: "required",
@@ -42,7 +42,7 @@ class BidController {
     };
     const bid = await makeBidUtil(Bid).create(
       { customer_id, bid_amount, product_id },
-      references
+      rules
     );
     return {
       status: 200,
@@ -72,7 +72,6 @@ class BidController {
 
     return { status: 200, error: undefined, data: { massage: "success" } };
   }
-  
 }
 
 module.exports = BidController;
