@@ -31,7 +31,7 @@ module.exports = function (CredentialRatingModel) {
         .fetch()
         .then((response) => response.first());
     },
-    updateById: async (customer_id, references) => {
+    updateById: async (customer_id, attributes, references) => {
       let CredentialRatingDetail = await CredentialRatingModel.find(
         customer_id
       );

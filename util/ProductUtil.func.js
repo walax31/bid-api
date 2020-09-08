@@ -29,7 +29,7 @@ module.exports = function (ProductModel) {
         .fetch()
         .then((response) => response.first());
     },
-    updateById: async (product_id, references) => {
+    updateById: async (product_id, attributes, references) => {
       let product = await ProductModel.find(product_id);
 
       product.merge(attributes);
