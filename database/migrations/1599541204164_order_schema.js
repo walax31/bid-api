@@ -1,0 +1,26 @@
+"use strict";
+
+/** @type {import('@adonisjs/lucid/src/Schema')} */
+const Schema = use("Schema");
+
+class OrderSchema extends Schema {
+  up() {
+    this.create("orders", (table) => {
+      table.increments("order_id");
+      table.timestamps();
+      table.integer("customer_id").unsigned().notNullable();
+
+      table
+        .foreign("customer_id")
+        .references("customers.customer_id")
+        .onDelete("CASCADE")
+        .onUpdate("CASCADE");
+    });
+  }
+
+  down() {
+    this.drop("orders");
+  }
+}
+
+module.exports = OrderSchema;
