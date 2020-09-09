@@ -3,6 +3,7 @@
 const userValidator = require("../../../service/userValidator");
 const User = use("App/Models/User");
 const makeUserUtil = require("../../../util/UserUtil.func");
+const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 
 class UserController {
   async index({ request }) {
@@ -29,6 +30,7 @@ class UserController {
 
     return { status: 200, error: undefined, data: user || {} };
   }
+
   async store({ request }) {
     const { body, qs } = request;
 
@@ -36,7 +38,7 @@ class UserController {
 
     const { references } = qs;
 
-    const validation = await bidValidator(request.body);
+    const validation = await userValidator(request.body);
 
     if (validation.error) {
       return { status: 422, error: validation.error, data: undefined };
