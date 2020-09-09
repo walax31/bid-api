@@ -15,34 +15,34 @@ module.exports = function (UserModel) {
     getAll: (references) => {
       return _withReferences(references).fetch();
     },
-    getById: (customer_id, references) => {
+    getById: (user_id, references) => {
       return _withReferences(references)
-        .where({ customer_id })
+        .where({ user_id })
         .fetch()
         .then((response) => response.first());
     },
     create: async (attributes, references) => {
-      const { customer_id } = await UserModel.create(attributes);
+      const { user_id } = await UserModel.create(attributes);
 
       return _withReferences(references)
-        .where({ customer_id })
+        .where({ user_id })
         .fetch()
         .then((response) => response.first());
     },
-    updateById: async (customer_id, attributes, references) => {
-      let user = await UserModel.find(customer_id);
+    updateById: async (user_id, attributes, references) => {
+      let user = await UserModel.find(user_id);
 
       user.merge(attributes);
 
       await user.save();
 
       return _withReferences(references)
-        .where({ customer_id })
+        .where({ user_id })
         .fetch()
         .then((response) => response.first());
     },
-    deleteById: async (customer_id) => {
-      const user = await UserModel.find(customer_id);
+    deleteById: async (user_id) => {
+      const user = await UserModel.find(user_id);
 
       return user.delete();
     },
