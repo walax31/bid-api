@@ -1,82 +1,79 @@
 "use strict";
 
-const Database = use(`Database`);
-
+const userValidator = require("../../../service/userValidator");
 const User = use("App/Models/User");
 const makeUserUtil = require("../../../util/UserUtil.func");
 
-function numberTypeParamValidator(number) {
-  if (Number.isNaN(parseInt(number))) {
-    return {
-      error: `param:${number} is not supported,please use number type param intnstead`,
-    };
-  }
-  return {};
-}
 class UserController {
   async index({ request }) {
-    const { references = undefined } = request.qs;
-    const user = await makeUserUtil(User).getAll(references);
+    const { references  } = request.qs;
+    const users = await makeUserUtil(User).getAll(references);
 
-    return { status: 200, error: undefined, data: user };
+    return { status: 200, error: undefined, data: users };
   }
 
   async show({ request }) {
-    const { id } = request.params;
-    const { references } = request.qs;
+    const { params, qs } = request;
+
+    const { id } = params;
+
+    const { references } = qs;
+
 
     const validateValue = numberTypeParamValidator(id);
+    
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
 
-    const user = await makeUserUtil(User).getAll(references);
+    const user = await makeUserUtil(User).getById(id,references);
     return { status: 200, error: undefined, data: user || {} };
   }
   async store({ request }) {
-    const { username, email, password } = request.body;
+    const { body, qs } = request;
+    const { username, email, password } =body;
+    const { references } = qs;
 
-    const rules = {
-      username: "required",
-      email: "required",
-      password: "required",
-    };
+    const validation = await bidValidator(request.body);
+
+    if (validation.error) {
+      return { status: 422, error: validation.error, data: undefined };
+    }
     const user = await makeUserUtil(User).create(
       {
         username,
         email,
         password,
       },
-      rules
+      references
     );
     return {
       status: 200,
       error: undefined,
-      data: username,
-      email,
-      password,
+      data: user,
     };
   }
   async update({ request }) {
-    const { body, params } = request;
-    const { id } = params;
-    const { username } = body;
-    const { email } = body;
-    const { password } = body;
+    const { body, params, qs } = request;
 
-    const UserID = await Database.table("users")
-      .where({ customer_id: id })
-      .update(username, email, password);
-    const user = await Database.table("users")
-      .where({ user_id: UserID })
-      .first();
+    const { id } = params;
+
+    const { references } = qs;
+
+    const { username, email, password } =body;
+
+    const User = await makeUserUtil(User).updateById(id,{username, email, password},references)
 
     return { status: 200, error: undefined, data: user };
   }
   async destroy({ request }) {
     const { id } = request.params;
-    await Database.table("users").where({ user_id: id }).delete();
+    const user = await makeUserUtil(User).deleteById(id);
 
-    return { status: 200, error: undefined, data: { massage: "success" } };
+    return {
+      status: 200,
+      error: undefined,
+      data: { massage: `${user} is successfully removed.` },
+    };
   }
 }
 
