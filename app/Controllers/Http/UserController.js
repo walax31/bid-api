@@ -29,6 +29,7 @@ class UserController {
 
     return { status: 200, error: undefined, data: user || {} };
   }
+
   async store({ request }) {
     const { body, qs } = request;
 

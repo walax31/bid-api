@@ -28,11 +28,11 @@ Factory.blueprint("App/Models/User", async (faker) => {
 
 Factory.blueprint("App/Models/Customer", (faker) => {
   return {
-    customer_first_name: faker.first(),
-    customer_last_name: faker.last(),
-    customer_address: faker.sentence({ words: 5 }),
-    customer_phone: faker.phone(),
-    customer_path_to_credential: faker.word({ length: 5 }),
+    first_name: faker.first(),
+    last_name: faker.last(),
+    address: faker.sentence({ words: 5 }),
+    phone: faker.phone(),
+    path_to_credential: faker.word({ length: 5 }),
   };
 });
 
