@@ -1,56 +1,55 @@
 "use strict";
 
-const Database = use(`Database`);
-// const Validator = use("Validator");
+const customerValidator = require("../../../service/customerValidator");
 const Customer = use("App/Models/Customer");
 const makeCustomerUtil = require("../../../util/CustomerUtil.func");
+const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 
-function numberTypeParamValidator(number) {
-  if (Number.isNaN(parseInt(number))) {
-    return {
-      error: `param:${number} is not supported,please use number type param intnstead`,
-    };
-  }
-  return {};
-}
+
 
 
 class CustomerController {
   async index({ request }) {
-    const { references = undefined } = request.qs;
-    const customer = await makeCustomerUtil(Customer).getAll(references);
+    const { references  } = request.qs;
+    const customers = await makeCustomerUtil(Customer).getAll(references);
 
-    return { status: 200, error: undefined, data: customer };
+    return { status: 200, error: undefined, data: customers };
   }
 
   async show({ request }) {
-    const { id } = request.params;
-    const { references } = request.qs;
+    const { params, qs } = request;
+
+    const { id } = params;
+
+    const { references } = qs;
+
+    const validateValue = numberTypeParamValidator(id);
 
     const validateValue = numberTypeParamValidator(id);
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
 
-    const customer = await makeCustomerUtil(Customer).getAll(references);
+    const customer = await makeCustomerUtil(Customer).getById(id,references);
+    
     return { status: 200, error: undefined, data: customer || {} };
   }
 
   async store({ request }) {
+    const { body, qs } = request;
     const {
       customer_first_name,
       customer_last_name,
       customer_address,
       customer_phone,
       customer_path_to_credential,
-    } = request.body;
+    } =body;
+    const { references } = qs;
+    
+    const validation = await bidValidator(request.body);
+    if (validation.error) {
+      return { status: 422, error: validation.error, data: undefined };
+    }
 
-    const rules = {
-      customer_first_name: "required",
-      customer_last_name: "required",
-      customer_phone: "required",
-      customer_address: "required",
-      customer_path_to_credential: "required",
-    };
     const customer = await makeCustomerUtil(Customer).create(
       {
         customer_first_name,
@@ -59,48 +58,38 @@ class CustomerController {
         customer_phone,
         customer_path_to_credential,
       },
-      rules
+      references
     );
     return {
       status: 200,
       error: undefined,
-      data: customer_first_name,
-      customer_last_name,
-      customer_address,
-      customer_phone,
-      customer_path_to_credential,
+      data: customer
     };
   }
   async update({ request }) {
-    const { body, params } = request;
+    const { body, params, qs } = request;
+
     const { id } = params;
-    const { customer_first_name } = body;
-    const { customer_last_name } = body;
-    const { customer_address } = body;
-    const { customer_phone } = body;
-    const { customer_path_to_credential } = body;
 
-    const customerID = await Database.table("customers")
-      .where({ customer_id: id })
-      .update({
-        customer_first_name,
-        customer_last_name,
-        customer_address,
-        customer_phone,
-        customer_path_to_credential}
-      );
-  
-    const customer = await Database.table("customers")
-      .where({ customer_id: customerID })
-      .first();
+    const { references } = qs;
+    const { customer_first_name,
+      customer_last_name,
+      customer_address,
+      customer_phone,
+      customer_path_to_credential}= body;
 
+   const customer = await makeCustomerUtil(Customer).updateById(id,{customer_first_name,
+    customer_last_name,
+    customer_address,
+    customer_phone,
+    customer_path_to_credential},references)
     return { status: 200, error: undefined, data: customer };
   }
   async destroy({ request }) {
     const { id } = request.params;
-    await Database.table("customers").where({ customer_id: id }).delete();
-
-    return { status: 200, error: undefined, data: { massage: "success" } };
+    
+    const suctomer =await makeCustomerUtil(Customer).deleteById(id);
+    return { status: 200, error: undefined, data: { massage: `${customer} is successfully removed.` } };
   }
 }
 
