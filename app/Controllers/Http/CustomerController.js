@@ -14,18 +14,7 @@ function numberTypeParamValidator(number) {
   return {};
 }
 
-const Database = use(`Database`);
-const Customer = use("App/Models/Customer");
-const makeCustomerUtil = require("../../../CustomerUtil.funct");
 
-function numberTypeParamValidator(number) {
-  if (Number.isNaN(parseInt(number))) {
-    return {
-      error: `param:${number} is not supported,please use number type param intnstead`,
-    };
-  }
-  return {};
-}
 class CustomerController {
   async index({ request }) {
     const { references = undefined } = request.qs;
