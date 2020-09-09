@@ -6,7 +6,8 @@ const makeUserUtil = require("../../../util/UserUtil.func");
 
 class UserController {
   async index({ request }) {
-    const { references  } = request.qs;
+    const { references } = request.qs;
+
     const users = await makeUserUtil(User).getAll(references);
 
     return { status: 200, error: undefined, data: users };
@@ -19,18 +20,20 @@ class UserController {
 
     const { references } = qs;
 
-
     const validateValue = numberTypeParamValidator(id);
-    
+
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
 
-    const user = await makeUserUtil(User).getById(id,references);
+    const user = await makeUserUtil(User).getById(id, references);
+
     return { status: 200, error: undefined, data: user || {} };
   }
   async store({ request }) {
     const { body, qs } = request;
-    const { username, email, password } =body;
+
+    const { username, email, password } = body;
+
     const { references } = qs;
 
     const validation = await bidValidator(request.body);
@@ -46,6 +49,7 @@ class UserController {
       },
       references
     );
+
     return {
       status: 200,
       error: undefined,
@@ -59,14 +63,19 @@ class UserController {
 
     const { references } = qs;
 
-    const { username, email, password } =body;
+    const { username, email, password } = body;
 
-    const User = await makeUserUtil(User).updateById(id,{username, email, password},references)
+    const User = await makeUserUtil(User).updateById(
+      id,
+      { username, email, password },
+      references
+    );
 
     return { status: 200, error: undefined, data: user };
   }
   async destroy({ request }) {
     const { id } = request.params;
+
     const user = await makeUserUtil(User).deleteById(id);
 
     return {

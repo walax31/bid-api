@@ -5,12 +5,10 @@ const Customer = use("App/Models/Customer");
 const makeCustomerUtil = require("../../../util/CustomerUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 
-
-
-
 class CustomerController {
   async index({ request }) {
-    const { references  } = request.qs;
+    const { references } = request.qs;
+
     const customers = await makeCustomerUtil(Customer).getAll(references);
 
     return { status: 200, error: undefined, data: customers };
@@ -25,27 +23,29 @@ class CustomerController {
 
     const validateValue = numberTypeParamValidator(id);
 
-    const validateValue = numberTypeParamValidator(id);
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
 
-    const customer = await makeCustomerUtil(Customer).getById(id,references);
-    
+    const customer = await makeCustomerUtil(Customer).getById(id, references);
+
     return { status: 200, error: undefined, data: customer || {} };
   }
 
   async store({ request }) {
     const { body, qs } = request;
+
     const {
       customer_first_name,
       customer_last_name,
       customer_address,
       customer_phone,
       customer_path_to_credential,
-    } =body;
+    } = body;
+
     const { references } = qs;
-    
-    const validation = await bidValidator(request.body);
+
+    const validation = await customerValidator(request.body);
+
     if (validation.error) {
       return { status: 422, error: validation.error, data: undefined };
     }
@@ -60,36 +60,48 @@ class CustomerController {
       },
       references
     );
+
     return {
       status: 200,
       error: undefined,
-      data: customer
+      data: customer,
     };
   }
+
   async update({ request }) {
     const { body, params, qs } = request;
 
     const { id } = params;
 
     const { references } = qs;
-    const { customer_first_name,
-      customer_last_name,
-      customer_address,
-      customer_phone,
-      customer_path_to_credential}= body;
 
-   const customer = await makeCustomerUtil(Customer).updateById(id,{customer_first_name,
-    customer_last_name,
-    customer_address,
-    customer_phone,
-    customer_path_to_credential},references)
+    const { first_name, last_name, address, phone, path_to_credential } = body;
+
+    const customer = await makeCustomerUtil(Customer).updateById(
+      id,
+      {
+        first_name,
+        last_name,
+        address,
+        phone,
+        path_to_credential,
+      },
+      references
+    );
+
     return { status: 200, error: undefined, data: customer };
   }
+
   async destroy({ request }) {
     const { id } = request.params;
-    
-    const suctomer =await makeCustomerUtil(Customer).deleteById(id);
-    return { status: 200, error: undefined, data: { massage: `${customer} is successfully removed.` } };
+
+    const customer = await makeCustomerUtil(Customer).deleteById(id);
+
+    return {
+      status: 200,
+      error: undefined,
+      data: { massage: `${customer} is successfully removed.` },
+    };
   }
 }
 

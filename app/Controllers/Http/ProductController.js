@@ -4,9 +4,11 @@ const productValidator = require("../../../service/productValidator");
 const Product = use("App/Models/Product");
 const makeProductUtil = require("../../../util/ProductUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
+
 class ProductController {
   async index({ request }) {
     const { references } = request.qs;
+
     const products = await makeProductUtil(Product).getAll(references);
 
     return { status: 200, error: undefined, data: products };
@@ -24,11 +26,14 @@ class ProductController {
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
 
-    const product = await makeProductUtil(Product).getById(references,id);
+    const product = await makeProductUtil(Product).getById(references, id);
+
     return { status: 200, error: undefined, data: product || {} };
   }
+
   async store({ request }) {
     const { body, qs } = request;
+
     const { customer_id, product_name, end_date, stock } = body;
 
     const { references } = qs;
@@ -48,12 +53,14 @@ class ProductController {
       },
       references
     );
+
     return {
       status: 200,
       error: undefined,
       data: product,
     };
   }
+
   async update({ request }) {
     const { body, params, qs } = request;
 
@@ -71,8 +78,10 @@ class ProductController {
 
     return { status: 200, error: undefined, data: product };
   }
+
   async destroy({ request }) {
     const { id } = request.params;
+
     const product = await makeProductUtil(Product).deleteById(id);
 
     return {
