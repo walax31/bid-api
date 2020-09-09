@@ -1,5 +1,4 @@
-"use strict";
-
+"use strict"
 const userValidator = require("../../../service/userValidator");
 const User = use("App/Models/User");
 const makeUserUtil = require("../../../util/UserUtil.func");
