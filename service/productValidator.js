@@ -6,10 +6,10 @@ module.exports = async function (data) {
   const { customer_id, product_name, end_date, stock } = data;
 
   const rules = {
-    customer_id: "require|unique:users,customer_id",
-    product_name: "require",
-    end_date: "require",
-    stock: "require",
+    customer_id: "required|unique:users,customer_id",
+    product_name: "required",
+    end_date: "required",
+    stock: "required",
   };
 
   const validation = await Validator.validateAll(

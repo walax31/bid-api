@@ -11,10 +11,10 @@ module.exports = async function (data) {
   } = data;
 
   const rules = {
-    product_price: "require",
-    product_bid_start: "require",
-    product_bid_increment: "require",
-    product_description: "require",
+    product_price: "required",
+    product_bid_start: "required",
+    product_bid_increment: "required",
+    product_description: "required",
   };
 
   const validation = await Validator.validateAll(

@@ -13,12 +13,12 @@ module.exports = async function (data) {
   } = data;
 
   const rules = {
-    customer_first_name: "require",
-    customer_last_name: "require",
-    customer_address: "require",
-    customer_phone: "require|unique:users,customer_phone|min:10",
-    customer_path_to_credential: "require",
-    customer_id: "require",
+    customer_first_name: "required",
+    customer_last_name: "required",
+    customer_address: "required",
+    customer_phone: "required|unique:users,customer_phone|min:10",
+    customer_path_to_credential: "required",
+    customer_id: "required",
   };
 
   const validation = await Validator.validateAll(

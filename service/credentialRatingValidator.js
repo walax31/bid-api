@@ -6,9 +6,9 @@ module.exports = async function (data) {
   const { customer_id, rating_score, rating_description } = data;
 
   const rules = {
-    customer_id: "require|unique:customers,customer_id",
-    rating_score: "require",
-    rating_description: "require",
+    customer_id: "required|unique:customers,customer_id",
+    rating_score: "required",
+    rating_description: "required",
   };
 
   const validation = await Validator.validateAll(
