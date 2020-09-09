@@ -1,16 +1,4 @@
 "use strict";
-const Database = use(`Database`);
-const User = use("App/Models/User");
-const makeUserUtil = require("../../../UserUtil.funct");
-
-function numberTypeParamValidator(number) {
-  if (Number.isNaN(parseInt(number))) {
-    return {
-      error: `param:${number} is not supported,please use number type param intnstead`,
-    };
-  }
-  return {};
-}
 
 const Database = use(`Database`);
 
