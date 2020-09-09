@@ -1,6 +1,6 @@
 "use strict";
-const orderValidator = require("../../../service/orderValidator");
 
+const orderValidator = require("../../../service/orderValidator");
 const Order = use("App/Models/Order");
 const makeOrderUtil = require("../../../util/OrderUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
@@ -8,6 +8,7 @@ const numberTypeParamValidator = require("../../../util/numberTypeParamValidator
 class OrderController {
   async index({ request }) {
     const { references } = request.qs;
+
     const orders = await makeOrderUtil(Order).getAll(references);
 
     return { status: 200, error: undefined, data: orders };
@@ -21,12 +22,15 @@ class OrderController {
     const { references } = qs;
 
     const validateValue = numberTypeParamValidator(id);
+
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
 
-    const order = await makeOrderUtil(Order).getById(id,references);
+    const order = await makeOrderUtil(Order).getById(id, references);
+
     return { status: 200, error: undefined, data: order || {} };
   }
+
   async store({ request }) {
     const { body, qs } = request;
 
@@ -40,7 +44,10 @@ class OrderController {
       return { status: 422, error: validation.error, data: undefined };
     }
 
-    const order = await makeOrderUtil(Order).create({ customer_id }, references);
+    const order = await makeOrderUtil(Order).create(
+      { customer_id },
+      references
+    );
 
     return {
       status: 200,
@@ -48,6 +55,7 @@ class OrderController {
       data: order,
     };
   }
+
   async update({ request }) {
     const { body, params, qs } = request;
 
@@ -65,6 +73,7 @@ class OrderController {
 
     return { status: 200, error: undefined, data: order };
   }
+
   async destroy({ request }) {
     const { id } = request.params;
 

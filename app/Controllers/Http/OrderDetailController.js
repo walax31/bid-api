@@ -1,4 +1,5 @@
 "use strict";
+
 const orderDetailValidator = require("../../../service/orderDetailValidator");
 const OrderDetail = use("App/Models/OrderDetail");
 const makeOrderDetailUtil = require("../../../util/OrderDetailUtil.func");
@@ -7,6 +8,7 @@ const numberTypeParamValidator = require("../../../util/numberTypeParamValidator
 class OrderDetailController {
   async index({ request }) {
     const { references } = request.qs;
+
     const orderDetails = await makeOrderDetailUtil(OrderDetail).getAll(
       references
     );
@@ -22,11 +24,15 @@ class OrderDetailController {
     const { references } = qs;
 
     const validateValue = numberTypeParamValidator(id);
+
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
+
     const orderDetail = await makeOrderDetailUtil(OrderDetail).getById(
-      references,id
+      references,
+      id
     );
+
     return { status: 200, error: undefined, data: orderDetail || {} };
   }
 
@@ -42,16 +48,19 @@ class OrderDetailController {
     if (validation.error) {
       return { status: 422, error: validation.error, data: undefined };
     }
+
     const orderDetail = await makeOrderDetailUtil(OrderDetail).create(
       { product_id, order_quantity, order_id },
-      references,
+      references
     );
+
     return {
       status: 200,
       error: undefined,
-      data: orderDetail
+      data: orderDetail,
     };
   }
+
   async update({ request }) {
     const { body, params, qs } = request;
 
@@ -59,7 +68,7 @@ class OrderDetailController {
 
     const { references } = qs;
 
-    const { customer_id } = body;
+    const { product_id, order_quantity, order_id } = body;
 
     const orderDetail = await makeOrderDetailUtil(OrderDetail).updateById(
       id,
@@ -69,6 +78,7 @@ class OrderDetailController {
 
     return { status: 200, error: undefined, data: orderDetail };
   }
+
   async destroy({ request }) {
     const { id } = request.params;
 
@@ -79,7 +89,7 @@ class OrderDetailController {
       error: undefined,
       data: { massage: `${orderDetail} is successfully removed.` },
     };
- }
+  }
 }
 
 module.exports = OrderDetailController;

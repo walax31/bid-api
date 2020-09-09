@@ -8,6 +8,7 @@ const numberTypeParamValidator = require("../../../util/numberTypeParamValidator
 class PaymentController {
   async index({ request }) {
     const { references } = request.qs;
+
     const payments = await makePaymentUtil(Payment).getAll(references);
 
     return { status: 200, error: undefined, data: payments };
@@ -26,11 +27,15 @@ class PaymentController {
       return { status: 500, error: validateValue.error, date: undefined };
 
     const payment = await makePaymentUtil(Payment).getById(id, references);
+
     return { status: 200, error: undefined, data: payment || {} };
   }
+
   async store({ request }) {
     const { body, qs } = request;
+
     const { method, status, total } = body;
+
     const { references } = qs;
 
     const validation = await paymentValidator(request.body);
@@ -47,12 +52,14 @@ class PaymentController {
       },
       references
     );
+
     return {
       status: 200,
       error: undefined,
       data: payment,
     };
   }
+
   async update({ request }) {
     const { body, params, qs } = request;
 
@@ -67,11 +74,13 @@ class PaymentController {
       { method, status, total },
       references
     );
+
     return { status: 200, error: undefined, data: payment };
   }
+
   async destroy({ request }) {
     const { id } = request.params;
-   
+
     const payment = await makePaymentUtil(Payment).deleteById(id);
 
     return {
