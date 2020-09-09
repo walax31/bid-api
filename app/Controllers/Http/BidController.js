@@ -46,7 +46,7 @@ class BidController {
 
     const bid = await makeBidUtil(Bid).create(
       { customer_id, bid_amount, product_id },
-      rules
+      references
     );
 
     return {
