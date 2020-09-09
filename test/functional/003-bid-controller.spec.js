@@ -14,7 +14,9 @@ trait("Test/ApiClient");
 
 const urlEndPoint = "/api/v1/bids";
 
-test("should return id of user, customer, and product.", async ({ assert }) => {
+test("(INITIALIZE)should return id of user, customer, and product.", async ({
+  assert,
+}) => {
   assert.plan(3);
 
   const user = await UserModel.create({
@@ -48,7 +50,7 @@ test("should return id of user, customer, and product.", async ({ assert }) => {
   sessionData.product_id = product["$attributes"].product_id;
 });
 
-test("should return structured response with empty data array via get method.", async ({
+test("(GET)should return structured response with empty data array via get method.", async ({
   client,
 }) => {
   const response = await client.get(urlEndPoint).end();
@@ -59,7 +61,7 @@ test("should return structured response with empty data array via get method.", 
   });
 });
 
-test("should return bid data.", async ({ assert }) => {
+test("(FAKER)should return bid data.", async ({ assert }) => {
   const bid = await BidModel.create({
     customer_id: sessionData.customer_id,
     bid_amount: 1100,
@@ -71,7 +73,7 @@ test("should return bid data.", async ({ assert }) => {
   sessionData.bid = bid["$attributes"];
 });
 
-test("should return structured response with no references in an array via get method.", async ({
+test("(GET)should return structured response with no references in an array via get method.", async ({
   client,
 }) => {
   const response = await client.get(urlEndPoint).end();
@@ -82,7 +84,7 @@ test("should return structured response with no references in an array via get m
   });
 });
 
-test("should return structured response with references in an array via get method.", async ({
+test("(GET/REFERENCES)should return structured response with references in an array via get method.", async ({
   client,
 }) => {
   const response = await client
@@ -101,7 +103,7 @@ test("should return structured response with references in an array via get meth
   });
 });
 
-test("should return structured response with no references via get method.", async ({
+test("(GET)should return structured response with no references via get method.", async ({
   client,
 }) => {
   const response = await client
@@ -114,7 +116,7 @@ test("should return structured response with no references via get method.", asy
   });
 });
 
-test("should return structured response with no references via get method.", async ({
+test("(GET/REFERENCES)should return structured response with references via get method.", async ({
   client,
 }) => {
   const response = await client
@@ -124,16 +126,30 @@ test("should return structured response with no references via get method.", asy
 
   response.assertStatus(200);
   response.assertJSONSubset({
-    data: [
-      {
-        customer: { customer_id: sessionData.customer_id },
-        product: { product_id: sessionData.product_id },
-      },
-    ],
+    data: {
+      customer: { customer_id: sessionData.customer_id },
+      product: { product_id: sessionData.product_id },
+    },
   });
 });
 
-test("should return structured data with no references via post method.", async ({
+test("(POST/ERROR)should return error message and status code of 422 when field data is missing.", async ({
+  client,
+}) => {
+  const bidData = {
+    customer_id: sessionData.customer_id,
+    product_id: sessionData.product_id,
+  };
+
+  const response = await client.post(urlEndPoint).send(bidData).end();
+
+  response.assertStatus(200);
+  response.assertJSONSubset({
+    status: 422,
+  });
+});
+
+test("(POST)should return structured data with no references via post method.", async ({
   client,
 }) => {
   const bidData = {
@@ -150,7 +166,7 @@ test("should return structured data with no references via post method.", async 
   });
 });
 
-test("should return structured data with references via post method.", async ({
+test("(POST/REFERENCES)should return structured data with references via post method.", async ({
   client,
 }) => {
   const bidData = {
@@ -171,7 +187,7 @@ test("should return structured data with references via post method.", async ({
   });
 });
 
-test("should return structured data with no references via put method.", async ({
+test("(PUT)should return structured data with no references via put method.", async ({
   client,
 }) => {
   const bidData = {
@@ -188,12 +204,12 @@ test("should return structured data with no references via put method.", async (
   });
 });
 
-test("should return structured data with references via put method.", async ({
+test("(PUT/REFERENCES)should return structured data with references via put method.", async ({
   client,
 }) => {
   const bidData = {
     customer_id: sessionData.customer_id,
-    bid_amount: 1100,
+    bid_amount: 1200,
     product_id: sessionData.product_id,
   };
 
@@ -209,7 +225,9 @@ test("should return structured data with references via put method.", async ({
   });
 });
 
-test("should return data index via delete method.", async ({ client }) => {
+test("(DELETE)should return data index via delete method.", async ({
+  client,
+}) => {
   const response = await client
     .delete(`${urlEndPoint}/${sessionData.bid.bid_id}`)
     .end();
@@ -217,7 +235,7 @@ test("should return data index via delete method.", async ({ client }) => {
   response.assertStatus(200);
 });
 
-test("should return structured response with empty data via get method.", async ({
+test("(GET)should return structured response with empty data via get method.", async ({
   client,
 }) => {
   const response = await client
@@ -230,18 +248,22 @@ test("should return structured response with empty data via get method.", async 
   });
 });
 
-test("should return index of deleted product, customer, and user.", async ({
+test("(FINALIZE)should return index of deleted product, customer, and user.", async ({
   assert,
 }) => {
   assert.plan(3);
 
-  const product_id = await ProductModel.find(sessionData.product_id).delete();
+  const product_id = await ProductModel.find(
+    sessionData.product_id
+  ).then((response) => response.delete());
 
   const customer_id = await CustomerModel.find(
     sessionData.customer_id
-  ).delete();
+  ).then((response) => response.delete());
 
-  const user_id = await UserModel.find(sessionData.user_id).delete();
+  const user_id = await UserModel.find(sessionData.user_id).then((response) =>
+    response.delete()
+  );
 
   assert.isOk(product_id);
   assert.isOk(customer_id);
