@@ -1,85 +1,84 @@
 "use strict";
-const Database = use(`Database`);
-const Payment = use("App/Models/Payment");
-const makePaymentUtil = require("../../../PaymentlUtil.funct");
 
-function numberTypeParamValidator(number) {
-  if (Number.isNaN(parseInt(number))) {
-    return {
-      error: `param:${number} is not supported,please use number type param intnstead`,
-    };
-  }
-  return {};
-}
+const paymentValidator = require("../../../service/paymentValidator");
+const Payment = use("App/Models/Payment");
+const makePaymentUtil = require("../../../util/PaymentUtil.func");
+const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
+
 class PaymentController {
   async index({ request }) {
-    const { references = undefined } = request.qs;
-    const payment = await makePaymentUtil(Payment).getAll(references);
+    const { references } = request.qs;
+    const payments = await makePaymentUtil(Payment).getAll(references);
 
-    return { status: 200, error: undefined, data: payment };
+    return { status: 200, error: undefined, data: payments };
   }
 
   async show({ request }) {
-    const { id } = request.params;
-    const { references } = request.qs;
+    const { params, qs } = request;
+
+    const { id } = params;
+
+    const { references } = qs;
 
     const validateValue = numberTypeParamValidator(id);
+
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
 
-    const payment = await makePaymentUtil(Payment).getAll(references);
+    const payment = await makePaymentUtil(Payment).getById(id, references);
     return { status: 200, error: undefined, data: payment || {} };
   }
   async store({ request }) {
-    const { method, status, total } = request.body;
+    const { body, qs } = request;
+    const { method, status, total } = body;
+    const { references } = qs;
 
-    const rules = {
-      method: "required",
+    const validation = await paymentValidator(request.body);
 
-      end_date: "required",
-      stock: "required",
-    };
+    if (validation.error) {
+      return { status: 422, error: validation.error, data: undefined };
+    }
+
     const payment = await makePaymentUtil(Payment).create(
       {
         method,
         status,
         total,
       },
-      rules
+      references
     );
     return {
       status: 200,
       error: undefined,
-      data: method,
-      status,
-      total,
+      data: payment,
     };
   }
   async update({ request }) {
-    const { body, params } = request;
+    const { body, params, qs } = request;
+
     const { id } = params;
-    const { method } = body;
-    const { status } = body;
-    const { total } = body;
 
-    const paymentID = await Database.table("payments")
-      .where({ product_id: id })
-      .update({
-        method,
-        status,
-        total,
-      });
-    const payment = await Database.table("payments")
-      .where({ order_id: paymentID })
-      .first();
+    const { references } = qs;
 
+    const { method, status, total } = body;
+
+    const payment = await makePaymentUtil(Payment).getById(
+      id,
+      { method, status, total },
+      references
+    );
     return { status: 200, error: undefined, data: payment };
   }
   async destroy({ request }) {
     const { id } = request.params;
-    await Database.table("payments").where({ order_id: id }).delete();
+   
+    const payment = await makePaymentUtil(Payment).deleteById(id);
 
-    return { status: 200, error: undefined, data: { massage: "success" } };
+    return {
+      status: 200,
+      error: undefined,
+      data: { massage: `${payment} is successfully removed.` },
+    };
   }
 }
 

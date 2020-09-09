@@ -1,67 +1,80 @@
 "use strict";
-const Database = use(`Database`);
-const Order = use("App/Models/Order");
-const makeOrderUtil = require("../../../OrderUtil.funct");
+const orderValidator = require("../../../service/orderValidator");
 
-function numberTypeParamValidator(number) {
-  if (Number.isNaN(parseInt(number))) {
-    return {
-      error: `param:${number} is not supported,please use number type param intnstead`,
-    };
-  }
-  return {};
-}
+const Order = use("App/Models/Order");
+const makeOrderUtil = require("../../../util/OrderUtil.func");
+const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
+
 class OrderController {
   async index({ request }) {
-    const { references = undefined } = request.qs;
-    const order = await makeOrderUtil(Order).getAll(references);
+    const { references } = request.qs;
+    const orders = await makeOrderUtil(Order).getAll(references);
 
-    return { status: 200, error: undefined, data: order };
+    return { status: 200, error: undefined, data: orders };
   }
 
   async show({ request }) {
-    const { id } = request.params;
-    const { references } = request.qs;
+    const { params, qs } = request;
+
+    const { id } = params;
+
+    const { references } = qs;
 
     const validateValue = numberTypeParamValidator(id);
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
 
-    const order = await makeOrderUtil(Order).getAll(references);
+    const order = await makeOrderUtil(Order).getById(id,references);
     return { status: 200, error: undefined, data: order || {} };
   }
   async store({ request }) {
-    const { customer_id } = request.body;
+    const { body, qs } = request;
 
-    const rules = {
-      customer_id: "required",
-    };
-    const order = await makeOrderUtil(Order).create({ customer_id }, rules);
+    const { customer_id } = body;
+
+    const { references } = qs;
+
+    const validation = await orderValidator(request.body);
+
+    if (validation.error) {
+      return { status: 422, error: validation.error, data: undefined };
+    }
+
+    const order = await makeOrderUtil(Order).create({ customer_id }, references);
+
     return {
       status: 200,
       error: undefined,
-      data: customer_id,
+      data: order,
     };
   }
   async update({ request }) {
-    const { body, params } = request;
+    const { body, params, qs } = request;
+
     const { id } = params;
+
+    const { references } = qs;
+
     const { customer_id } = body;
 
-    const orderID = await Database.table("orders")
-      .where({ order_id: id })
-      .update({ customer_id });
-    const order = await Database.table("orders")
-      .where({ order_id: orderID })
-      .first();
+    const order = await makeOrderUtil(Order).updateById(
+      id,
+      { customer_id },
+      references
+    );
 
     return { status: 200, error: undefined, data: order };
   }
   async destroy({ request }) {
     const { id } = request.params;
-    await Database.table("orders").where({ order_id: id }).delete();
 
-    return { status: 200, error: undefined, data: { massage: "success" } };
+    const order = await makeOrderUtil(Order).deleteById(id);
+
+    return {
+      status: 200,
+      error: undefined,
+      data: { massage: `${order} is successfully removed.` },
+    };
   }
 }
 

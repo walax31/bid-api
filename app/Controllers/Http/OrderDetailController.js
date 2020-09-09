@@ -1,83 +1,85 @@
 "use strict";
-const Database = use(`Database`);
+const orderDetailValidator = require("../../../service/orderDetailValidator");
 const OrderDetail = use("App/Models/OrderDetail");
-const makeOrderDetailUtil = require("../../../OrderDetailUtil.funct");
+const makeOrderDetailUtil = require("../../../util/OrderDetailUtil.func");
+const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 
-function numberTypeParamValidator(number) {
-  if (Number.isNaN(parseInt(number))) {
-    return {
-      error: `param:${number} is not supported,please use number type param intnstead`,
-    };
-  }
-  return {};
-}
 class OrderDetailController {
   async index({ request }) {
-    const { references = undefined } = request.qs;
-    const orderDetail = await makeOrderDetailUtil(OrderDetail).getAll(
+    const { references } = request.qs;
+    const orderDetails = await makeOrderDetailUtil(OrderDetail).getAll(
       references
     );
 
-    return { status: 200, error: undefined, data: orderDetail };
+    return { status: 200, error: undefined, data: orderDetails };
   }
 
   async show({ request }) {
-    const { id } = request.params;
-    const { references } = request.qs;
+    const { params, qs } = request;
+
+    const { id } = params;
+
+    const { references } = qs;
 
     const validateValue = numberTypeParamValidator(id);
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
-
-    const orderDetail = await makeOrderDetailUtil(OrderDetail).getAll(
-      references
+    const orderDetail = await makeOrderDetailUtil(OrderDetail).getById(
+      references,id
     );
     return { status: 200, error: undefined, data: orderDetail || {} };
   }
-  async store({ request }) {
-    const { product_id, order_quantity, order_id } = request.body;
 
-    const rules = {
-      customer_id: "required",
-      order_quantity: "required",
-      order_id: "required",
-    };
+  async store({ request }) {
+    const { body, qs } = request;
+
+    const { product_id, order_quantity, order_id } = body;
+
+    const { references } = qs;
+
+    const validation = await orderDetailValidator(request.body);
+
+    if (validation.error) {
+      return { status: 422, error: validation.error, data: undefined };
+    }
     const orderDetail = await makeOrderDetailUtil(OrderDetail).create(
       { product_id, order_quantity, order_id },
-      rules
+      references,
     );
     return {
       status: 200,
       error: undefined,
-      data: product_id,
-      order_quantity,
-      order_id,
+      data: orderDetail
     };
   }
   async update({ request }) {
-    const { body, params } = request;
-    const { id } = params;
-    const { product_id } = body;
-    const { order_quantity } = body;
-    const { order_id } = body;
+    const { body, params, qs } = request;
 
-    const orderDetailID = await Database.table("order_details")
-      .where({ order_detail_id: id })
-      .update({ product_id, order_quantity, order_id });
-    const order = await Database.table("order_details")
-      .where({ order_detail_id: orderDetailID })
-      .first();
+    const { id } = params;
+
+    const { references } = qs;
+
+    const { customer_id } = body;
+
+    const orderDetail = await makeOrderDetailUtil(OrderDetail).updateById(
+      id,
+      { product_id, order_quantity, order_id },
+      references
+    );
 
     return { status: 200, error: undefined, data: orderDetail };
   }
   async destroy({ request }) {
     const { id } = request.params;
-    await Database.table("order_details")
-      .where({ order_detail_id: id })
-      .delete();
 
-    return { status: 200, error: undefined, data: { massage: "success" } };
-  }
+    const orderDetail = await makeOrderUtil(OrderDetail).deleteById(id);
+
+    return {
+      status: 200,
+      error: undefined,
+      data: { massage: `${orderDetail} is successfully removed.` },
+    };
+ }
 }
 
 module.exports = OrderDetailController;

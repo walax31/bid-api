@@ -1,53 +1,50 @@
 "use strict";
-const Database = use(`Database`);
-const ProductDetail = use("App/Models/ProductDetail");
-const makeProductDetailUtil = require("../../../ProductDetailUtil.funct");
 
-function numberTypeParamValidator(number) {
-  if (Number.isNaN(parseInt(number))) {
-    return {
-      error: `param:${number} is not supported,please use number type param intnstead`,
-    };
-  }
-  return {};
-}
+const productDetailValidator = require("../../../service/productDetailValidator");
+const ProductDetail = use("App/Models/ProductDetail");
+const makeProductDetailUtil = require("../../../util/ProductDetailUtil.func");
+const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 class ProductDetailController {
   async index({ request }) {
-    const { references = undefined } = request.qs;
-    const productDetail = await makeProductDetailUtil(ProductDetail).getAll(
+    const { references } = request.qs;
+    const productDetails = await makeProductDetailUtil(ProductDetail).getAll(
       references
     );
 
-    return { status: 200, error: undefined, data: productDetail };
+    return { status: 200, error: undefined, data: productDetails };
   }
 
   async show({ request }) {
-    const { id } = request.params;
-    const { references } = request.qs;
+    const { params, qs } = request;
+
+    const { id } = params;
+
+    const { references } = qs;
 
     const validateValue = numberTypeParamValidator(id);
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
 
-    const productDetail = await makeProductDetailUtil(ProductDetail).getAll(
-      references
+    const productDetail = await makeProductDetailUtil(ProductDetail).getById(
+     id, references
     );
     return { status: 200, error: undefined, data: productDetail || {} };
   }
   async store({ request }) {
+    const { body, qs } = request;
     const {
       product_price,
       product_bid_start,
       product_bid_increment,
       product_description,
-    } = request.body;
+    } = body;
+    const { references } = qs;
 
-    const rules = {
-      product_price: "required",
-      product_bid_start: "required",
-      product_bid_increment: "required",
-      product_description: "required",
-    };
+    const validation = await productDetailValidator(request.body);
+
+    if (validation.error) {
+      return { status: 422, error: validation.error, data: undefined };
+    }
     const productDetail = await makeProductDetailUtil(ProductDetail).create(
       {
         product_price,
@@ -60,39 +57,44 @@ class ProductDetailController {
     return {
       status: 200,
       error: undefined,
-      data: product_price,
-      product_bid_start,
-      product_bid_increment,
-      product_description,
+      data: references,
     };
   }
   async update({ request }) {
-    const { body, params } = request;
-    const { id } = params;
-    const { product_price } = body;
-    const { product_bid_start } = body;
-    const { product_bid_increment } = body;
-    const { product_description } = body;
+    const { body, params, qs } = request;
 
-    const productDetailID = await Database.table("product_details")
-      .where({ product_id: id })
-      .update({
+    const { id } = params;
+
+    const { references } = qs;
+
+    const {
+      product_price,
+      product_bid_start,
+      product_bid_increment,
+      product_description,
+    } = body;
+
+    const productDetail = await makeProductDetailUtil(ProductDetail).updateById(
+      id,
+      {
         product_price,
         product_bid_start,
         product_bid_increment,
         product_description,
-      });
-    const productDetail = await Database.table("product_details")
-      .where({ product_id: productDetailID })
-      .first();
-
+      },
+      references
+    );
     return { status: 200, error: undefined, data: productDetail };
   }
   async destroy({ request }) {
     const { id } = request.params;
-    await Database.table("product_details").where({ product_id: id }).delete();
+    const productDetail = await makeProductDetailUtil(ProductDetail).deleteById(id);
 
-    return { status: 200, error: undefined, data: { massage: "success" } };
+    return {
+      status: 200,
+      error: undefined,
+      data: { massage: `${productDetail} is successfully removed.` },
+    };
   }
 }
 

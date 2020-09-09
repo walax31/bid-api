@@ -25,17 +25,17 @@ Route.group(() => {
 
   Route.resource("/users", "UserController");
 
-  Route.resource("/credentials", "CredentialController");
+  Route.resource("/credentialRatings", "CredentialRatingController");
 
   Route.resource("/customers", "CustomerController");
 
   Route.resource("/orders", "OrderController");
 
-  Route.resource("/ordersDetail", "OrderDetailController");
+  Route.resource("/orderDetails", "OrderDetailController");
 
   Route.resource('/payments','PaymentController')
 
   Route.resource('/products','ProductController')
 
-  Route.resource('/productsDetail','ProductDetailController')
+  Route.resource('/productDetails','ProductDetailController')
 }).prefix("api/v1");
