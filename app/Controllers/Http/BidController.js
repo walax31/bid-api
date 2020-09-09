@@ -55,6 +55,7 @@ class BidController {
       data: bid,
     };
   }
+
   async update({ request }) {
     const { body, params, qs } = request;
 
@@ -72,6 +73,7 @@ class BidController {
 
     return { status: 200, error: undefined, data: bid };
   }
+
   async destroy({ request }) {
     const { id } = request.params;
 
