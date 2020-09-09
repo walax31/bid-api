@@ -1,4 +1,4 @@
-const Validator = use(Validator);
+const Validator = use("Validator");
 
 module.exports = async function (data) {
   if (typeof data !== "object") throw new Error("Param dones is not a object.");
