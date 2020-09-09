@@ -1,81 +1,86 @@
 "use strict";
 
-const Database = use(`Database`);
+const credentialValidator = require("../../../service/credentialRatingValidator");
 const Credential = use("App/Models/CredentialRating");
-const makeCredentialUtil = require("../../../CredentialUtil.funct");
-
-function numberTypeParamValidator(number) {
-  if (Number.isNaN(parseInt(number))) {
-    return {
-      error: `param:${number} is not supported,please use number type param intnstead`,
-    };
-  }
-  return {};
-}
+const makeCredentialUtil = require("../../../util/CredentialRatingUtil.func");
+const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 
 class CredentialController {
   async index({ request }) {
-    const { references = undefined } = request.qs;
-    const credential = await makeCredentialUtil(Credential).getAll(references);
+    const { references } = request.qs;
+    const credentials = await makeCredentialUtil(Credential).getAll(references);
 
-    return { status: 200, error: undefined, data: credential };
+    return { status: 200, error: undefined, data: credentials };
   }
 
   async show({ request }) {
-    const { id } = request.params;
-    const { references } = request.qs;
+    const { params, qs } = request;
+
+    const { id } = params;
+
+    const { references } = qs;
 
     const validateValue = numberTypeParamValidator(id);
+
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
 
-    const credential = await makeCredentialUtil(Credential).getAll(references);
+    const credential = await makeCredentialUtil(Credential).getById(
+      id,
+      references
+    );
     return { status: 200, error: undefined, data: credential || {} };
   }
 
   async store({ request }) {
-    const { customer_id, rating_score, rating_description } = request.body;
+    const { body, qs } = request;
 
-    const rules = {
-      customer_id: "required",
-      rating_score: "required",
-      rating_description: "required",
-    };
+    const { customer_id, rating_score, rating_description } = body;
+
+    const { references } = qs;
+
+    const validation = await credentialValidator(request.body);
+
+    if (validation.error) {
+      return { status: 422, error: validation.error, data: undefined };
+    }
+
     const credential = await makeCredentialUtil(Credential).create(
       { customer_id, rating_score, rating_description },
-      rules
+      references
     );
     return {
       status: 200,
       error: undefined,
-      data: customer_id,
-      rating_score,
-      rating_description,
+      data: credential,
     };
   }
   async update({ request }) {
-    const { body, params } = request;
-    const { id } = params;
-    const { customer_id } = body;
-    const { rating_score } = body;
-    const { rating_description } = body;
+    const { body, params, qs } = request;
 
-    const credentialID = await Database.table("credential_ratings")
-      .where({ credential_rating_id: id })
-      .update({ customer_id, rating_score, rating_description });
-    const credential = await Database.table("credential_ratings")
-      .where({ credential_rating_id: credentialID })
-      .first();
+    const { id } = params;
+
+    const { references } = qs;
+    const { customer_id, rating_score, rating_description } = body;
+
+    const credential = await makeCredentialUtil(Credential).updateById(
+      id,
+      { customer_id, rating_score, rating_description },
+      references
+    );
 
     return { status: 200, error: undefined, data: credential };
   }
   async destroy({ request }) {
     const { id } = request.params;
-    await Database.table("credential_ratings")
-      .where({ credential_rating_id: id })
-      .delete();
 
-    return { status: 200, error: undefined, data: { massage: "success" } };
+    const credential = await makeCredentialUtil(Credential).deleteById(id);
+
+    return {
+      status: 200,
+      error: undefined,
+      data: { massage: `${credential} is successfully removed.` },
+    };
   }
 }
 
