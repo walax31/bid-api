@@ -79,10 +79,18 @@ class BidController {
 
     const bid = await makeBidUtil(Bid).deleteById(id);
 
+    if (!bid) {
+      return {
+        status: 500,
+        error: `id: ${id} was not found.`,
+        data: undefined,
+      };
+    }
+
     return {
       status: 200,
       error: undefined,
-      data: { massage: `${bid} is successfully removed.` },
+      data: { massage: "successfully removed index." },
     };
   }
 }
