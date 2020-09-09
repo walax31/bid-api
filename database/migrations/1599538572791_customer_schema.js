@@ -9,11 +9,11 @@ class CustomerSchema extends Schema {
       table.increments("customer_id");
       table.timestamps();
       table.integer("user_id").unsigned().notNullable();
-      table.string("customer_first_name", 50).notNullable();
-      table.string("customer_last_name", 50).notNullable();
-      table.string("customer_address", 50).notNullable();
-      table.string("customer_phone", 20).notNullable().unique();
-      table.string("customer_path_to_credential").notNullable().unique();
+      table.string("first_name", 50).notNullable();
+      table.string("last_name", 50).notNullable();
+      table.string("address", 50).notNullable();
+      table.string("phone", 20).notNullable().unique();
+      table.string("path_to_credential").notNullable().unique();
 
       table
         .foreign("user_id")
