@@ -2,7 +2,7 @@
 const Database = use(`Database`);
 
 const ProductDetail = use("App/Models/ProductDetail");
-const makeProductUtil = require("../../../util/ProductDetailUtil.func");
+const makeProductDetailUtil = require("../../../util/ProductDetailUtil.func");
 
 function numberTypeParamValidator(number) {
   if (Number.isNaN(parseInt(number))) {
