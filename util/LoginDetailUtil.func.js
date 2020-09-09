@@ -29,7 +29,7 @@ module.exports = function (LoginModel) {
         .fetch()
         .then((response) => response.first());
     },
-    updateById: async (customer_id, references) => {
+    updateById: async (customer_id, attributes, references) => {
       let loginDetail = await LoginModel.find(customer_id);
 
       loginDetail.merge(attributes);

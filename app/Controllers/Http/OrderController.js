@@ -24,13 +24,14 @@ class OrderController {
   async show({ request }) {
     const { id } = request.params;
     const { references } = request.qs;
+
     const validateValue = numberTypeParamValidator(id);
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
-    const order = await makeUserUtil(Order).getAll(references);
-    return { status: 200, error: undefined, data: Order || {} };
-  }
 
+    const order = await makeOrderUtil(Order).getAll(references);
+    return { status: 200, error: undefined, data: order || {} };
+  }
   async store({ request }) {
     const { customer_id } = request.body;
 
@@ -44,7 +45,20 @@ class OrderController {
       data: customer_id,
     };
   }
-  async update({ request }) {}
+  async update({ request }) {
+    const { body, params } = request;
+    const { id } = params;
+    const { customer_id } = body;
+
+    const orderID = await Database.table("orders")
+      .where({ order_id: id })
+      .update({ customer_id });
+    const order = await Database.table("orders")
+      .where({ order_id: orderID })
+      .first();
+
+    return { status: 200, error: undefined, data: order };
+  }
   async destroy({ request }) {
     const { id } = request.params;
     await Database.table("orders").where({ order_id: id }).delete();

@@ -1,76 +1,87 @@
 "use strict";
 
-const Database = use(`Database`);
-// const Validator = use("Validator");
+const bidValidator = require("../../../service/bidValidator");
 const Bid = use("App/Models/Bid");
 const makeBidUtil = require("../../../util/BidUtil.func");
-
-function numberTypeParamValidator(number) {
-  if (Number.isNaN(parseInt(number))) {
-    return {
-      error: `param:${number} is not supported,please use number type param intnstead`,
-    };
-  }
-  return {};
-}
+const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 
 class BidController {
   async index({ request }) {
-    const { references = undefined } = request.qs;
-    const bid = await makeBidUtil(Bid).getAll(references);
+    const { references } = request.qs;
 
-    return { status: 200, error: undefined, data: bid };
+    const bids = await makeBidUtil(Bid).getAll(references);
+
+    return { status: 200, error: undefined, data: bids };
   }
 
   async show({ request }) {
-    const { id } = request.params;
-    const { references } = request.qs;
+    const { params, qs } = request;
+
+    const { id } = params;
+
+    const { references } = qs;
+
     const validateValue = numberTypeParamValidator(id);
+
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
-    const bid = await makeBidUtil(Bid).getAll(references);
+
+    const bid = await makeBidUtil(Bid).getById(id, references);
+
     return { status: 200, error: undefined, data: bid || {} };
   }
 
   async store({ request }) {
-    const { customer_id, bid_amount, product_id } = request.body;
+    const { body, qs } = request;
 
-    const rules = {
-      customer_id: "required",
-      bid_amount: "required",
-      product_id: "required",
-    };
+    const { customer_id, bid_amount, product_id } = body;
+
+    const { references } = qs;
+
+    const validation = await bidValidator(request.body);
+
+    if (validation.error) {
+      return { status: 422, error: validation.error, data: undefined };
+    }
+
     const bid = await makeBidUtil(Bid).create(
       { customer_id, bid_amount, product_id },
       rules
     );
+
     return {
       status: 200,
       error: undefined,
-      data: customer_id,
-      bid_amount,
-      product_id,
+      data: bid,
     };
   }
   async update({ request }) {
-    const { body, params } = request;
-    const { id } = params;
-    const { customer_id } = body;
-    const { bid_amount } = body;
-    const { product_id } = body;
+    const { body, params, qs } = request;
 
-    const bidID = await Database.table("bids")
-      .where({ bid_id: id })
-      .update(customer_id, bid_amount, product_id);
-    const bid = await Database.table("bids").where({ bid_id: bidID }).first();
+    const { id } = params;
+
+    const { references } = qs;
+
+    const { customer_id, bid_amount, product_id } = body;
+
+    const bid = await makeBidUtil(Bid).updateById(
+      id,
+      { customer_id, bid_amount, product_id },
+      references
+    );
 
     return { status: 200, error: undefined, data: bid };
   }
   async destroy({ request }) {
     const { id } = request.params;
-    await Database.table("bids").where({ bid_id: id }).delete();
 
-    return { status: 200, error: undefined, data: { massage: "success" } };
+    const bid = await makeBidUtil(Bid).deleteById(id);
+
+    return {
+      status: 200,
+      error: undefined,
+      data: { massage: `${bid} is successfully removed.` },
+    };
   }
 }
 

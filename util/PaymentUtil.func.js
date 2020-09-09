@@ -29,7 +29,7 @@ module.exports = function (PaymentModel) {
         .fetch()
         .then((response) => response.first());
     },
-    updateById: async (order_id, references) => {
+    updateById: async (order_id, attributes, references) => {
       let payment = await PaymentModel.find(order_id);
 
       payment.merge(attributes);

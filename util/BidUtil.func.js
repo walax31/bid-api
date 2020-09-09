@@ -29,7 +29,7 @@ module.exports = function (BidModel) {
         .fetch()
         .then((response) => response.first());
     },
-    updateById: async (bid_id, references) => {
+    updateById: async (bid_id, attributes, references) => {
       let bid = await BidModel.find(bid_id);
 
       bid.merge(attributes);

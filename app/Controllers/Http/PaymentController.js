@@ -17,29 +17,35 @@ class PaymentController {
     const { references = undefined } = request.qs;
     const payment = await makePaymentUtil(Payment).getAll(references);
 
-    return { status: 200, error: undefined, data: Payment };
+    return { status: 200, error: undefined, data: payment };
   }
 
   async show({ request }) {
     const { id } = request.params;
     const { references } = request.qs;
+
     const validateValue = numberTypeParamValidator(id);
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
-    const payment = await makePaymentUtil(Payment).getAll(references);
-    return { status: 200, error: undefined, data: Payment || {} };
-  }
 
+    const payment = await makePaymentUtil(Payment).getAll(references);
+    return { status: 200, error: undefined, data: payment || {} };
+  }
   async store({ request }) {
-    const { metthod, status, total } = request.body;
+    const { method, status, total } = request.body;
 
     const rules = {
       method: "required",
-      status: "required",
-      total: "required",
+
+      end_date: "required",
+      stock: "required",
     };
     const payment = await makePaymentUtil(Payment).create(
-      { username, email, password },
+      {
+        method,
+        status,
+        total,
+      },
       rules
     );
     return {
@@ -57,11 +63,15 @@ class PaymentController {
     const { status } = body;
     const { total } = body;
 
-    const PayID = await Database.table("payments")
+    const paymentID = await Database.table("payments")
       .where({ order_id: id })
-      .update(method, status, total);
+      .update({
+        method,
+        status,
+        total,
+      });
     const payment = await Database.table("payments")
-      .where({ order_id: PayID })
+      .where({ order_id: paymentID })
       .first();
 
     return { status: 200, error: undefined, data: payment };

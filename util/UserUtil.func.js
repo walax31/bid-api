@@ -1,16 +1,14 @@
-module.exports = function (CredentialRatingModel) {
+module.exports = function (UserModel) {
   const _withReferences = (references) => {
-    const _CredentialRating = CredentialRatingModel.query();
+    const _User = UserModel.query();
 
     if (references) {
       const extractedReferences = references.split(",");
 
-      extractedReferences.forEach((reference) =>
-        _CredentialRating.with(reference)
-      );
+      extractedReferences.forEach((reference) => _User.with(reference));
     }
 
-    return _CredentialRating;
+    return _User;
   };
 
   return {
@@ -24,7 +22,7 @@ module.exports = function (CredentialRatingModel) {
         .then((response) => response.first());
     },
     create: async (attributes, references) => {
-      const { customer_id } = await CredentialRatingModel.create(attributes);
+      const { customer_id } = await UserModel.create(attributes);
 
       return _withReferences(references)
         .where({ customer_id })
@@ -32,13 +30,11 @@ module.exports = function (CredentialRatingModel) {
         .then((response) => response.first());
     },
     updateById: async (customer_id, attributes, references) => {
-      let CredentialRatingDetail = await CredentialRatingModel.find(
-        customer_id
-      );
+      let user = await UserModel.find(customer_id);
 
-      CredentialRatingDetail.merge(attributes);
+      user.merge(attributes);
 
-      await CredentialRatingDetail.save();
+      await user.save();
 
       return _withReferences(references)
         .where({ customer_id })
@@ -46,11 +42,9 @@ module.exports = function (CredentialRatingModel) {
         .then((response) => response.first());
     },
     deleteById: async (customer_id) => {
-      const CredentialRatingDetail = await CredentialRatingModel.find(
-        customer_id
-      );
+      const user = await UserModel.find(customer_id);
 
-      return CredentialRatingDetail.delete();
+      return user.delete();
     },
   };
 };

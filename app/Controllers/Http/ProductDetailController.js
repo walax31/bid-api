@@ -15,7 +15,9 @@ function numberTypeParamValidator(number) {
 class ProductDetailController {
   async index({ request }) {
     const { references = undefined } = request.qs;
-    const productDetail = await makeOrderUtil(ProductDetail).getAll(references);
+    const productDetail = await makeProductDetailUtil(ProductDetail).getAll(
+      references
+    );
 
     return { status: 200, error: undefined, data: productDetail };
   }
@@ -23,15 +25,16 @@ class ProductDetailController {
   async show({ request }) {
     const { id } = request.params;
     const { references } = request.qs;
+
     const validateValue = numberTypeParamValidator(id);
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
+
     const productDetail = await makeProductDetailUtil(ProductDetail).getAll(
       references
     );
-    return { status: 200, error: undefined, data: ProductDetail || {} };
+    return { status: 200, error: undefined, data: productDetail || {} };
   }
-
   async store({ request }) {
     const {
       product_price,
@@ -72,19 +75,19 @@ class ProductDetailController {
     const { product_bid_increment } = body;
     const { product_description } = body;
 
-    const productDetatiID = await Database.table("product_details")
+    const productDetailID = await Database.table("product_details")
       .where({ product_id: id })
-      .update(
+      .update({
         product_price,
         product_bid_start,
         product_bid_increment,
-        product_description
-      );
-    const orderDetail = await Database.table("product_details")
-      .where({ product_id: productDetatiID })
+        product_description,
+      });
+    const productDetail = await Database.table("product_details")
+      .where({ product_id: productDetailID })
       .first();
 
-    return { status: 200, error: undefined, data: orderDetail };
+    return { status: 200, error: undefined, data: productDetail };
   }
   async destroy({ request }) {
     const { id } = request.params;

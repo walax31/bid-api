@@ -1,4 +1,16 @@
 "use strict";
+const Database = use(`Database`);
+const User = use("App/Models/User");
+const makeUserUtil = require("../../../UserUtil.funct");
+
+function numberTypeParamValidator(number) {
+  if (Number.isNaN(parseInt(number))) {
+    return {
+      error: `param:${number} is not supported,please use number type param intnstead`,
+    };
+  }
+  return {};
+}
 
 const Database = use(`Database`);
 
@@ -18,29 +30,34 @@ class UserController {
     const { references = undefined } = request.qs;
     const user = await makeUserUtil(User).getAll(references);
 
-    return { status: 200, error: undefined, data: User };
+    return { status: 200, error: undefined, data: user };
   }
 
   async show({ request }) {
     const { id } = request.params;
     const { references } = request.qs;
+
     const validateValue = numberTypeParamValidator(id);
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
-    const user = await makeUserUtil(User).getAll(references);
-    return { status: 200, error: undefined, data: User || {} };
-  }
 
+    const user = await makeUserUtil(User).getAll(references);
+    return { status: 200, error: undefined, data: user || {} };
+  }
   async store({ request }) {
     const { username, email, password } = request.body;
 
     const rules = {
+      username: "required",
       email: "required",
       password: "required",
-      username: "required",
     };
     const user = await makeUserUtil(User).create(
-      { username, email, password },
+      {
+        username,
+        email,
+        password,
+      },
       rules
     );
     return {

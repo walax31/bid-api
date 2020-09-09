@@ -14,6 +14,18 @@ function numberTypeParamValidator(number) {
   return {};
 }
 
+const Database = use(`Database`);
+const Customer = use("App/Models/Customer");
+const makeCustomerUtil = require("../../../CustomerUtil.funct");
+
+function numberTypeParamValidator(number) {
+  if (Number.isNaN(parseInt(number))) {
+    return {
+      error: `param:${number} is not supported,please use number type param intnstead`,
+    };
+  }
+  return {};
+}
 class CustomerController {
   async index({ request }) {
     const { references = undefined } = request.qs;
@@ -25,11 +37,13 @@ class CustomerController {
   async show({ request }) {
     const { id } = request.params;
     const { references } = request.qs;
+
     const validateValue = numberTypeParamValidator(id);
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
+
     const customer = await makeCustomerUtil(Customer).getAll(references);
-    return { status: 200, error: undefined, data: bid || {} };
+    return { status: 200, error: undefined, data: customer || {} };
   }
 
   async store({ request }) {
@@ -45,7 +59,7 @@ class CustomerController {
       customer_first_name: "required",
       customer_last_name: "required",
       customer_phone: "required",
-      customer_phone: "required",
+      customer_address: "required",
       customer_path_to_credential: "required",
     };
     const customer = await makeCustomerUtil(Customer).create(
@@ -79,13 +93,14 @@ class CustomerController {
 
     const customerID = await Database.table("customers")
       .where({ customer_id: id })
-      .update(
+      .update({
         customer_first_name,
         customer_last_name,
         customer_address,
         customer_phone,
-        customer_path_to_credential
+        customer_path_to_credential}
       );
+  
     const customer = await Database.table("customers")
       .where({ customer_id: customerID })
       .first();

@@ -24,13 +24,14 @@ class ProductController {
   async show({ request }) {
     const { id } = request.params;
     const { references } = request.qs;
+
     const validateValue = numberTypeParamValidator(id);
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
-    const product = await makeUserUtil(Product).getAll(references);
-    return { status: 200, error: undefined, data: Product || {} };
-  }
 
+    const product = await makeProductUtil(Product).getAll(references);
+    return { status: 200, error: undefined, data: product || {} };
+  }
   async store({ request }) {
     const { customer_id, product_name, end_date, stock } = request.body;
 
@@ -40,8 +41,13 @@ class ProductController {
       end_date: "required",
       stock: "required",
     };
-    const product = await makeOrderUtil(Product).create(
-      { customer_id, product_name, end_date, stock },
+    const product = await makeProductUtil(Product).create(
+      {
+        customer_id,
+        product_name,
+        end_date,
+        stock,
+      },
       rules
     );
     return {
@@ -56,24 +62,28 @@ class ProductController {
   async update({ request }) {
     const { body, params } = request;
     const { id } = params;
+    const { customer_id } = body;
     const { product_name } = body;
     const { end_date } = body;
     const { stock } = body;
 
     const productID = await Database.table("products")
       .where({ product_id: id })
-      .update(customer_id, product_name, end_date, stock);
+      .update({
+        customer_id,
+        product_name,
+        end_date,
+        stock,
+      });
     const product = await Database.table("products")
       .where({ product_id: productID })
       .first();
 
-    return { status: 200, error: undefined, data: orderDetail };
+    return { status: 200, error: undefined, data: product };
   }
   async destroy({ request }) {
     const { id } = request.params;
-    await Database.table("orderorder_details")
-      .where({ product_id: id })
-      .delete();
+    await Database.table("products").where({ product_id: id }).delete();
 
     return { status: 200, error: undefined, data: { massage: "success" } };
   }

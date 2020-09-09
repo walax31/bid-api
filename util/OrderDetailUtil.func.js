@@ -29,7 +29,7 @@ module.exports = function (OrderDetailModel) {
         .fetch()
         .then((response) => response.first());
     },
-    updateById: async (order_detail_id, references) => {
+    updateById: async (order_detail_id, attributes, references) => {
       let orderDetail = await OrderDetailModel.find(order_detail_id);
 
       orderDetail.merge(attributes);

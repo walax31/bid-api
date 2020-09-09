@@ -32,7 +32,7 @@ class User extends Model {
    * @return {Object}
    */
   static get primaryKey() {
-    return "customer_id";
+    return "user_id";
   }
 
   static get createdAtColumn() {
@@ -45,10 +45,6 @@ class User extends Model {
 
   customer() {
     return this.hasOne("App/Models/Customer");
-  }
-
-  credential() {
-    return this.hasOne("App/Models/Credential");
   }
 
   tokens() {
