@@ -8,7 +8,7 @@ trait("Test/ApiClient");
 test("should return structured response with empty data array via get method.", async ({
   client,
 }) => {
-  const response = await client.get("/api/v1/users").end();
+  const response = await client.get("api/v1/users").end();
 
   response.assertStatus(200);
   response.assertJSONSubset({
