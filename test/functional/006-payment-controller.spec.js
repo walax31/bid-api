@@ -30,13 +30,13 @@ test("should return structured response with empty data via get method.", async 
 test("should return structured data with no references via post method.", async ({
   client,
 }) => {
-  const paymentData = {
+  const PaymentData = {
     method: "rfeedaw",
     status: "eded",
     total: 1,
   };
 
-  const response = await client.post("api/v1/payments").send(paymentData).end();
+  const response = await client.post("api/v1/payments").send(PaymentData).end();
 
   response.assertStatus(200);
   response.assertJSONSubset({
