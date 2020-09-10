@@ -8,8 +8,6 @@ const makeUserUtil = require("../../util/testerUtil/autogenUserInstance.func");
 const makeCustomerUtil = require("../../util/testerUtil/autogenCustomerInstance.func");
 const makeCredentialRatingUtil = require("../../util/CredentialRatingUtil.func");
 
-const sessionData = {};
-
 test("should return empty array of rows from makeCredentialRatingUtil", async ({
   assert,
 }) => {
@@ -39,37 +37,70 @@ test("should return object of created index from makeCredentialRatingUtil.", asy
 
   assert.isOk(credential_rating_id);
 
-  sessionData.credential_rating_id = credential_rating_id;
-  sessionData.user_id = user_id;
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return array of row from makeCredentialRatingUtil.", async ({
   assert,
 }) => {
+  const { user_id } = await makeUserUtil(UserModel);
+
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  await CredentialRatingModel.create({
+    customer_id,
+    rating_score: 100,
+    rating_description: "someratingdescription",
+  });
+
   const credentialRatings = await makeCredentialRatingUtil(
     CredentialRatingModel
   ).getAll("");
 
   assert.isAbove(credentialRatings.rows.length, 0);
+
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return object of requested created index from makeCredentialRatingUtil.", async ({
   assert,
 }) => {
+  const { user_id } = await makeUserUtil(UserModel);
+
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { credential_rating_id } = await CredentialRatingModel.create({
+    customer_id,
+    rating_score: 100,
+    rating_description: "someratingdescription",
+  }).then((response) => response["$attributes"]);
+
   const credentialRating = await makeCredentialRatingUtil(
     CredentialRatingModel
-  ).getById(sessionData.credential_rating_id, "");
+  ).getById(credential_rating_id, "");
 
   assert.isOk(credentialRating);
+
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return modified object of updated index form makeCredentialRatingUtil.", async ({
   assert,
 }) => {
+  const { user_id } = await makeUserUtil(UserModel);
+
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { credential_rating_id } = await CredentialRatingModel.create({
+    customer_id,
+    rating_score: 100,
+    rating_description: "someratingdescription",
+  }).then((response) => response["$attributes"]);
+
   const credentialRating = await makeCredentialRatingUtil(
     CredentialRatingModel
   ).updateById(
-    sessionData.credential_rating_id,
+    credential_rating_id,
     { rating_description: "a_new_description" },
     ""
   );
@@ -78,32 +109,28 @@ test("should return modified object of updated index form makeCredentialRatingUt
     credentialRating["$attributes"].rating_description,
     "a_new_description"
   );
+
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return index of deleted index from makeCredentialRatingUtil.", async ({
   assert,
 }) => {
-  assert.plan(2);
+  const { user_id } = await makeUserUtil(UserModel);
+
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { credential_rating_id } = await CredentialRatingModel.create({
+    customer_id,
+    rating_score: 100,
+    rating_description: "someratingdescription",
+  }).then((response) => response["$attributes"]);
 
   const deletedCredentialRating = await makeCredentialRatingUtil(
     CredentialRatingModel
-  ).deleteById(sessionData.credential_rating_id);
+  ).deleteById(credential_rating_id);
 
   assert.isOk(deletedCredentialRating);
 
-  const deletedUser = await UserModel.find(
-    sessionData.user_id
-  ).then((response) => response.delete());
-
-  assert.isOk(deletedUser);
-});
-
-test("should not return object of requested index from makeCredentialRatingUtil.", async ({
-  assert,
-}) => {
-  const credentialRating = await makeCredentialRatingUtil(
-    CredentialRatingModel
-  ).getById(sessionData.credential_rating_id, "");
-
-  assert.isNotOk(credentialRating);
+  await UserModel.find(user_id).then((response) => response.delete());
 });

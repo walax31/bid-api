@@ -10,8 +10,6 @@ const makeCustomerUtil = require("../../util/testerUtil/autogenCustomerInstance.
 const makeProductUtil = require("../../util/testerUtil/autogenProductInstance.func");
 const makeProductDetailUtil = require("../../util/ProductDetailUtil.func");
 
-const sessionData = {};
-
 test("should return empty array of rows from makeProductDetailUtil", async ({
   assert,
 }) => {
@@ -41,73 +39,116 @@ test("should return object of created index from makeProductDetailUtil.", async 
 
   assert.isOk(productDetail);
 
-  sessionData.product_id = product_id;
-  sessionData.user_id = user_id;
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return array of row from makeProductDetailUtil.", async ({
   assert,
 }) => {
+  const { user_id } = await makeUserUtil(UserModel);
+
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  await ProductDetailModel.create({
+    product_id,
+    product_price: 1000,
+    product_bid_start: 500,
+    product_bid_increment: 100,
+    product_description: "a_product_description",
+  });
+
   const productDetails = await makeProductDetailUtil(ProductDetailModel).getAll(
     ""
   );
 
   assert.isAbove(productDetails.rows.length, 0);
+
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return object of requested created index from makeProductDetailUtil.", async ({
   assert,
 }) => {
+  const { user_id } = await makeUserUtil(UserModel);
+
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  await ProductDetailModel.create({
+    product_id,
+    product_price: 1000,
+    product_bid_start: 500,
+    product_bid_increment: 100,
+    product_description: "a_product_description",
+  });
+
   const productDetail = await makeProductDetailUtil(ProductDetailModel).getById(
-    sessionData.product_id,
+    product_id,
     ""
   );
 
   assert.isOk(productDetail);
+
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return modified object of updated index form makeProductDetailUtil.", async ({
   assert,
 }) => {
-  const productDetail = await makeProductDetailUtil(
-    ProductDetailModel
-  ).updateById(
-    sessionData.product_id,
-    { product_description: "a_new_product_description" },
-    ""
-  );
+  const { user_id } = await makeUserUtil(UserModel);
 
-  assert.equal(
-    productDetail["$attributes"].product_description,
-    "a_new_product_description"
-  );
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  await ProductDetailModel.create({
+    product_id,
+    product_price: 1000,
+    product_bid_start: 500,
+    product_bid_increment: 100,
+    product_description: "a_product_description",
+  });
+
+  const { product_description } = await makeProductDetailUtil(
+    ProductDetailModel
+  )
+    .updateById(
+      product_id,
+      { product_description: "a_new_product_description" },
+      ""
+    )
+    .then((response) => response["$attributes"]);
+
+  assert.equal(product_description, "a_new_product_description");
+
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return index of deleted index from makeProductDetailUtil.", async ({
   assert,
 }) => {
-  assert.plan(2);
+  const { user_id } = await makeUserUtil(UserModel);
+
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  await ProductDetailModel.create({
+    product_id,
+    product_price: 1000,
+    product_bid_start: 500,
+    product_bid_increment: 100,
+    product_description: "a_product_description",
+  });
 
   const deletedProductDetail = await makeProductDetailUtil(
     ProductDetailModel
-  ).deleteById(sessionData.product_id);
+  ).deleteById(product_id);
 
   assert.isOk(deletedProductDetail);
 
-  const deletedUser = await UserModel.find(
-    sessionData.user_id
-  ).then((response) => response.delete());
-
-  assert.isOk(deletedUser);
-});
-
-test("should not return object of requested index from makeProductDetailUtil.", async ({
-  assert,
-}) => {
-  const productDetail = await makeProductDetailUtil(ProductDetailModel).getById(
-    sessionData.product_id,
-    ""
-  );
-
-  assert.isNotOk(productDetail);
+  await UserModel.find(user_id).then((response) => response.delete());
 });

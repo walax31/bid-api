@@ -10,8 +10,6 @@ const makeCustomerUtil = require("../../util/testerUtil/autogenCustomerInstance.
 const makeProductUtil = require("../../util/testerUtil/autogenProductInstance.func");
 const makeBidUtil = require("../../util/BidUtil.func");
 
-const sessionData = {};
-
 test("should return empty array of rows from makeBidUtil", async ({
   assert,
 }) => {
@@ -29,66 +27,99 @@ test("should return object of created index from makeBidUtil.", async ({
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
-  const bid = await makeBidUtil(BidModel).create({
-    customer_id,
-    bid_amount: 1100,
-    product_id,
-  });
-
-  const { bid_id } = bid["$attributes"];
+  const { bid_id } = await makeBidUtil(BidModel)
+    .create({
+      customer_id,
+      bid_amount: 1100,
+      product_id,
+    })
+    .then((response) => response["$attributes"]);
 
   assert.isOk(bid_id);
 
-  sessionData.bid_id = bid_id;
-  sessionData.user_id = user_id;
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return array of row from makeBidUtil.", async ({ assert }) => {
+  const { user_id } = await makeUserUtil(UserModel);
+
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  await BidModel.create({ customer_id, bid_amount: 1100, product_id });
+
   const bids = await makeBidUtil(BidModel).getAll("");
 
   assert.isAbove(bids.rows.length, 0);
+
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return object of requested created index from makeBidUtil.", async ({
   assert,
 }) => {
-  const bid = await makeBidUtil(BidModel).getById(sessionData.bid_id, "");
+  const { user_id } = await makeUserUtil(UserModel);
+
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  const { bid_id } = await BidModel.create({
+    customer_id,
+    bid_amount: 1100,
+    product_id,
+  }).then((response) => response["$attributes"]);
+
+  const bid = await makeBidUtil(BidModel).getById(bid_id, "");
 
   assert.isOk(bid);
+
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return modified object of updated index form makeBidUtil.", async ({
   assert,
 }) => {
-  const bid = await makeBidUtil(BidModel).updateById(
-    sessionData.bid_id,
-    { bid_amount: 1200 },
-    ""
-  );
+  const { user_id } = await makeUserUtil(UserModel);
 
-  assert.equal(bid["$attributes"].bid_amount, 1200);
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  const { bid_id } = await BidModel.create({
+    customer_id,
+    bid_amount: 1100,
+    product_id,
+  }).then((response) => response["$attributes"]);
+
+  const { bid_amount } = await makeBidUtil(BidModel)
+    .updateById(bid_id, { bid_amount: 1200 }, "")
+    .then((response) => response["$attributes"]);
+
+  assert.equal(bid_amount, 1200);
+
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return index of deleted index from makeBidUtil.", async ({
   assert,
 }) => {
-  assert.plan(2);
+  const { user_id } = await makeUserUtil(UserModel);
 
-  const deletedBid = await makeBidUtil(BidModel).deleteById(sessionData.bid_id);
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  const { bid_id } = await BidModel.create({
+    customer_id,
+    bid_amount: 1100,
+    product_id,
+  }).then((response) => response["$attributes"]);
+
+  const deletedBid = await makeBidUtil(BidModel).deleteById(bid_id);
 
   assert.isOk(deletedBid);
 
-  const deletedUser = await UserModel.find(
-    sessionData.user_id
-  ).then((response) => response.delete());
-
-  assert.isOk(deletedUser);
-});
-
-test("should not return object of requested index from makeBidUtil.", async ({
-  assert,
-}) => {
-  const bid = await makeBidUtil(BidModel).getById(sessionData.bid_id, "");
-
-  assert.isNotOk(bid);
+  await UserModel.find(user_id).then((response) => response.delete());
 });

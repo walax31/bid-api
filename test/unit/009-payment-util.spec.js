@@ -10,8 +10,6 @@ const makeCustomerUtil = require("../../util/testerUtil/autogenCustomerInstance.
 const makeOrderUtil = require("../../util/testerUtil/autogenOrderInstance.func");
 const makePaymentUtil = require("../../util/PaymentUtil.func");
 
-const sessionData = {};
-
 test("should return empty array of rows from makePaymentUtil", async ({
   assert,
 }) => {
@@ -37,64 +35,79 @@ test("should return object of created index from makePaymentUtil.", async ({
 
   assert.isOk(payment);
 
-  sessionData.order_id = order_id;
-  sessionData.user_id = user_id;
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return array of row from makePaymentUtil.", async ({ assert }) => {
+  const { user_id } = await makeUserUtil(UserModel);
+
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { order_id } = await makeOrderUtil(OrderModel, customer_id);
+
+  await PaymentModel.create({ order_id, method: "banking", total: 2 });
+
   const payments = await makePaymentUtil(PaymentModel).getAll("");
 
   assert.isAbove(payments.rows.length, 0);
+
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return object of requested created index from makePaymentUtil.", async ({
   assert,
 }) => {
-  const payment = await makePaymentUtil(PaymentModel).getById(
-    sessionData.order_id,
-    ""
-  );
+  const { user_id } = await makeUserUtil(UserModel);
+
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { order_id } = await makeOrderUtil(OrderModel, customer_id);
+
+  await PaymentModel.create({ order_id, method: "banking", total: 2 });
+
+  const payment = await makePaymentUtil(PaymentModel).getById(order_id, "");
 
   assert.isOk(payment);
+
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return modified object of updated index form makePaymentUtil.", async ({
   assert,
 }) => {
-  const payment = await makePaymentUtil(PaymentModel).updateById(
-    sessionData.order_id,
-    { status: "accepted" },
-    ""
-  );
+  const { user_id } = await makeUserUtil(UserModel);
 
-  assert.equal(payment["$attributes"].status, "accepted");
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { order_id } = await makeOrderUtil(OrderModel, customer_id);
+
+  await PaymentModel.create({ order_id, method: "banking", total: 2 });
+
+  const { status } = await makePaymentUtil(PaymentModel)
+    .updateById(order_id, { status: "accepted" }, "")
+    .then((response) => response["$attributes"]);
+
+  assert.equal(status, "accepted");
+
+  await UserModel.find(user_id).then((response) => response.delete());
 });
 
 test("should return index of deleted index from makePaymentUtil.", async ({
   assert,
 }) => {
-  assert.plan(2);
+  const { user_id } = await makeUserUtil(UserModel);
+
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+
+  const { order_id } = await makeOrderUtil(OrderModel, customer_id);
+
+  await PaymentModel.create({ order_id, method: "banking", total: 2 });
 
   const deletedPayment = await makePaymentUtil(PaymentModel).deleteById(
-    sessionData.order_id
+    order_id
   );
 
   assert.isOk(deletedPayment);
 
-  const deletedUser = await UserModel.find(
-    sessionData.user_id
-  ).then((response) => response.delete());
-
-  assert.isOk(deletedUser);
-});
-
-test("should not return object of requested index from makePaymentUtil.", async ({
-  assert,
-}) => {
-  const payment = await makePaymentUtil(PaymentModel).getById(
-    sessionData.order_id,
-    ""
-  );
-
-  assert.isNotOk(payment);
+  await UserModel.find(user_id).then((response) => response.delete());
 });
