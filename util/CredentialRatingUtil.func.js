@@ -17,23 +17,25 @@ module.exports = function (CredentialRatingModel) {
     getAll: (references) => {
       return _withReferences(references).fetch();
     },
-    getById: (customer_id, references) => {
+    getById: (credential_rating_id, references) => {
       return _withReferences(references)
-        .where({ customer_id })
+        .where({ credential_rating_id })
         .fetch()
         .then((response) => response.first());
     },
     create: async (attributes, references) => {
-      const { customer_id } = await CredentialRatingModel.create(attributes);
+      const { credential_rating_id } = await CredentialRatingModel.create(
+        attributes
+      );
 
       return _withReferences(references)
-        .where({ customer_id })
+        .where({ credential_rating_id })
         .fetch()
         .then((response) => response.first());
     },
-    updateById: async (customer_id, attributes, references) => {
+    updateById: async (credential_rating_id, attributes, references) => {
       let CredentialRatingDetail = await CredentialRatingModel.find(
-        customer_id
+        credential_rating_id
       );
 
       CredentialRatingDetail.merge(attributes);
@@ -41,13 +43,13 @@ module.exports = function (CredentialRatingModel) {
       await CredentialRatingDetail.save();
 
       return _withReferences(references)
-        .where({ customer_id })
+        .where({ credential_rating_id })
         .fetch()
         .then((response) => response.first());
     },
-    deleteById: async (customer_id) => {
+    deleteById: async (credential_rating_id) => {
       const CredentialRatingDetail = await CredentialRatingModel.find(
-        customer_id
+        credential_rating_id
       );
 
       return CredentialRatingDetail.delete();
