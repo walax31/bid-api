@@ -30,7 +30,7 @@ class ProductController {
 
     return { status: 200, error: undefined, data: product || {} };
   }
-
+  
   async store({ request }) {
     const { body, qs } = request;
 
