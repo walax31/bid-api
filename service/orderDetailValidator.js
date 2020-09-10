@@ -2,7 +2,7 @@ const Validator =use(Validator)
 module.exports =async function(data){
     if(typeof data !=="object") throw new Error("Param dones is not a object.")
    
-    const {product_id,order_quantity,order_id}
+    const {product_id,order_quantity,order_id}=data
     const rule={
         product_id:"require",
         order_quantity:"require",
