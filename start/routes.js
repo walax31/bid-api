@@ -24,6 +24,8 @@ Route.group(() => {
   Route.resource("/bids", "BidController");
 
   Route.resource("/users", "UserController");
+  Route.post("/login", "UserController.login").middleware("guest");
+  Route.post("/authenticate", "UserController.authenticate");
 
   Route.resource("/credentialRatings", "CredentialRatingController");
 
@@ -33,9 +35,9 @@ Route.group(() => {
 
   Route.resource("/orderDetails", "OrderDetailController");
 
-  Route.resource('/payments','PaymentController')
+  Route.resource("/payments", "PaymentController");
 
-  Route.resource('/products','ProductController')
+  Route.resource("/products", "ProductController");
 
-  Route.resource('/productDetails','ProductDetailController')
+  Route.resource("/productDetails", "ProductDetailController");
 }).prefix("api/v1");

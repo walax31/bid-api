@@ -1,10 +1,46 @@
-"use strict"
+"use strict";
 const userValidator = require("../../../service/userValidator");
 const User = use("App/Models/User");
 const makeUserUtil = require("../../../util/UserUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 
 class UserController {
+  async login({ auth, request }) {
+    const { username, password } = request.all();
+
+    return {
+      status: 200,
+      error: undefined,
+      data: await auth.withRefreshToken().attempt(username, password),
+    };
+  }
+
+  async authenticate({ auth, request }) {
+    const refreshToken = request.input("refresh_token");
+
+    try {
+      await auth.check();
+
+      return {
+        status: 200,
+        error: undefined,
+        // data: await auth
+        //   .newRefreshToken()
+        //   .generateForRefreshToken(refreshToken),
+      };
+    } catch (error) {
+      return {
+        status: 503,
+        error: "missing auth token",
+        data: undefined,
+      };
+    }
+  }
+
+  async logout({ auth }) {
+    // const
+  }
+
   async index({ request }) {
     const { references } = request.qs;
 
