@@ -34,7 +34,7 @@ class OrderController {
   async store({ request }) {
     const { body, qs } = request;
 
-    const { customer_id } = body;
+    const { customer_id,product_id,order_quantity } = body;
 
     const { references } = qs;
 
@@ -45,7 +45,7 @@ class OrderController {
     }
 
     const order = await makeOrderUtil(Order).create(
-      { customer_id },
+      { customer_id ,product_id,order_quantity},
       references
     );
 
@@ -63,11 +63,11 @@ class OrderController {
 
     const { references } = qs;
 
-    const { customer_id } = body;
+    const { customer_id,product_id,order_quantity } = body;
 
     const order = await makeOrderUtil(Order).updateById(
       id,
-      { customer_id },
+      { customer_id,product_id,order_quantity },
       references
     );
 
