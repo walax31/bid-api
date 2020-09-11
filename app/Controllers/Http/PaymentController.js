@@ -69,7 +69,7 @@ class PaymentController {
 
     const { method, status, total } = body;
 
-    const payment = await makePaymentUtil(Payment).getById(
+    const payment = await makePaymentUtil(Payment).updateById(
       id,
       { method, status, total },
       references
