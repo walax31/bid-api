@@ -20,8 +20,8 @@ class Product extends Model {
     return this.hasMany("App/Models/Bid");
   }
 
-  orderDetails() {
-    return this.hasMany("App/Models/OrderDetail");
+  order() {
+    return this.hasOne("App/Models/Order");
   }
 }
 
