@@ -102,7 +102,7 @@ class UserController {
 
     const { username, email, password } = body;
 
-    const User = await makeUserUtil(User).updateById(
+    const user = await makeUserUtil(User).updateById(
       id,
       { username, email, password },
       references
