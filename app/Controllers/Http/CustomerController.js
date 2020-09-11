@@ -35,11 +35,12 @@ class CustomerController {
     const { body, qs } = request;
 
     const {
-      customer_first_name,
-      customer_last_name,
-      customer_address,
-      customer_phone,
-      customer_path_to_credential,
+      first_name,
+      last_name,
+      address,
+      phone,
+      path_to_credential,
+      user_id
     } = body;
 
     const { references } = qs;
@@ -52,11 +53,12 @@ class CustomerController {
 
     const customer = await makeCustomerUtil(Customer).create(
       {
-        customer_first_name,
-        customer_last_name,
-        customer_address,
-        customer_phone,
-        customer_path_to_credential,
+        first_name,
+        last_name,
+        address,
+        phone,
+        path_to_credential,
+        user_id
       },
       references
     );
