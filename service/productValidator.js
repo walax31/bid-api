@@ -6,9 +6,8 @@ module.exports = async function (data) {
   const { customer_id, product_name, end_date, stock } = data;
 
   const rules = {
-    customer_id: "required|unique:users,customer_id",
+    customer_id: "required",
     product_name: "required",
-    end_date: "required",
     stock: "required",
   };
 
