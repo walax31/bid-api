@@ -30,9 +30,21 @@ module.exports = function (UserModel) {
         .then((response) => response.first());
     },
     updateById: async (user_id, attributes, references) => {
-      let user = await UserModel.find(user_id);
+      const user = await UserModel.find(user_id);
 
       user.merge(attributes);
+
+      await user.save();
+
+      return _withReferences(references)
+        .where({ user_id })
+        .fetch()
+        .then((response) => response.first());
+    },
+    flagSubmition: async (user_id, references) => {
+      const user = await UserModel.find(user_id);
+
+      user.merge({ is_submitted: true });
 
       await user.save();
 

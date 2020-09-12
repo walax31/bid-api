@@ -46,5 +46,17 @@ module.exports = function (CustomerModel) {
 
       return customerDetail.delete();
     },
+    validateUserCredential: async (customer_id, references) => {
+      const customer = await CustomerModel.find(customer_id);
+
+      customer.merge({ is_validated: true });
+
+      await customer.save();
+
+      return _withReferences(references)
+        .where({ customer_id })
+        .fetch()
+        .then((response) => response.first());
+    },
   };
 };
