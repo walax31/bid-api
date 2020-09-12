@@ -8,7 +8,6 @@ module.exports = async function (data) {
   const rules = {
     customer_id: "required",
     product_name: "required",
-    end_date: "required",
     stock: "required",
   };
 

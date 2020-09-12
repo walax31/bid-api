@@ -19,6 +19,10 @@ class Product extends Model {
   bids() {
     return this.hasMany("App/Models/Bid");
   }
+
+  order() {
+    return this.hasOne("App/Models/Order");
+  }
 }
 
 module.exports = Product;

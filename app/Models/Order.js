@@ -7,6 +7,10 @@ class Order extends Model {
   static get primaryKey() {
     return "order_id";
   }
+  
+  product() {
+    return this.belongsTo("App/Models/Product");
+  }
 
   customer() {
     return this.belongsTo("App/Models/Customer");

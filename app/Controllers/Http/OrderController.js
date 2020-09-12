@@ -139,11 +139,11 @@ class OrderController {
 
     const { references } = qs;
 
-    const { customer_id } = body;
+    const { customer_id,product_id,order_quantity } = body;
 
     const order = await makeOrderUtil(Order).updateById(
       id,
-      { customer_id },
+      { customer_id,product_id,order_quantity },
       references
     );
 

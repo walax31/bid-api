@@ -267,14 +267,14 @@ test("should return structured data with references via put method.", async ({
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
-  const bid = await BidModel.create({
+  const {bid_id} = await BidModel.create({
     customer_id,
     bid_amount: 1000,
     product_id,
-  });
+  }).then(response=>response["$attributes"]);
 
   const response = await client
-    .put(`${urlEndPoint}/${bid["$attributes"].bid_id}`)
+    .put(`${urlEndPoint}/${bid_id}`)
     .send({ bid_amount: 1100 })
     .query({ references: "customer,product" })
     .end();

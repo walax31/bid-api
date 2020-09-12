@@ -28,7 +28,7 @@ class ProductController {
     if (validateValue.error)
       return { status: 500, error: validateValue.error, date: undefined };
 
-    const product = await makeProductUtil(Product).getById(references, id);
+    const product = await makeProductUtil(Product).getById(id,references);
 
     return { status: 200, error: undefined, data: product || {} };
   }
