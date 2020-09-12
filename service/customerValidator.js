@@ -8,17 +8,17 @@ module.exports = async function (data) {
     last_name,
     address,
     phone,
-    path_to_credential,
-    customer_id,
+    // path_to_credential,
+    user_id,
   } = data;
 
   const rules = {
     first_name: "required",
     last_name: "required",
     address: "required",
-    phone: "required|unique:users,phone|min:10",
-    path_to_credential: "required",
-    customer_id: "required",
+    phone: "required|unique:customers,phone|min:10",
+    // path_to_credential: "required",
+    user_id: "required",
   };
 
   const validation = await Validator.validateAll(
@@ -27,8 +27,8 @@ module.exports = async function (data) {
       last_name,
       address,
       phone,
-      path_to_credential,
-      customer_id,
+      // path_to_credential,
+      user_id,
     },
     rules
   );

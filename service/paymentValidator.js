@@ -5,21 +5,18 @@ module.exports = async function (data) {
 
   const { method, status, total } = data;
 
-  const rule = {
-    method: "require",
-    status: "require",
-    total: "require",
+  const rules = {
+    method: "required",
+    total: "required",
   };
 
   const validation = await Validator.validateAll(
     {
       method,
-      status,
       total,
     },
-    rule
+    rules
   );
 
   return { error: validation.messages() };
 };
-
