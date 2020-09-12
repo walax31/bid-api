@@ -56,13 +56,11 @@ test("should return modified object of updated index form makeUserUtil.", async 
 }) => {
   const { user_id } = await makeTestUserUtil(UserModel);
 
-  const user = await makeUserUtil(UserModel).updateById(
-    user_id,
-    { username: "a_new_username" },
-    ""
-  );
+  const { username } = await makeUserUtil(UserModel)
+    .updateById(user_id, { username: "a_new_username" }, "")
+    .then((response) => response["$attributes"]);
 
-  assert.equal(user["$attributes"].username, "a_new_username");
+  assert.equal(username, "a_new_username");
 
   await UserModel.find(user_id).then((response) => response.delete());
 });
