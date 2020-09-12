@@ -59,13 +59,13 @@ class ProductDetailController {
         product_bid_increment,
         product_description,
       },
-      rules
+      references
     );
 
     return {
       status: 200,
       error: undefined,
-      data: references,
+      data: productDetail,
     };
   }
 
