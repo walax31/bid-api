@@ -38,6 +38,7 @@ class ProductDetailController {
     const { body, qs } = request;
 
     const {
+      product_id,
       product_price,
       product_bid_start,
       product_bid_increment,
@@ -53,7 +54,7 @@ class ProductDetailController {
     }
 
     const productDetail = await makeProductDetailUtil(ProductDetail).create(
-      {
+      { product_id,
         product_price,
         product_bid_start,
         product_bid_increment,
@@ -77,6 +78,7 @@ class ProductDetailController {
     const { references } = qs;
 
     const {
+      product_id,
       product_price,
       product_bid_start,
       product_bid_increment,
@@ -85,7 +87,7 @@ class ProductDetailController {
 
     const productDetail = await makeProductDetailUtil(ProductDetail).updateById(
       id,
-      {
+      { product_id,
         product_price,
         product_bid_start,
         product_bid_increment,
