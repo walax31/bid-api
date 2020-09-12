@@ -19,10 +19,6 @@ class Product extends Model {
   bids() {
     return this.hasMany("App/Models/Bid");
   }
-
-  orderDetails() {
-    return this.hasMany("App/Models/OrderDetail");
-  }
 }
 
 module.exports = Product;
