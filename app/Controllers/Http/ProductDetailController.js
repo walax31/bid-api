@@ -2,8 +2,11 @@
 
 const productDetailValidator = require("../../../service/productDetailValidator");
 const ProductDetail = use("App/Models/ProductDetail");
+const User = use("App/Models/User");
+const Customer = use("App/Models/Customer");
 const makeProductDetailUtil = require("../../../util/ProductDetailUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
+const performAuthentication = require("../../../util/authenticate.func");
 
 class ProductDetailController {
   async index({ request }) {
@@ -34,10 +37,12 @@ class ProductDetailController {
     );
     return { status: 200, error: undefined, data: productDetail || {} };
   }
-  async store({ request }) {
+
+  async store({ auth, request }) {
     const { body, qs } = request;
 
     const {
+      product_id,
       product_price,
       product_bid_start,
       product_bid_increment,
@@ -45,6 +50,37 @@ class ProductDetailController {
     } = body;
 
     const { references } = qs;
+
+    const { admin, error } = await performAuthentication(auth).validateAdmin();
+
+    if (error)
+      return {
+        status: 403,
+        error,
+        data: undefined,
+      };
+
+    if (admin)
+      return {
+        status: 403,
+        error: "This action is reserved for regular user only.",
+        data: undefined,
+      };
+
+    const { customer_id } = await performAuthentication(auth).validateIdParam(
+      Customer
+    );
+
+    const existingProduct = await makeProductDetailUtil(
+      ProductDetail
+    ).findExistingProductViaUser(User, customer_id, product_id);
+
+    if (!existingProduct)
+      return {
+        status: 404,
+        error: "product does not seem to exist.",
+        data: undefined,
+      };
 
     const validation = await productDetailValidator(request.body);
 
@@ -59,13 +95,13 @@ class ProductDetailController {
         product_bid_increment,
         product_description,
       },
-      rules
+      references
     );
 
     return {
       status: 200,
       error: undefined,
-      data: references,
+      data: productDetail,
     };
   }
 
