@@ -24,8 +24,11 @@ Route.group(() => {
   Route.resource("/bids", "BidController");
 
   Route.resource("/users", "UserController");
-  Route.post("/login", "UserController.login").middleware("guest");
-  Route.post("/authenticate", "UserController.authenticate");
+  Route.post("/login", "CredentialController.login").middleware("guest");
+  Route.post("/authenticate", "CredentialController.reAuthenticate");
+  Route.post("/validate", "CredentialController.validate");
+  Route.post("/logout", "CredentialController.logout");
+  Route.get("/job", "CredentialController.job");
 
   Route.resource("/credentialRatings", "CredentialRatingController");
 

@@ -20,16 +20,16 @@ test("should return object of created index from makeCustomerUtil.", async ({
 }) => {
   const { user_id } = await makeUserUtil(UserModel);
 
-  const customer = await makeCustomerUtil(CustomerModel).create({
-    user_id,
-    first_name: "first_name",
-    last_name: "last_name",
-    address: "somerandomaddress",
-    phone: "(000) 000-0000",
-    path_to_credential: `path/to/credential/${user_id}`,
-  });
-
-  const { customer_id } = customer["$attributes"];
+  const { customer_id } = await makeCustomerUtil(CustomerModel)
+    .create({
+      user_id,
+      first_name: "first_name",
+      last_name: "last_name",
+      address: "somerandomaddress",
+      phone: "(000) 000-0000",
+      // path_to_credential: `path/to/credential/${user_id}`,
+    })
+    .then((response) => response["$attributes"]);
 
   assert.isOk(customer_id);
 

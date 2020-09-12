@@ -48,5 +48,16 @@ module.exports = function (ProductDetailModel) {
 
       return productDetail.delete();
     },
+    findExistingProductViaUser: (UserModel, user_id, product_id) => {
+      return UserModel.query()
+        .with("customer.products", (builder) => {
+          builder.where({ customer_id: user_id, product_id });
+        })
+        .where({ user_id })
+        .fetch()
+        .then((response) =>
+          response.first().getRelated("customer").getRelated("products").first()
+        );
+    },
   };
 };

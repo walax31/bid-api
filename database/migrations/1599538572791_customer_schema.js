@@ -13,7 +13,8 @@ class CustomerSchema extends Schema {
       table.string("last_name", 50).notNullable();
       table.string("address", 50).notNullable();
       table.string("phone", 20).notNullable().unique();
-      table.string("path_to_credential").notNullable().unique();
+      table.string("path_to_credential").unique();
+      table.boolean("is_validated").notNullable().default(false);
 
       table
         .foreign("user_id")

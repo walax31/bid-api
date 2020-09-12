@@ -8,7 +8,7 @@ module.exports = async function (data) {
     last_name,
     address,
     phone,
-    path_to_credential,
+    // path_to_credential,
     user_id,
   } = data;
 
@@ -17,7 +17,7 @@ module.exports = async function (data) {
     last_name: "required",
     address: "required",
     phone: "required|unique:customers,phone|min:10",
-    path_to_credential: "required",
+    // path_to_credential: "required",
     user_id: "required",
   };
 
@@ -27,7 +27,7 @@ module.exports = async function (data) {
       last_name,
       address,
       phone,
-      path_to_credential,
+      // path_to_credential,
       user_id,
     },
     rules

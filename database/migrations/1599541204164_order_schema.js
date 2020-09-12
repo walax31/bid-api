@@ -8,6 +8,8 @@ class OrderSchema extends Schema {
     this.create("orders", (table) => {
       table.increments("order_id");
       table.timestamps();
+      table.integer("product_id").unsigned().notNullable();
+      table.integer("order_quantity").unsigned().notNullable();
       table.integer("customer_id").unsigned().notNullable();
       table.integer("product_id").unsigned().notNullable();
       table.integer("order_quantity").unsigned().notNullable();
@@ -23,6 +25,12 @@ class OrderSchema extends Schema {
       table
         .foreign("customer_id")
         .references("customers.customer_id")
+        .onDelete("CASCADE")
+        .onUpdate("CASCADE");
+
+      table
+        .foreign("product_id")
+        .references("products.product_id")
         .onDelete("CASCADE")
         .onUpdate("CASCADE");
     });

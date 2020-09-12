@@ -12,7 +12,10 @@ module.exports = function (BidModel) {
   };
 
   return {
-    getAll: (references) => {
+    getAll: (references, customer_id) => {
+      if (customer_id)
+        return _withReferences(references).where({ customer_id }).fetch();
+
       return _withReferences(references).fetch();
     },
     getById: (bid_id, references) => {
