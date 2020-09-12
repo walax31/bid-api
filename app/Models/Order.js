@@ -12,8 +12,8 @@ class Order extends Model {
     return this.belongsTo("App/Models/Customer");
   }
 
-  orderDetails() {
-    return this.hasMany("App/Models/OrderDetail");
+  product() {
+    return this.hasOne("App/Models/Product");
   }
 
   payment() {
