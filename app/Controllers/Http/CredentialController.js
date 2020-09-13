@@ -1,5 +1,6 @@
 "use strict";
 
+const Drive = use("Drive");
 const Encryption = use("Encryption");
 const performAuthentication = require("../../../util/authenticate.func");
 const processMultiPartFile = require("../../../service/multiPartFileProcessor");
@@ -125,6 +126,26 @@ class CredentialController {
     );
     job.start();
   }
+
+  // for testing purpose
+  async upload({ request }) {
+    request.multipart.file("profile_pic", {}, async (file) => {
+      await Drive.disk("s3").put(file.clientName, file.stream);
+    });
+
+    await request.multipart.process();
+  }
+
+  async download() {
+    const url = await Drive.disk("s3").getSignedUrl("GMK+9009+Apple.jpeg");
+
+    return {
+      status: 200,
+      error: undefined,
+      data: url,
+    };
+  }
+  // for testing purpose
 }
 
 module.exports = CredentialController;
