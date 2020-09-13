@@ -14,8 +14,8 @@ module.exports = function (ProductDetailModel) {
   };
 
   return {
-    getAll: (references) => {
-      return _withReferences(references).fetch();
+    getAll: (references, page = 1, per_page = 10) => {
+      return _withReferences(references).paginate(page, per_page);
     },
     getById: (product_id, references) => {
       return _withReferences(references)
@@ -47,17 +47,6 @@ module.exports = function (ProductDetailModel) {
       const productDetail = await ProductDetailModel.find(product_id);
 
       return productDetail.delete();
-    },
-    findExistingProductViaUser: (UserModel, user_id, product_id) => {
-      return UserModel.query()
-        .with("customer.products", (builder) => {
-          builder.where({ customer_id: user_id, product_id });
-        })
-        .where({ user_id })
-        .fetch()
-        .then((response) =>
-          response.first().getRelated("customer").getRelated("products").first()
-        );
     },
   };
 };
