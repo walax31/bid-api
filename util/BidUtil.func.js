@@ -12,11 +12,13 @@ module.exports = function (BidModel) {
   };
 
   return {
-    getAll: (references, customer_id) => {
+    getAll: (references, onPage = 1, perPage = 10, customer_id) => {
       if (customer_id)
-        return _withReferences(references).where({ customer_id }).fetch();
+        return _withReferences(references)
+          .where({ customer_id })
+          .paginate(onPage, perPage);
 
-      return _withReferences(references).fetch();
+      return _withReferences(references).paginate(onPage, perPage);
     },
     getById: (bid_id, references) => {
       return _withReferences(references)
