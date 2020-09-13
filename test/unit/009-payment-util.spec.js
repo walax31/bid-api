@@ -5,10 +5,12 @@ const PaymentModel = use("App/Models/Payment");
 const OrderModel = use("App/Models/Order");
 const CustomerModel = use("App/Models/Customer");
 const UserModel = use("App/Models/User");
+const ProductModel = use("App/Models/Product");
 const makeUserUtil = require("../../util/testerUtil/autogenUserInstance.func");
 const makeCustomerUtil = require("../../util/testerUtil/autogenCustomerInstance.func");
 const makeOrderUtil = require("../../util/testerUtil/autogenOrderInstance.func");
 const makePaymentUtil = require("../../util/PaymentUtil.func");
+const makeProductUtil = require("../../util/testerUtil/autogenProductInstance.func");
 
 test("should return empty array of rows from makePaymentUtil", async ({
   assert,
@@ -25,7 +27,9 @@ test("should return object of created index from makePaymentUtil.", async ({
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
-  const { order_id } = await makeOrderUtil(OrderModel, customer_id);
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  const { order_id } = await makeOrderUtil(OrderModel, customer_id, product_id);
 
   const payment = await makePaymentUtil(PaymentModel).create({
     order_id,
@@ -43,7 +47,9 @@ test("should return array of row from makePaymentUtil.", async ({ assert }) => {
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
-  const { order_id } = await makeOrderUtil(OrderModel, customer_id);
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  const { order_id } = await makeOrderUtil(OrderModel, customer_id, product_id);
 
   await PaymentModel.create({ order_id, method: "banking", total: 2 });
 
@@ -61,7 +67,9 @@ test("should return object of requested created index from makePaymentUtil.", as
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
-  const { order_id } = await makeOrderUtil(OrderModel, customer_id);
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  const { order_id } = await makeOrderUtil(OrderModel, customer_id, product_id);
 
   await PaymentModel.create({ order_id, method: "banking", total: 2 });
 
@@ -79,7 +87,9 @@ test("should return modified object of updated index form makePaymentUtil.", asy
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
-  const { order_id } = await makeOrderUtil(OrderModel, customer_id);
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  const { order_id } = await makeOrderUtil(OrderModel, customer_id, product_id);
 
   await PaymentModel.create({ order_id, method: "banking", total: 2 });
 
@@ -99,7 +109,9 @@ test("should return index of deleted index from makePaymentUtil.", async ({
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
-  const { order_id } = await makeOrderUtil(OrderModel, customer_id);
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  const { order_id } = await makeOrderUtil(OrderModel, customer_id, product_id);
 
   await PaymentModel.create({ order_id, method: "banking", total: 2 });
 

@@ -4,10 +4,12 @@ const { test } = use("Test/Suite")("Order Util");
 const OrderModel = use("App/Models/Order");
 const CustomerModel = use("App/Models/Customer");
 const UserModel = use("App/Models/User");
+const ProductModel = use("App/Models/Product");
 const makeUserUtil = require("../../util/testerUtil/autogenUserInstance.func");
 const makeCustomerUtil = require("../../util/testerUtil/autogenCustomerInstance.func");
 const makeOrderUtil = require("../../util/OrderUtil.func");
 const makeTestOrderUtil = require("../../util/testerUtil/autogenOrderInstance.func");
+const makeProductUtil = require("../../util/testerUtil/autogenProductInstance.func");
 
 test("should return empty array of rows from makeOrderUtil", async ({
   assert,
@@ -24,9 +26,13 @@ test("should return object of created index from makeOrderUtil.", async ({
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
   const { order_id } = await makeOrderUtil(OrderModel)
     .create({
       customer_id,
+      product_id,
+      order_quantity: 10,
     })
     .then((response) => response["$attributes"]);
 
@@ -40,7 +46,9 @@ test("should return array of row from makeOrderUtil.", async ({ assert }) => {
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
-  await makeTestOrderUtil(OrderModel, customer_id);
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  await makeTestOrderUtil(OrderModel, customer_id, product_id);
 
   const orders = await makeOrderUtil(OrderModel).getAll("");
 
@@ -56,7 +64,13 @@ test("should return object of requested created index from makeOrderUtil.", asyn
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
-  const { order_id } = await makeTestOrderUtil(OrderModel, customer_id);
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  const { order_id } = await makeTestOrderUtil(
+    OrderModel,
+    customer_id,
+    product_id
+  );
 
   const order = await makeOrderUtil(OrderModel).getById(order_id, "");
 
@@ -72,7 +86,13 @@ test("should return index of deleted index from makeOrderUtil.", async ({
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
-  const { order_id } = await makeTestOrderUtil(OrderModel, customer_id);
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
+  const { order_id } = await makeTestOrderUtil(
+    OrderModel,
+    customer_id,
+    product_id
+  );
 
   const deletedOrder = await makeOrderUtil(OrderModel).deleteById(order_id);
 

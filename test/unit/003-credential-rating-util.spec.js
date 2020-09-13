@@ -4,9 +4,11 @@ const { test } = use("Test/Suite")("Credential Rating Detail Util");
 const CredentialRatingModel = use("App/Models/CredentialRating");
 const CustomerModel = use("App/Models/Customer");
 const UserModel = use("App/Models/User");
+const ProductModel = use("App/Models/Product");
 const makeUserUtil = require("../../util/testerUtil/autogenUserInstance.func");
 const makeCustomerUtil = require("../../util/testerUtil/autogenCustomerInstance.func");
 const makeCredentialRatingUtil = require("../../util/CredentialRatingUtil.func");
+const makeProductUtil = require("../../util/testerUtil/autogenProductInstance.func");
 
 test("should return empty array of rows from makeCredentialRatingUtil", async ({
   assert,
@@ -25,12 +27,15 @@ test("should return object of created index from makeCredentialRatingUtil.", asy
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
   const credentialRating = await makeCredentialRatingUtil(
     CredentialRatingModel
   ).create({
     customer_id,
     rating_score: 100,
     rating_description: "someratingdescription",
+    product_id,
   });
 
   const { credential_rating_id } = credentialRating["$attributes"];
@@ -47,10 +52,13 @@ test("should return array of row from makeCredentialRatingUtil.", async ({
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
   await CredentialRatingModel.create({
     customer_id,
     rating_score: 100,
     rating_description: "someratingdescription",
+    product_id,
   });
 
   const credentialRatings = await makeCredentialRatingUtil(
@@ -69,10 +77,13 @@ test("should return object of requested created index from makeCredentialRatingU
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
   const { credential_rating_id } = await CredentialRatingModel.create({
     customer_id,
     rating_score: 100,
     rating_description: "someratingdescription",
+    product_id,
   }).then((response) => response["$attributes"]);
 
   const credentialRating = await makeCredentialRatingUtil(
@@ -91,10 +102,13 @@ test("should return modified object of updated index form makeCredentialRatingUt
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
   const { credential_rating_id } = await CredentialRatingModel.create({
     customer_id,
     rating_score: 100,
     rating_description: "someratingdescription",
+    product_id,
   }).then((response) => response["$attributes"]);
 
   const credentialRating = await makeCredentialRatingUtil(
@@ -120,10 +134,13 @@ test("should return index of deleted index from makeCredentialRatingUtil.", asyn
 
   const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
 
+  const { product_id } = await makeProductUtil(ProductModel, customer_id);
+
   const { credential_rating_id } = await CredentialRatingModel.create({
     customer_id,
     rating_score: 100,
     rating_description: "someratingdescription",
+    product_id,
   }).then((response) => response["$attributes"]);
 
   const deletedCredentialRating = await makeCredentialRatingUtil(
