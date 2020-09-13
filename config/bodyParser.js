@@ -128,7 +128,7 @@ module.exports = {
     | is to true. Otherwise everything is processed manually.
     |
     */
-    // processManually: ["/api/v1/validate"],
+    processManually: ["/api/v1/upload"],
 
     /*
     |--------------------------------------------------------------------------
