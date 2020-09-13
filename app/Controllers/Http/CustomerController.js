@@ -9,31 +9,34 @@ const makeCustomerUtil = require("../../../util/CustomerUtil.func");
 const makeUserUtil = require("../../../util/UserUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 const performAuthentication = require("../../../util/authenticate.func");
-// const processMultiPartFile = require("../../../service/multiPartFileProcessor");
 
 class CustomerController {
   async index({ auth, request }) {
-    const { references } = request.qs;
+    const { references, page, per_page } = request.qs;
 
     const { admin, error } = await performAuthentication(auth).validateAdmin();
 
     if (error) {
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
     }
 
     if (admin) {
-      const customers = await makeCustomerUtil(Customer).getAll(references);
+      const { rows, pages } = await makeCustomerUtil(Customer).getAll(
+        references,
+        page,
+        per_page
+      );
 
-      return { status: 200, error: undefined, data: customers };
+      return { status: 200, error: undefined, pages, data: rows };
     }
 
     return {
-      status: 200,
-      error: "admin validation failed.",
+      status: 403,
+      error: "Access denied. admin validation failed.",
       data: undefined,
     };
   }
@@ -45,19 +48,19 @@ class CustomerController {
 
     const { references } = qs;
 
-    const { admin, error } = performAuthentication(auth).validateAdmin();
+    const { admin, error } = await performAuthentication(auth).validateAdmin();
 
     if (error)
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
 
     const validateValue = numberTypeParamValidator(id);
 
     if (validateValue.error)
-      return { status: 500, error: validateValue.error, date: undefined };
+      return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const customer = await makeCustomerUtil(Customer).getById(id, references);
@@ -65,9 +68,9 @@ class CustomerController {
       return { status: 200, error: undefined, data: customer || {} };
     }
 
-    const auth_id = await performAuthentication(auth).validateIdParam();
+    const { customer_id } = await performAuthentication(auth).validateIdParam();
 
-    if (auth_id === parseInt(id)) {
+    if (customer_id === parseInt(id)) {
       const customer = await makeCustomerUtil(Customer).getById(
         auth_id,
         references
@@ -78,7 +81,7 @@ class CustomerController {
 
     return {
       status: 403,
-      error: "id param does not match credential id.",
+      error: "Access denied. id param does not match authenticated id.",
       data: undefined,
     };
   }
@@ -101,7 +104,7 @@ class CustomerController {
     if (error)
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
 
@@ -131,15 +134,12 @@ class CustomerController {
       references
     );
 
-    const flaggedUser = await makeUserUtil(User).flagSubmition(
-      auth_id,
-      references
-    );
+    const flaggedUser = await makeUserUtil(User).flagSubmition(auth_id);
 
     if (!flaggedUser)
       return {
         status: 500,
-        error: "Failed to flag user submittion.",
+        error: "Internal error. failed to flag user submittion.",
         data: undefined,
       };
 
@@ -164,16 +164,25 @@ class CustomerController {
     if (error)
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
 
     const validateValue = numberTypeParamValidator(id);
 
     if (validateValue.error)
-      return { status: 500, error: validateValue.error, date: undefined };
+      return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
+      const submittedUser = await makeUserUtil(User).hasSubmittionFlagged(id);
+
+      if (!submittedUser)
+        return {
+          status: 404,
+          error: "User not found. this user never submitted credential.",
+          data: undefined,
+        };
+
       const { customer_id, is_validated } = await makeCustomerUtil(
         Customer
       ).validateUserCredential(id, references);
@@ -185,11 +194,13 @@ class CustomerController {
       };
     }
 
-    const { auth_id } = await performAuthentication(auth).validateIdParam();
+    const { customer_id } = await performAuthentication(auth).validateIdParam(
+      Customer
+    );
 
-    if (auth_id === parseInt(id)) {
+    if (customer_id === parseInt(id)) {
       const customer = await makeCustomerUtil(Customer).updateById(
-        auth_id,
+        customer_id,
         {
           first_name,
           last_name,
@@ -203,8 +214,8 @@ class CustomerController {
     }
 
     return {
-      status: 200,
-      error: "id param does not match credential id.",
+      status: 403,
+      error: "Access denied. id param does not match authenticated id.",
       data: undefined,
     };
   }
@@ -217,40 +228,40 @@ class CustomerController {
     if (error)
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
 
     const validateValue = numberTypeParamValidator(id);
 
     if (validateValue.error)
-      return { status: 500, error: validateValue.error, date: undefined };
+      return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
-      const customer = await makeCustomerUtil(Customer).deleteById(id);
+      await makeCustomerUtil(Customer).deleteById(id);
 
       return {
         status: 200,
         error: undefined,
-        data: { massage: `${customer} is successfully removed.` },
+        data: "customer is successfully removed.",
       };
     }
 
-    const { auth_id } = await performAuthentication(auth).validateIdParam();
+    const { customer_id } = await performAuthentication(auth).validateIdParam();
 
-    if (auth_id === parseInt(id)) {
-      const customer = await makeCustomerUtil(Customer).deleteById(auth_id);
+    if (customer_id === parseInt(id)) {
+      await makeCustomerUtil(Customer).deleteById(customer_id);
 
       return {
         status: 200,
         error: undefined,
-        data: { massage: `${customer} is successfully removed.` },
+        data: "customer is successfully removed.",
       };
     }
 
     return {
-      status: 200,
-      error: "id param does not match credential id.",
+      status: 403,
+      error: "Access denied. id param does not match authenticated id.",
       data: undefined,
     };
   }

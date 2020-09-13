@@ -4,19 +4,23 @@ const productDetailValidator = require("../../../service/productDetailValidator"
 const ProductDetail = use("App/Models/ProductDetail");
 const User = use("App/Models/User");
 const Customer = use("App/Models/Customer");
+const Product = use("App/Models/Product");
 const makeProductDetailUtil = require("../../../util/ProductDetailUtil.func");
+const makeProductUtil = require("../../../util/ProductUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 const performAuthentication = require("../../../util/authenticate.func");
 
 class ProductDetailController {
   async index({ request }) {
-    const { references } = request.qs;
+    const { references, page, per_page } = request.qs;
 
-    const productDetails = await makeProductDetailUtil(ProductDetail).getAll(
-      references
+    const { rows, pages } = await makeProductDetailUtil(ProductDetail).getAll(
+      references,
+      page,
+      per_page
     );
 
-    return { status: 200, error: undefined, data: productDetails };
+    return { status: 200, error: undefined, pages, data: rows };
   }
 
   async show({ request }) {
@@ -29,7 +33,7 @@ class ProductDetailController {
     const validateValue = numberTypeParamValidator(id);
 
     if (validateValue.error)
-      return { status: 500, error: validateValue.error, date: undefined };
+      return { status: 422, error: validateValue.error, date: undefined };
 
     const productDetail = await makeProductDetailUtil(ProductDetail).getById(
       id,
@@ -56,14 +60,14 @@ class ProductDetailController {
     if (error)
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
 
     if (admin)
       return {
         status: 403,
-        error: "This action is reserved for regular user only.",
+        error: "Access denied. this action is reserved for regular user only.",
         data: undefined,
       };
 
@@ -71,14 +75,14 @@ class ProductDetailController {
       Customer
     );
 
-    const existingProduct = await makeProductDetailUtil(
-      ProductDetail
-    ).findExistingProductViaUser(User, customer_id, product_id);
+    const existingProduct = await makeCustomerUtil(
+      Customer
+    ).findProductOnAuthUser(customer_id, product_id);
 
     if (!existingProduct)
       return {
         status: 404,
-        error: "product does not seem to exist.",
+        error: "Product not found. product does not seem to exist.",
         data: undefined,
       };
 
@@ -98,6 +102,16 @@ class ProductDetailController {
       references
     );
 
+    const flaggedProduct = await makeProductUtil(Product).flagProductAsBidable(
+      product_id
+    );
+
+    if (!flaggedProduct)
+      return {
+        status: 500,
+        error: "Internal error. failed to flag product as bidable.",
+      };
+
     return {
       status: 200,
       error: undefined,
@@ -105,12 +119,37 @@ class ProductDetailController {
     };
   }
 
-  async update({ request }) {
+  async update({ auth, request }) {
     const { body, params, qs } = request;
 
     const { id } = params;
 
     const { references } = qs;
+
+    const { admin, error } = await performAuthentication(auth).validateAdmin();
+
+    if (error)
+      return {
+        status: 403,
+        error: "Access denied. authentication failed.",
+        data: undefined,
+      };
+
+    if (!admin)
+      return {
+        status: 403,
+        error: "Access denied. admin validation failed.",
+        data: undefined,
+      };
+
+    const product = await makeProductDetailUtil(ProductDetail).getById(id);
+
+    if (!product)
+      return {
+        status: 404,
+        error: "Product not found. product you are looking for does not exist.",
+        data: undefined,
+      };
 
     const {
       product_price,
@@ -129,20 +168,43 @@ class ProductDetailController {
       },
       references
     );
+
     return { status: 200, error: undefined, data: productDetail };
   }
 
-  async destroy({ request }) {
+  async destroy({ auth, request }) {
     const { id } = request.params;
+
+    const { error, admin } = await performAuthentication(auth).validateAdmin();
+
+    if (error)
+      return {
+        status: 403,
+        error: "Access denied. authentication failed.",
+        data: undefined,
+      };
+
+    if (!admin)
+      return {
+        status: 403,
+        error: "Access denied. admin validation failed.",
+      };
 
     const productDetail = await makeProductDetailUtil(ProductDetail).deleteById(
       id
     );
 
+    if (!productDetail)
+      return {
+        status: 404,
+        error: "Product not found. product you are looking for does not exist.",
+        data: undefined,
+      };
+
     return {
       status: 200,
       error: undefined,
-      data: { massage: `${productDetail} is successfully removed.` },
+      data: "productDetail is successfully removed.",
     };
   }
 }

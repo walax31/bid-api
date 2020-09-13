@@ -10,26 +10,30 @@ const performAuthentication = require("../../../util/authenticate.func");
 
 class UserController {
   async index({ auth, request }) {
-    const { references } = request.qs;
+    const { references, page, per_page } = request.qs;
 
     const { admin, error } = await performAuthentication(auth).validateAdmin();
 
     if (error)
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
 
     if (admin) {
-      const users = await makeUserUtil(User).getAll(references);
+      const { rows, pages } = await makeUserUtil(User).getAll(
+        references,
+        page,
+        per_page
+      );
 
-      return { status: 200, error: undefined, data: users };
+      return { status: 200, error: undefined, pages, data: rows };
     }
 
     return {
-      status: 200,
-      error: "admin validation failed.",
+      status: 403,
+      error: "Access denied. admin validation failed.",
       data: undefined,
     };
   }
@@ -46,14 +50,14 @@ class UserController {
     if (error)
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
 
     const validateValue = numberTypeParamValidator(id);
 
     if (validateValue.error)
-      return { status: 500, error: validateValue.error, date: undefined };
+      return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const { user_id, username, email } = await makeUserUtil(User).getById(
@@ -86,8 +90,8 @@ class UserController {
     }
 
     return {
-      status: 200,
-      error: "id param does not match credential id.",
+      status: 403,
+      error: "Access denied. id param does not match authenticated id.",
       data: undefined,
     };
   }
@@ -104,7 +108,8 @@ class UserController {
     if (!error)
       return {
         status: 403,
-        error: "This action is reserved for guest only.",
+        error: "Access denied. you are already logged in.",
+        data: undefined,
       };
 
     const validation = await userValidator(request.body);
@@ -154,7 +159,7 @@ class UserController {
     const validateValue = numberTypeParamValidator(id);
 
     if (validateValue.error)
-      return { status: 500, error: validateValue.error, date: undefined };
+      return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const user = await makeUserUtil(User).updateById(
@@ -180,7 +185,7 @@ class UserController {
 
     return {
       status: 403,
-      error: "id param does not match credential id.",
+      error: "Access denied. id param does not match authenticated id.",
       data: undefined,
     };
   }
@@ -193,7 +198,7 @@ class UserController {
     const validateValue = numberTypeParamValidator(id);
 
     if (validateValue.error)
-      return { status: 500, error: validateValue.error, date: undefined };
+      return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const user = await makeUserUtil(User).deleteById(id);
@@ -207,7 +212,7 @@ class UserController {
 
     return {
       status: 403,
-      error: "admin validation failed.",
+      error: "Access denied. admin validation failed.",
       data: undefined,
     };
   }

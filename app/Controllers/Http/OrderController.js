@@ -6,6 +6,8 @@ const User = use("App/Models/User");
 const Customer = use("App/Models/Customer");
 const makeOrderUtil = require("../../../util/OrderUtil.func");
 const makeUserUtil = require("../../../util/UserUtil.func");
+const makeCustomerUtil = require("../../../util/CustomerUtil.func");
+const makeProductUtil = require("../../../util/ProductUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 const performAuthentication = require("../../../util/authenticate.func");
 
@@ -18,7 +20,7 @@ class OrderController {
     if (error)
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
 
@@ -49,14 +51,14 @@ class OrderController {
     if (error)
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
 
     const validateValue = numberTypeParamValidator(id);
 
     if (validateValue.error)
-      return { status: 500, error: validateValue.error, date: undefined };
+      return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const order = await makeOrderUtil(Order).getById(id, references);
@@ -73,8 +75,8 @@ class OrderController {
     }
 
     return {
-      status: 200,
-      error: "id param does not match performAuthenticationd id.",
+      status: 403,
+      error: "Access denied. id param does not match your authenticated id.",
       data: undefined,
     };
   }
@@ -91,20 +93,56 @@ class OrderController {
     if (error)
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
 
     if (admin)
       return {
         status: 403,
-        error: "admin should not be able to perform this action.",
+        error:
+          "Access denied. admin should not be able to perform this action.",
         data: undefined,
       };
 
     const auth_data = await performAuthentication(auth).validateIdParam(
       Customer
     );
+
+    const authorProduct = await makeCustomerUtil(
+      Customer
+    ).findProductOnAuthUser(auth_data.customer_id, product_id);
+
+    if (!authorProduct)
+      return {
+        status: 403,
+        error:
+          "Access denied. cannot initiate order for product you don't own.",
+        data: undefined,
+      };
+
+    const existingBidOnYourProduct = await makeProductUtil(
+      Product
+    ).findExistingBidForThisProduct(customer_id, product_id);
+
+    if (!existingBidOnYourProduct)
+      return {
+        status: 404,
+        error: "Bid not found. this user never put a bid on your product.",
+        data: undefined,
+      };
+
+    const existingOrderOnThisCustomer = await makeCustomerUtil(
+      Customer
+    ).findExistingOrder(customer_id, product_id);
+
+    if (existingOrderOnThisCustomer)
+      return {
+        status: 500,
+        error:
+          "Duplicate order. order on this specific user has already existed.",
+        data: undefined,
+      };
 
     const validation = await orderValidator({
       customer_id,
@@ -116,49 +154,93 @@ class OrderController {
       return { status: 422, error: validation.error, data: undefined };
     }
 
-    const { status, error_msg, data } = await makeOrderUtil(Order).create(
+    const { data } = await makeOrderUtil(Order).create(
       { customer_id, product_id, order_quantity },
-      User,
-      auth_data.customer_id,
-      customer_id,
-      product_id,
       references
     );
 
     return {
-      status,
-      error: error_msg,
+      status: 200,
+      error: undefined,
       data,
     };
   }
 
-  async update({ request }) {
+  async update({ auth, request }) {
     const { body, params, qs } = request;
 
     const { id } = params;
 
     const { references } = qs;
 
-    const { customer_id,product_id,order_quantity } = body;
+    const { customer_id, product_id, order_quantity } = body;
+
+    const { admin, error } = await performAuthentication(auth).validateAdmin();
+
+    if (error)
+      return {
+        status: 403,
+        error: "Access denied. authentication failed.",
+        data: undefined,
+      };
+
+    if (!admin)
+      return {
+        status: 403,
+        error: "Access denied. admin validation failed.",
+        data: undefined,
+      };
+
+    const existingOrder = await makeOrderUtil(Order).getById(id);
+
+    if (!existingOrder)
+      return {
+        status: 404,
+        error: "Order not found. order you are looking for does not exist.",
+        data: undefined,
+      };
 
     const order = await makeOrderUtil(Order).updateById(
       id,
-      { customer_id,product_id,order_quantity },
+      { customer_id, product_id, order_quantity },
       references
     );
 
     return { status: 200, error: undefined, data: order };
   }
 
-  async destroy({ request }) {
+  async destroy({ auth, request }) {
     const { id } = request.params;
 
+    const { admin, error } = await performAuthentication(auth).validateAdmin();
+
+    if (error)
+      return {
+        status: 403,
+        error: "Access denied. authentication failed.",
+        data: undefined,
+      };
+
+    if (!admin)
+      return {
+        status: 403,
+        error: "Access denied. admin validation failed.",
+        data: undefined,
+      };
+
     const order = await makeOrderUtil(Order).deleteById(id);
+
+    if (!order)
+      return {
+        status: 404,
+        error: "Order not found. order you are looking for does not exist.",
+        data: undefined,
+      };
 
     return {
       status: 200,
       error: undefined,
-      data: { massage: `${order} is successfully removed.` },
+      data: "Order is successfully removed.",
     };
   }
 }

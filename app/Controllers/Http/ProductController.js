@@ -4,33 +4,79 @@ const productValidator = require("../../../service/productValidator");
 const Product = use("App/Models/Product");
 const Customer = use("App/Models/Customer");
 const makeProductUtil = require("../../../util/ProductUtil.func");
+const makeCustomerUtil = require("../../../util/CustomerUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 const performAuthentication = require("../../../util/authenticate.func");
 
 class ProductController {
-  async index({ request }) {
-    const { references } = request.qs;
+  async index({ auth, request }) {
+    const { references, page, per_page } = request.qs;
 
-    const products = await makeProductUtil(Product).getAll(references);
+    const { admin, error } = await performAuthentication(auth).validateAdmin();
 
-    return { status: 200, error: undefined, data: products };
+    if (error)
+      return {
+        status: 403,
+        error: "Access denied. authentication failed.",
+        data: undefined,
+      };
+
+    if (admin) {
+      const { rows, pages } = await makeProductUtil(Product).getAll(
+        references,
+        page,
+        per_page
+      );
+
+      return { status: 200, error: undefined, pages, data: rows };
+    }
+
+    const { rows, pages } = await makeProductUtil(Product).bulkHasBidableFlag(
+      references,
+      page,
+      per_page
+    );
+
+    return { status: 200, error: undefined, pages, data: rows };
   }
 
-  async show({ request }) {
+  async show({ auth, request }) {
     const { params, qs } = request;
 
     const { id } = params;
 
     const { references } = qs;
 
+    const { admin, error } = await performAuthentication(auth).validateAdmin();
+
+    if (error)
+      return {
+        status: 403,
+        error: "Access denied. authentication failed.",
+        data: undefined,
+      };
+
     const validateValue = numberTypeParamValidator(id);
 
     if (validateValue.error)
-      return { status: 500, error: validateValue.error, date: undefined };
+      return { status: 422, error: validateValue.error, date: undefined };
 
-    const product = await makeProductUtil(Product).getById(id,references);
+    if (admin) {
+      const product = await makeProductUtil(Product).getById(id, references);
 
-    return { status: 200, error: undefined, data: product || {} };
+      return { status: 200, error: undefined, data: product || {} };
+    }
+
+    const product = await makeProductUtil(Product).hasBidableFlag(
+      id,
+      references
+    );
+
+    return {
+      status: 200,
+      error: undefined,
+      data: product || {},
+    };
   }
 
   async store({ auth, request }) {
@@ -45,14 +91,14 @@ class ProductController {
     if (error)
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
 
     if (admin)
       return {
         status: 403,
-        error: "This action is reserved for regular user only.",
+        error: "Access denied. this action is reserved for regular user only.",
         data: undefined,
       };
 
@@ -60,7 +106,16 @@ class ProductController {
       Customer
     );
 
-    console.log(customer_id);
+    const validatedCredential = await makeCustomerUtil(
+      Customer
+    ).hasCredentialValidated(customer_id);
+
+    if (!validatedCredential)
+      return {
+        status: 403,
+        error: "Access denied. invalid credential.",
+        data: undefined,
+      };
 
     const validation = await productValidator({
       customer_id,
@@ -104,14 +159,14 @@ class ProductController {
     if (error)
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
 
     const validateValue = numberTypeParamValidator(id);
 
     if (validateValue.error)
-      return { status: 500, error: validateValue.error, date: undefined };
+      return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const product = await makeProductUtil(Product).updateById(
@@ -123,11 +178,17 @@ class ProductController {
       return { status: 200, error: undefined, data: product };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam();
+    const { customer_id } = await performAuthentication(auth).validateIdParam(
+      Customer
+    );
 
-    if (customer_id === parseInt(id)) {
+    const customerProduct = await makeCustomerUtil(
+      Customer
+    ).findProductOnAuthUser(customer_id, id);
+
+    if (customerProduct) {
       const product = await makeProductUtil(Product).updateById(
-        customer_id,
+        id,
         { product_name, stock },
         references
       );
@@ -137,7 +198,7 @@ class ProductController {
 
     return {
       status: 403,
-      error: "id param does not match credential id.",
+      error: "Access denied. id param does not match authenticated id.",
       data: undefined,
     };
   }
@@ -150,14 +211,14 @@ class ProductController {
     if (error)
       return {
         status: 403,
-        error,
+        error: "Access denied. authentication failed.",
         data: undefined,
       };
 
     const validateValue = numberTypeParamValidator(id);
 
     if (validateValue.error)
-      return { status: 500, error: validateValue.error, date: undefined };
+      return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const product = await makeProductUtil(Product).deleteById(id);
@@ -182,8 +243,8 @@ class ProductController {
     }
 
     return {
-      status: 200,
-      error: "id param does not match credential id.",
+      status: 403,
+      error: "Access denied. id param does not match authenticated id.",
       data: undefined,
     };
   }
