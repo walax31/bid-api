@@ -11,6 +11,10 @@ class CredentialRating extends Model {
   customer() {
     return this.belongsTo("App/Models/Customer");
   }
+
+  product() {
+    return this.belongsTo("App/Models/Product");
+  }
 }
 
 module.exports = CredentialRating;

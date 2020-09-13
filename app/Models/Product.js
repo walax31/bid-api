@@ -23,6 +23,10 @@ class Product extends Model {
   order() {
     return this.hasOne("App/Models/Order");
   }
+
+  credentialRating() {
+    return this.hasOne("App/Models/CredentialRating");
+  }
 }
 
 module.exports = Product;
