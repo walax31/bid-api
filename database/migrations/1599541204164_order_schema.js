@@ -11,16 +11,6 @@ class OrderSchema extends Schema {
       table.integer("product_id").unsigned().notNullable();
       table.integer("order_quantity").unsigned().notNullable();
       table.integer("customer_id").unsigned().notNullable();
-      table.integer("product_id").unsigned().notNullable();
-      table.integer("order_quantity").unsigned().notNullable();
-     
-
-      table
-        .foreign("product_id")
-        .references("products.product_id")
-        .onDelete("CASCADE")
-        .onUpdate("CASCADE");
-
 
       table
         .foreign("customer_id")
