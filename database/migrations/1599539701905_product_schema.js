@@ -12,6 +12,7 @@ class ProductSchema extends Schema {
       table.string("product_name").notNullable();
       table.timestamp("end_date").notNullable().default(this.fn.now());
       table.integer("stock").notNullable().unsigned();
+      table.boolean("is_bidable").notNullable().default(false);
 
       table
         .foreign("customer_id")
