@@ -14,8 +14,8 @@ module.exports = function (CredentialRatingModel) {
   };
 
   return {
-    getAll: (references) => {
-      return _withReferences(references).fetch();
+    getAll: (references, page = 1, per_page = 10) => {
+      return _withReferences(references).paginate(page, per_page);
     },
     getById: (credential_rating_id, references) => {
       return _withReferences(references)
