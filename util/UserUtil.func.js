@@ -12,8 +12,8 @@ module.exports = function (UserModel) {
   };
 
   return {
-    getAll: (references) => {
-      return _withReferences(references).fetch();
+    getAll: (references, page = 1, per_page = 10) => {
+      return _withReferences(references).paginate(page, per_page);
     },
     getById: (user_id, references) => {
       return _withReferences(references)
@@ -50,6 +50,12 @@ module.exports = function (UserModel) {
 
       return _withReferences(references)
         .where({ user_id })
+        .fetch()
+        .then((response) => response.first());
+    },
+    hasSubmittionFlagged: (user_id) => {
+      return UserModel.query()
+        .where({ user_id, is_submitted: true })
         .fetch()
         .then((response) => response.first());
     },
