@@ -29,6 +29,8 @@ Route.group(() => {
   Route.post("/validate", "CredentialController.validate");
   Route.post("/logout", "CredentialController.logout");
   Route.get("/job", "CredentialController.job");
+  Route.post("/upload", "CredentialController.upload");
+  Route.get("/download", "CredentialController.download");
 
   Route.resource("/credentialRatings", "CredentialRatingController");
 
