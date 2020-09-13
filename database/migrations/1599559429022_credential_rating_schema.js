@@ -11,10 +11,17 @@ class CredentialRatingSchema extends Schema {
       table.integer("customer_id").notNullable().unsigned();
       table.integer("rating_score").notNullable();
       table.string("rating_description").notNullable();
+      table.integer("product_id").notNullable().unsigned();
 
       table
         .foreign("customer_id")
         .references("customers.customer_id")
+        .onDelete("CASCADE")
+        .onUpdate("CASCADE");
+
+      table
+        .foreign("product_id")
+        .references("products.product_id")
         .onDelete("CASCADE")
         .onUpdate("CASCADE");
     });
