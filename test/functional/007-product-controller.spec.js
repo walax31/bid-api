@@ -8,6 +8,7 @@ const ProductModel = use("App/Models/Product");
 const makeUserUtil = require("../../util/testerUtil/autogenUserInstance.func");
 const makeCustomerUtil = require("../../util/testerUtil/autogenCustomerInstance.func");
 const makeProductUtil = require("../../util/testerUtil/autogenProductInstance.func");
+const makeAdminUtil = require("../../util/testerUtil/autogenAdminInstance.func");
 trait("Test/ApiClient");
 
 const urlEndPoint = "/api/v1/products";
