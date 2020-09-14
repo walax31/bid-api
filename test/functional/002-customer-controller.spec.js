@@ -109,7 +109,8 @@ test("should return structured response with references in an array via get meth
   });
 
   await UserModel.findOrFail(user_id).then((response) => response.delete());
-  await UserModel.findOrFail(admin.user_id).then((response) =>response.delete()
+  await UserModel.findOrFail(admin.user_id).then((response) =>
+    response.delete()
   );
 });
 

@@ -2,6 +2,8 @@
 
 const { test, trait } = use("Test/Suite")("User Controller");
 const UserModel = use("App/Models/User");
+const CustomerModel = use("App/Models/Customer")
+const makeCustomerUtil = require("../../util/testerUtil/autogenCustomerInstance.func");
 const makeUserUtil = require("../../util/testerUtil/autogenUserInstance.func");
 const makeAdminUtil = require("../../util/testerUtil/autogenAdminInstance.func");
 const Encryption = use("Encryption");
@@ -29,6 +31,7 @@ test("should return structured response with empty data array via get method.", 
 test("should return structured response with empty data via get method.", async ({
   client,
 }) => {
+  const admin = await makeAdminUtil(UserModel);
   const user = await makeUserUtil(UserModel);
 
   const response = await client
@@ -41,7 +44,7 @@ test("should return structured response with empty data via get method.", async 
     data: {},
   });
 
-  await UserModel.find(user.user_id).then((response) => response.delete());
+  await UserModel.find(admin.user_id).then((response) => response.delete());
 });
 
 test("should return structured response with no references in an array via get method.", async ({
@@ -57,8 +60,6 @@ test("should return structured response with no references in an array via get m
   response.assertJSONSubset({
     data: [{ user_id: user.user_id }],
   });
-
-  await UserModel.find(user.user_id).then((response) => response.delete());
   await UserModel.find(admin.user_id).then((response) => response.delete());
 });
 

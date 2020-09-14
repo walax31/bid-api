@@ -2,7 +2,7 @@
 
 const { test, trait } = use("Test/Suite")("Bid Controller endpoint testing");
 // Models dependencies
-const ProductDetailModel =use("App/Models/ProductDetail")
+const ProductDetailModel = use("App/Models/ProductDetail");
 const BidModel = use("App/Models/Bid");
 const UserModel = use("App/Models/User");
 const CustomerModel = use("App/Models/Customer");
@@ -179,7 +179,11 @@ test("should return structured response with references via get method.", async 
 }) => {
   const user = await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user.user_id, true);
+  const { customer_id } = await makeCustomerUtil(
+    CustomerModel,
+    user.user_id,
+    true
+  );
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -218,12 +222,15 @@ test("should return structured data with no references via post method.", async 
   );
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
-  const productDetail =await makeProductDetailUtil(ProductDetailModel, product_id)
+  const productDetail = await makeProductDetailUtil(
+    ProductDetailModel,
+    product_id
+  );
 
   const bid = {
     customer_id: customer_id,
     bid_amount: 1100,
- 
+
     product_id: product_id,
   };
 
@@ -232,7 +239,7 @@ test("should return structured data with no references via post method.", async 
     .loginVia(user, "jwt")
     .send(bid)
     .end();
-  
+
   response.assertStatus(200);
   response.assertJSONSubset({
     data: bid,
@@ -253,7 +260,10 @@ test("should return structured data with references via post method.", async ({
   );
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
-  const productDetail =await makeProductDetailUtil(ProductDetailModel, product_id)
+  const productDetail = await makeProductDetailUtil(
+    ProductDetailModel,
+    product_id
+  );
 
   const bid = {
     customer_id: customer_id,
@@ -289,7 +299,10 @@ test("should return structured data with no references via put method.", async (
   );
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
-  const productDetail =await makeProductDetailUtil(ProductDetailModel, product_id)
+  const productDetail = await makeProductDetailUtil(
+    ProductDetailModel,
+    product_id
+  );
 
   const bid = await BidModel.create({
     customer_id,
@@ -324,7 +337,10 @@ test("should return structured data with references via put method.", async ({
   );
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
-  const productDetail =await makeProductDetailUtil(ProductDetailModel, product_id)
+  const productDetail = await makeProductDetailUtil(
+    ProductDetailModel,
+    product_id
+  );
 
   const { bid_id } = await BidModel.create({
     customer_id,
@@ -348,18 +364,16 @@ test("should return structured data with references via put method.", async ({
 });
 
 test("should return data index via delete method.", async ({ client }) => {
-  
   const admin = await makeAdminUtil(UserModel);
   const { user_id } = await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(
-    CustomerModel,
-    user_id,
-    true
-  );
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id, true);
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
-  const productDetail =await makeProductDetailUtil(ProductDetailModel, product_id)
+  const productDetail = await makeProductDetailUtil(
+    ProductDetailModel,
+    product_id
+  );
 
   const bid = await BidModel.create({
     customer_id,
