@@ -1,12 +1,15 @@
 "use strict";
 
 const Env = use("Env");
+const CronJob = require("cron").CronJob;
 const Encryption = use("Encryption");
 const userValidator = require("../../../service/userValidator");
 const User = use("App/Models/User");
+const Token = use("App/Models/Token");
 const makeUserUtil = require("../../../util/UserUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 const performAuthentication = require("../../../util/authenticate.func");
+const startRevokeTokenCronsJob = require("../../../util/cronjobs/revoke-token-util.func");
 
 class UserController {
   async index({ auth, request }) {
@@ -132,6 +135,16 @@ class UserController {
       username,
       password,
     });
+
+    const job = startRevokeTokenCronsJob(
+      CronJob,
+      Encryption,
+      Token,
+      tokens.refreshToken,
+      1
+    );
+
+    job.start();
 
     return {
       status: 200,
