@@ -55,7 +55,7 @@ test("should return error message and status code of 422 when field data is miss
     username: "wada",
     email: "waddda@gmail.com",
     password: "1233131231",
-  }).then(response=>response['$attributes'])
+  }).then((response) => response["$attributes"]);
 
   const customer1 = await makeCustomerUtil(CustomerModel, user1.user_id, true);
   const customer2 = await CustomerModel.create({
@@ -88,7 +88,6 @@ test("should return error message and status code of 422 when field data is miss
     .loginVia(user1, "jwt")
     .send(order)
     .end();
- 
 
   response.assertStatus(200);
   response.assertJSONSubset({
@@ -102,13 +101,12 @@ test("should return error message and status code of 422 when field data is miss
 test("should return structured response with no references in an array via get method.", async ({
   client,
 }) => {
-  
   const user1 = await makeUserUtil(UserModel);
   const user2 = await UserModel.create({
     username: "wada",
     email: "waddda@gmail.com",
     password: "1233131231",
-  }).then(response=>response['$attributes'])
+  }).then((response) => response["$attributes"]);
 
   const customer1 = await makeCustomerUtil(CustomerModel, user1.user_id, true);
   const customer2 = await CustomerModel.create({
@@ -131,10 +129,10 @@ test("should return structured response with no references in an array via get m
     product_id
   );
 
-  const order =await makeOrderUtil(OrderModel,
-    customer2.customer_id, 
-    product_id,
-   
+  const order = await makeOrderUtil(
+    OrderModel,
+    customer2.customer_id,
+    product_id
   );
   const response = await client.get(urlEndPoint).loginVia(user2, "jwt").end();
 
@@ -149,13 +147,12 @@ test("should return structured response with no references in an array via get m
 test("should return structured response with references in an array via get method.", async ({
   client,
 }) => {
- 
   const user1 = await makeUserUtil(UserModel);
   const user2 = await UserModel.create({
     username: "wada",
     email: "waddda@gmail.com",
     password: "1233131231",
-  }).then(response=>response['$attributes'])
+  }).then((response) => response["$attributes"]);
 
   const customer1 = await makeCustomerUtil(CustomerModel, user1.user_id, true);
   const customer2 = await CustomerModel.create({
@@ -178,18 +175,18 @@ test("should return structured response with references in an array via get meth
     product_id
   );
 
-  const order =await makeOrderUtil(OrderModel,
-    customer2.customer_id, 
-    product_id,
-   
+  const order = await makeOrderUtil(
+    OrderModel,
+    customer2.customer_id,
+    product_id
   );
 
   const response = await client
     .get(urlEndPoint)
-    .loginVia(user2,"jwt")
+    .loginVia(user2, "jwt")
     .query({ references: "customer,product" })
     .end();
-   
+
   response.assertStatus(200);
   response.assertJSONSubset({
     data: [
@@ -211,7 +208,7 @@ test("should return structured response with no references via get method.", asy
     username: "wada",
     email: "waddda@gmail.com",
     password: "1233131231",
-  }).then(response=>response['$attributes'])
+  }).then((response) => response["$attributes"]);
 
   const customer1 = await makeCustomerUtil(CustomerModel, user1.user_id, true);
   const customer2 = await CustomerModel.create({
@@ -234,14 +231,16 @@ test("should return structured response with no references via get method.", asy
     product_id
   );
 
-  const order =await makeOrderUtil(OrderModel,
-    customer2.customer_id, 
-    product_id,
-   
+  const order = await makeOrderUtil(
+    OrderModel,
+    customer2.customer_id,
+    product_id
   );
 
-  const response = await client.get(`${urlEndPoint}/${user2.user_id}`)
-  .loginVia(user2).end();
+  const response = await client
+    .get(`${urlEndPoint}/${order.order_id}`)
+    .loginVia(user2)
+    .end();
 
   response.assertStatus(200);
   response.assertJSONSubset({
