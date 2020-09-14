@@ -222,6 +222,7 @@ test("should return structured data with no references via post method.", async 
   const response = await client
   .post(urlEndPoint)
   .loginVia(user,"jwt").send(payment).end();
+  console.log(response)
   
 
   response.assertStatus(200);
