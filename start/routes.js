@@ -17,8 +17,12 @@
 const Route = use("Route");
 
 Route.get("/", () => {
-  return { greeting: "Hello world in JSON" };
+  return {
+    greeting: "Welcome to bid-api.",
+    body: "Our currently aviable route: /api/v1",
+  };
 });
+
 Route.group(() => {
   //api rount start here na ka
   Route.resource("/bids", "BidController");
@@ -34,7 +38,13 @@ Route.group(() => {
 
   Route.resource("/credentialRatings", "CredentialRatingController");
 
-  Route.resource("/customers", "CustomerController");
+  Route.resource("/customers", "CustomerController").middleware(
+    new Map([
+      [["/customers.index"], ["url"]],
+      [["/customers.show"], ["url"]],
+    ])
+  );
+  // .validator(new Map([[["/customers.update"], ["StoreCredential"]]]));
 
   Route.resource("/orders", "OrderController");
 
@@ -42,7 +52,12 @@ Route.group(() => {
 
   Route.resource("/payments", "PaymentController");
 
-  Route.resource("/products", "ProductController");
+  Route.resource("/products", "ProductController").middleware(
+    new Map([
+      [["/products.index"], ["product"]],
+      [["/products.show"], ["product"]],
+    ])
+  );
 
   Route.resource("/productDetails", "ProductDetailController");
 }).prefix("api/v1");
