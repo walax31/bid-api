@@ -76,6 +76,12 @@ class ProductDetailController {
       Customer
     );
 
+    const validation = await productDetailValidator(request.body);
+
+    if (validation.error) {
+      return { status: 422, error: validation.error, data: undefined };
+    }
+
     const existingProduct = await makeCustomerUtil(
       Customer
     ).findProductOnAuthUser(customer_id, product_id);
@@ -86,12 +92,6 @@ class ProductDetailController {
         error: "Product not found. product does not seem to exist.",
         data: undefined,
       };
-
-    const validation = await productDetailValidator(request.body);
-
-    if (validation.error) {
-      return { status: 422, error: validation.error, data: undefined };
-    }
 
     const productDetail = await makeProductDetailUtil(ProductDetail).create(
       {
