@@ -66,7 +66,7 @@ class ProductController {
 
       return { status: 200, error: undefined, data: product || {} };
     }
-
+ 
     const product = await makeProductUtil(Product).hasBidableFlag(
       id,
       references

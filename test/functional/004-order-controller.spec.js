@@ -64,7 +64,7 @@ test("should return error message and status code of 422 when field data is miss
     first_name:"dfsfss",
     last_name:"daad",
     address:"asdasa",
-    phone:0908765314,
+    phone:"098765555",
     path_to_credential:"sdfsfsfs",
     is_validated:true
   })
