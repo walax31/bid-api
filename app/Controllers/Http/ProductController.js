@@ -241,9 +241,7 @@ class ProductController {
         {
           product_name: new_product_name,
           stock,
-          product_image: fileList.length
-            ? fileList.join(",")
-            : new_product_image,
+          product_image: fileList.length ? fileList.join(",") : product_image,
         },
         references
       );
