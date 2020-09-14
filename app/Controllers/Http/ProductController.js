@@ -66,7 +66,7 @@ class ProductController {
 
       return { status: 200, error: undefined, data: product || {} };
     }
- 
+
     const product = await makeProductUtil(Product).hasBidableFlag(
       id,
       references
@@ -186,8 +186,20 @@ class ProductController {
       .findProductOnAuthUser(customer_id, id)
       .then((response) => response["$attributes"]);
 
-    if (product_name) {
+    const productExist = await makeCustomerUtil(Customer).findProductOnAuthUser(
+      customer_id,
+      id
+    );
+
+    if (productExist) {
       const fileList = [];
+
+      const new_product_name = product_name
+        ? product_name
+        : await makeCustomerUtil(Customer).findProductOnAuthUser(
+            customer_id,
+            id
+          );
 
       try {
         request.multipart.file(
@@ -210,11 +222,11 @@ class ProductController {
               };
 
             await Drive.disk("s3").put(
-              `${product_name}.${file.extname}`,
+              `${new_product_name}.${file.extname}`,
               file.stream
             );
 
-            fileList.push(`${product_name}.${file.extname}`);
+            fileList.push(`${new_product_name}.${file.extname}`);
           }
         );
 
@@ -227,9 +239,11 @@ class ProductController {
       const product = await makeProductUtil(Product).updateById(
         id,
         {
-          product_name,
+          product_name: new_product_name,
           stock,
-          product_image: fileList.length ? fileList.join(",") : product_image,
+          product_image: fileList.length
+            ? fileList.join(",")
+            : new_product_image,
         },
         references
       );
