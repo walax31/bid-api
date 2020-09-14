@@ -69,8 +69,11 @@ class OrderController {
 
     const { customer_id } = await performAuthentication(auth).validateIdParam();
 
-    if (customer_id === parseInt(id)) {
-      const order = await makeOrderUtil(Order).getById(id, references);
+    if (customer_id) {
+      const order = await makeCustomerUtil(Customer).findExistingOrders(
+        id,
+        references
+      );
 
       return { status: 200, error: undefined, data: order || {} };
     }

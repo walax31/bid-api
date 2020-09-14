@@ -82,6 +82,14 @@ module.exports = function (CustomerModel) {
         .fetch()
         .then((response) => response.first().getRelated("orders").first());
     },
+    findExistingOrders: (customer_id, references) => {
+      return CustomerModel.query()
+        .with("orders", (builder) =>
+          references.split(",").map((reference) => builder.with(reference))
+        )
+        .where({ customer_id })
+        .fetch();
+    },
     findProductOnAuthUser: (customer_id, product_id) => {
       return CustomerModel.query()
         .with("products", (builder) => {
