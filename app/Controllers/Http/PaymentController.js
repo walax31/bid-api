@@ -78,7 +78,7 @@ class PaymentController {
       Customer
     );
 
-    if (customer_id === parseInt(id)) {
+    if (customer_id) {
       const payment = await makePaymentUtil(Payment).getById(id, references);
 
       return { status: 200, error: undefined, data: payment || {} };
@@ -86,7 +86,7 @@ class PaymentController {
 
     return {
       status: 403,
-      error: "Access denied. id param does not match authenticated id.",
+      error: "Access denied. invalid credential.",
       data: undefined,
     };
   }
