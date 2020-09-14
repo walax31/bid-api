@@ -162,7 +162,7 @@ class OrderController {
       { customer_id, product_id, order_quantity },
       references
     );
-
+   
     return {
       status: 200,
       error: undefined,
