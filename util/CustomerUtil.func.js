@@ -96,7 +96,7 @@ module.exports = function (CustomerModel) {
         .with("bids", (builder) => builder.where({ bid_id }))
         .where({ customer_id })
         .fetch()
-        .then((response) => response.first().getRelated("bids").first());
+        .then((response) => response.first());
     },
   };
 };
