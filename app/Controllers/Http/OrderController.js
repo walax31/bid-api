@@ -70,17 +70,14 @@ class OrderController {
     const { customer_id } = await performAuthentication(auth).validateIdParam();
 
     if (customer_id) {
-      const order = await makeCustomerUtil(Customer).findExistingOrders(
-        id,
-        references
-      );
+      const order = await makeOrderUtil(Order).getById(id, references);
 
       return { status: 200, error: undefined, data: order || {} };
     }
 
     return {
       status: 403,
-      error: "Access denied. id param does not match your authenticated id.",
+      error: "Access denied. invalid credential.",
       data: undefined,
     };
   }
@@ -162,7 +159,7 @@ class OrderController {
       { customer_id, product_id, order_quantity },
       references
     );
-   
+
     return {
       status: 200,
       error: undefined,
