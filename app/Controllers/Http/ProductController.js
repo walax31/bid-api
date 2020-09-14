@@ -182,14 +182,55 @@ class ProductController {
       Customer
     );
 
-    const customerProduct = await makeCustomerUtil(
-      Customer
-    ).findProductOnAuthUser(customer_id, id);
+    const { product_name, product_image } = await makeCustomerUtil(Customer)
+      .findProductOnAuthUser(customer_id, id)
+      .then((response) => response["$attributes"]);
 
-    if (customerProduct) {
+    if (product_name) {
+      const fileList = [];
+
+      try {
+        request.multipart.file(
+          "product_image",
+          {
+            types: ["image"],
+            size: "2mb",
+            extnames: ["png", "gif", "jpeg", "jpg"],
+          },
+          async (file) => {
+            if (
+              !(file.extname === "png") &&
+              !(file.extname === "jpg") &&
+              !(file.extname === "jpeg")
+            )
+              return {
+                status: 422,
+                error: "Validation failed. contain illegal file type.",
+                data: undefined,
+              };
+
+            await Drive.disk("s3").put(
+              `${product_name}.${file.extname}`,
+              file.stream
+            );
+
+            fileList.push(`${product_name}.${file.extname}`);
+          }
+        );
+
+        await request.multipart.process();
+      } catch (error) {
+        if (!error.message === "unsupported content-type")
+          return { status: 500, error, data: undefined };
+      }
+
       const product = await makeProductUtil(Product).updateById(
         id,
-        { product_name, stock },
+        {
+          product_name,
+          stock,
+          product_image: fileList.length ? fileList.join(",") : product_image,
+        },
         references
       );
 

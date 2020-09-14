@@ -90,7 +90,12 @@ class BidController {
       Customer
     );
 
-    if (customer_id === parseInt(id)) {
+    const existingBid = await makeCustomerUtil(Customer).findBidOnThisCustomer(
+      customer_id,
+      id
+    );
+
+    if (existingBid) {
       const bid = await makeBidUtil(Bid).getById(customer_id, references);
 
       return { status: 200, error: undefined, data: bid || {} };

@@ -91,5 +91,12 @@ module.exports = function (CustomerModel) {
         .fetch()
         .then((response) => response.first().getRelated("products").first());
     },
+    findBidOnThisCustomer: (customer_id, bid_id) => {
+      return CustomerModel.query()
+        .with("bids", (builder) => builder.where({ bid_id }))
+        .where({ customer_id })
+        .fetch()
+        .then((response) => response.first().getRelated("bids").first());
+    },
   };
 };
