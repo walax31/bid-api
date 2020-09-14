@@ -21,7 +21,7 @@ const makeProducts = require("../../util/seederUtil/productSeederUtil.func");
 const makeProductDetails = require("../../util/seederUtil/productDetailSeederUtil.func");
 const makeBids = require("../../util/seederUtil/bidSeederUtil.func");
 const makeOrders = require("../../util/seederUtil/orderSeederUtil.func");
-const makeOrderDetails = require("../../util/seederUtil/orderDetailSeederUtil.func");
+// const makeOrderDetails = require("../../util/seederUtil/orderDetailSeederUtil.func");
 const makePayments = require("../../util/seederUtil/paymentSeederUtil.func");
 
 class DatabaseSeeder {
