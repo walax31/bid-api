@@ -48,9 +48,13 @@ test("should return structured response with empty data via get method.", async 
 test("should return error message and status code of 422 when field data is missing.", async ({
   client,
 }) => {
-  const { user_id } = await makeUserUtil(UserModel);
+  const user = await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+  const { customer_id } = await makeCustomerUtil(
+    CustomerModel,
+    user.user_id,
+    true
+  );
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -61,7 +65,7 @@ test("should return error message and status code of 422 when field data is miss
 
   const response = await client
     .post(urlEndPoint)
-    .loginVia(admin, "jwt")
+    .loginVia(user, "jwt")
     .send(bid)
     .end();
 
@@ -70,7 +74,7 @@ test("should return error message and status code of 422 when field data is miss
     status: 422,
   });
 
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return structured response with no references in an array via get method.", async ({
@@ -139,11 +143,13 @@ test("should return structured response with references in an array via get meth
 test("should return structured response with no references via get method.", async ({
   client,
 }) => {
- 
+  const user = await makeUserUtil(UserModel);
 
-  const { user_id } = await makeUserUtil(UserModel);
-
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+  const { customer_id } = await makeCustomerUtil(
+    CustomerModel,
+    user.user_id,
+    true
+  );
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -155,7 +161,7 @@ test("should return structured response with no references via get method.", asy
 
   const response = await client
     .get(`${urlEndPoint}/${bid["$attributes"].bid_id}`)
-    .loginVia(admin, "jwt")
+    .loginVia(user, "jwt")
     .end();
 
   response.assertStatus(200);
@@ -163,16 +169,15 @@ test("should return structured response with no references via get method.", asy
     data: bid["$attributes"],
   });
 
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return structured response with references via get method.", async ({
   client,
 }) => {
-  
-  const { user_id } = await makeUserUtil(UserModel);
+  const user = await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id, true);
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -184,7 +189,7 @@ test("should return structured response with references via get method.", async 
 
   const response = await client
     .get(`${urlEndPoint}/${bid["$attributes"].bid_id}`)
-    .loginVia(admin, "jwt")
+    .loginVia(user, "jwt")
     .query({ references: "customer,product" })
     .end();
 
@@ -195,16 +200,20 @@ test("should return structured response with references via get method.", async 
       product: { product_id: product_id },
     },
   });
- 
-  await UserModel.find(user_id).then((response) => response.delete());
+
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return structured data with no references via post method.", async ({
   client,
 }) => {
-  const { user_id } = await makeUserUtil(UserModel);
+  const user = await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+  const { customer_id } = await makeCustomerUtil(
+    CustomerModel,
+    user.user_id,
+    true
+  );
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -214,8 +223,11 @@ test("should return structured data with no references via post method.", async 
     product_id: product_id,
   };
 
-  const response = await client.post(urlEndPoint)
-  .loginVia(user_id).send(bid).end();
+  const response = await client
+    .post(urlEndPoint)
+    .loginVia(user, "jwt")
+    .send(bid)
+    .end();
 
   response.assertStatus(200);
   response.assertJSONSubset({
@@ -228,9 +240,13 @@ test("should return structured data with no references via post method.", async 
 test("should return structured data with references via post method.", async ({
   client,
 }) => {
-  const { user_id } = await makeUserUtil(UserModel);
+  const user = await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+  const { customer_id } = await makeCustomerUtil(
+    CustomerModel,
+    user.user_id,
+    true
+  );
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -242,7 +258,7 @@ test("should return structured data with references via post method.", async ({
 
   const response = await client
     .post(urlEndPoint)
-    .loginVia(user_id,"jwt")
+    .loginVia(user, "jwt")
     .send(bid)
     .query({ references: "customer,product" })
     .end();
@@ -252,15 +268,19 @@ test("should return structured data with references via post method.", async ({
     data: bid,
   });
 
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return structured data with no references via put method.", async ({
   client,
 }) => {
-  const { user_id } = await makeUserUtil(UserModel);
+  const user = await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id,true);
+  const { customer_id } = await makeCustomerUtil(
+    CustomerModel,
+    user.user_id,
+    true
+  );
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -268,12 +288,11 @@ test("should return structured data with no references via put method.", async (
     customer_id,
     bid_amount: 1000,
     product_id,
-  
   });
 
   const response = await client
     .put(`${urlEndPoint}/${bid["$attributes"].bid_id}`)
-    .loginVia(user_id,"jwt")
+    .loginVia(user, "jwt")
     .send({ bid_amount: 1100 })
     .end();
 
@@ -282,15 +301,19 @@ test("should return structured data with no references via put method.", async (
     data: { bid_amount: 1100 },
   });
 
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return structured data with references via put method.", async ({
   client,
 }) => {
-  const { user_id } = await makeUserUtil(UserModel);
+  const user = await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id,true);
+  const { customer_id } = await makeCustomerUtil(
+    CustomerModel,
+    user.user_id,
+    true
+  );
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -302,7 +325,7 @@ test("should return structured data with references via put method.", async ({
 
   const response = await client
     .put(`${urlEndPoint}/${bid_id}`)
-    .loginVia(user_id,"jwt")
+    .loginVia(user, "jwt")
     .send({ bid_amount: 1100 })
     .query({ references: "customer,product" })
     .end();
@@ -312,14 +335,19 @@ test("should return structured data with references via put method.", async ({
     data: { bid_amount: 1100 },
   });
 
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return data index via delete method.", async ({ client }) => {
-  const { user_id } = await makeUserUtil(UserModel);
+  const user = await makeUserUtil(UserModel);
   const admin = await makeAdminUtil(UserModel);
+  const { user_id } = await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id);
+  const { customer_id } = await makeCustomerUtil(
+    CustomerModel,
+    user.user_id,
+    true
+  );
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -335,6 +363,6 @@ test("should return data index via delete method.", async ({ client }) => {
     .end();
 
   response.assertStatus(200);
-
+  await UserModel.find(user_id).then((response) => response.delete());
   await UserModel.find(admin.user_id).then((response) => response.delete());
 });
