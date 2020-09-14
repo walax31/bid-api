@@ -9,41 +9,53 @@ const makeCustomerUtil = require("../../util/testerUtil/autogenCustomerInstance.
 const makeProductUtil = require("../../util/testerUtil/autogenProductInstance.func");
 const makeOrderUtil = require("../../util/testerUtil/autogenOrderInstance.func");
 const makePaymentUtil = require("../../util/testerUtil/autogenPaymentInstance.func");
-const { test, trait } = use("Test/Suite")("Payment Controller");
+const makeAdminUtil = require("../../util/testerUtil/autogenAdminInstance.func");
 const PaymentModel = use("App/Models/Payment");
 
+const { test, trait } = use("Test/Suite")("Payment Controller");
+
 trait("Test/ApiClient");
+trait("Auth/Client");
 
 const urlEndPoint = "/api/v1/payments";
 
 test("should return structured response with empty data array via get method.", async ({
   client,
 }) => {
-  const response = await client.get(urlEndPoint).end();
+  const admin =await makeAdminUtil(UserModel)
+  const response = await client
+  .get(urlEndPoint)
+  .loginVia(admin,"jwt").end();
 
   response.assertStatus(200);
   response.assertJSONSubset({
     data: [],
   });
+  await UserModel.find(admin.user_id).then((response)=>response.delete())
 });
 
 test("should return structured response with empty data via get method.", async ({
   client,
 }) => {
-  const response = await client.get(`${urlEndPoint}/1`).end();
+  const admin =await makeAdminUtil(UserModel)
+  const response = await client
+  .get(`${urlEndPoint}/1`)
+  .loginVia(admin,"jwt")
+  .end();
 
   response.assertStatus(200);
   response.assertJSONSubset({
     data: {},
   });
+  await UserModel.find(admin.user_id).then((response)=>response.delete())
 });
 
 test("should return error message and status code of 422 when field data is missing.", async ({
   client,
 }) => {
-  const {user_id}= await makeUserUtil(UserModel);
+  const user= await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel,user_id);
+  const { customer_id } = await makeCustomerUtil(CustomerModel,user.user_id,true);
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -54,22 +66,27 @@ test("should return error message and status code of 422 when field data is miss
    method:"sada"
   };
 
-  const response = await client.post(urlEndPoint).send(payment).end();
+  const response = await client
+  .post(urlEndPoint)
+  .loginVia(user,"jwt")
+  .send(payment)
+  .end();
 
   response.assertStatus(200);
   response.assertJSONSubset({
     status: 422,
   });
 
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return structured response with no references in an array via get method.", async ({
   client,
 }) => {
-  const {user_id}= await makeUserUtil(UserModel);
+  const admin =await makeAdminUtil(UserModel)
+  const user= await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel,user_id);
+  const { customer_id } = await makeCustomerUtil(CustomerModel,user.user_id,true);
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -78,22 +95,28 @@ test("should return structured response with no references in an array via get m
   const payment =await makePaymentUtil(PaymentModel, order_id)
 
 
-  const response = await client.get(urlEndPoint).end();
+  const response = await client
+  .get(urlEndPoint)
+  .loginVia(admin,"jwt")
+  .end();
 
   response.assertStatus(200);
   response.assertJSONSubset({
     data: [payment],
   });
 
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
+  await UserModel.find(admin.user_id).then((response)=>response.delete())
 });
 
 test("should return structured response with references in an array via get method.", async ({
   client,
 }) => {
-  const {user_id}= await makeUserUtil(UserModel);
+  
+  const admin = await makeAdminUtil(UserModel);
+  const user= await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel,user_id);
+  const { customer_id } = await makeCustomerUtil(CustomerModel,user.user_id,true);
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -103,6 +126,7 @@ test("should return structured response with references in an array via get meth
 
   const response = await client
     .get(urlEndPoint)
+    .loginVia(admin,"jwt")
     .query({ references: "order" })
     .end();
 
@@ -115,15 +139,16 @@ test("should return structured response with references in an array via get meth
     ],
   });
 
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
+  await UserModel.find(admin.user_id).then((response) => response.delete());
 });
 
 test("should return structured response with no references via get method.", async ({
   client,
 }) => {
-  const {user_id}= await makeUserUtil(UserModel);
+  const user= await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel,user_id);
+  const { customer_id } = await makeCustomerUtil(CustomerModel,user.user_id,true);
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -134,6 +159,7 @@ test("should return structured response with no references via get method.", asy
 
   const response = await client
     .get(`${urlEndPoint}/${payment.order_id}`)
+    .loginVia(user ,"jwt")
     .end();
 
   response.assertStatus(200);
@@ -141,15 +167,15 @@ test("should return structured response with no references via get method.", asy
     data: payment,
   });
 
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return structured response with references via get method.", async ({
   client,
 }) => {
-  const {user_id}= await makeUserUtil(UserModel);
+  const user= await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel,user_id);
+  const { customer_id } = await makeCustomerUtil(CustomerModel,user.user_id,true);
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -160,6 +186,7 @@ test("should return structured response with references via get method.", async 
 
   const response = await client
     .get(`${urlEndPoint}/${payment.order_id}`)
+    .loginVia(user,"jwt")
     .query({ references: "order" })
     .end();
 
@@ -170,15 +197,15 @@ test("should return structured response with references via get method.", async 
     },
   });
 
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return structured data with no references via post method.", async ({
   client,
 }) => {
-  const {user_id}= await makeUserUtil(UserModel);
+  const user= await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel,user_id);
+  const { customer_id } = await makeCustomerUtil(CustomerModel,user.user_id,true);
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -191,22 +218,25 @@ test("should return structured data with no references via post method.", async 
     total:2000
   }
 
-  const response = await client.post(urlEndPoint).send(payment).end();
+  const response = await client
+  .post(urlEndPoint)
+  .loginVia(user,"jwt").send(payment).end();
+  console.log(response)
 
   response.assertStatus(200);
   response.assertJSONSubset({
     data: payment
   });
 
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return structured data with references via post method.", async ({
   client,
 }) => {
-  const {user_id}= await makeUserUtil(UserModel);
+  const user= await makeUserUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel,user_id);
+  const { customer_id } = await makeCustomerUtil(CustomerModel,user.user_id,true);
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -221,6 +251,7 @@ test("should return structured data with references via post method.", async ({
 
   const response = await client
     .post(urlEndPoint)
+    .loginVia(user,"jwt")
     .send(payment)
     .query({ references: "order" })
     .end();
@@ -230,15 +261,16 @@ test("should return structured data with references via post method.", async ({
     data: payment,
   });
 
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return structured data with no references via put method.", async ({
   client,
 }) => {
-  const {user_id}= await makeUserUtil(UserModel);
+  const user= await makeUserUtil(UserModel);
+  const admin = await makeAdminUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel,user_id);
+  const { customer_id } = await makeCustomerUtil(CustomerModel,user.user_id,true);
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -248,6 +280,7 @@ test("should return structured data with no references via put method.", async (
 
   const response = await client
     .put(`${urlEndPoint}/${payment.order_id}`)
+    .loginVia(admin,"jwt")
     .send({ total: 1100 })
     .end();
 
@@ -255,16 +288,17 @@ test("should return structured data with no references via put method.", async (
   response.assertJSONSubset({
     data: { total: 1100 },
   });
-
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(admin.user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return structured data with references via put method.", async ({
   client,
 }) => {
-  const {user_id}= await makeUserUtil(UserModel);
+  const user= await makeUserUtil(UserModel);
+  const admin = await makeAdminUtil(UserModel);
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel,user_id);
+  const { customer_id } = await makeCustomerUtil(CustomerModel,user.user_id,true);
 
   const { product_id } = await makeProductUtil(ProductModel, customer_id);
 
@@ -274,6 +308,7 @@ test("should return structured data with references via put method.", async ({
 
   const response = await client
     .put(`${urlEndPoint}/${order_id}`)
+    .loginVia(admin,"jwt")
     .send({  total: 1100  })
     .query({ references: "order" })
     .end();
@@ -284,11 +319,12 @@ test("should return structured data with references via put method.", async ({
   response.assertJSONSubset({
     data: {  total: 1100  },
   });
-
-  await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(admin.user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return data index via delete method.", async ({ client }) => {
+  const admin = await makeAdminUtil(UserModel);
   const {user_id}= await makeUserUtil(UserModel);
 
   const { customer_id } = await makeCustomerUtil(CustomerModel,user_id);
@@ -301,9 +337,11 @@ test("should return data index via delete method.", async ({ client }) => {
 
   const response = await client
     .delete(`${urlEndPoint}/${payment.order_id}`)
+    .loginVia(admin, "jwt")
     .end();
 
   response.assertStatus(200);
 
   await UserModel.find(user_id).then((response) => response.delete());
+  await UserModel.find(admin.user_id).then((response) => response.delete());
 });
