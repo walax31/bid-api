@@ -155,7 +155,7 @@ test("should return structured response with no references via get method.", asy
 
   const bid = await BidModel.create({
     customer_id,
-    bid_amount: 1000,
+    bid_amount: 2000,
     product_id,
   });
 
@@ -163,7 +163,7 @@ test("should return structured response with no references via get method.", asy
     .get(`${urlEndPoint}/${bid["$attributes"].bid_id}`)
     .loginVia(user, "jwt")
     .end();
-
+  console.log(response)
   response.assertStatus(200);
   response.assertJSONSubset({
     data: bid["$attributes"],
