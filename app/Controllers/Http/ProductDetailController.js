@@ -2,7 +2,6 @@
 
 const productDetailValidator = require("../../../service/productDetailValidator");
 const ProductDetail = use("App/Models/ProductDetail");
-const User = use("App/Models/User");
 const Customer = use("App/Models/Customer");
 const Product = use("App/Models/Product");
 const makeProductDetailUtil = require("../../../util/ProductDetailUtil.func");
@@ -154,7 +153,6 @@ class ProductDetailController {
       };
 
     const {
-     
       product_price,
       product_bid_start,
       product_bid_increment,
@@ -164,7 +162,6 @@ class ProductDetailController {
     const productDetail = await makeProductDetailUtil(ProductDetail).updateById(
       id,
       {
-       
         product_price,
         product_bid_start,
         product_bid_increment,
