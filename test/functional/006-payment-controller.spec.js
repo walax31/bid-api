@@ -1,5 +1,6 @@
 "use strict";
 
+const { test, trait } = use("Test/Suite")("Payment Controller");
 const OrderModel = use("App/Models/Order");
 const BidModel = use("App/Models/Bid");
 const UserModel = use("App/Models/User");
@@ -13,8 +14,6 @@ const makeOrderUtil = require("../../util/testerUtil/autogenOrderInstance.func")
 const makePaymentUtil = require("../../util/testerUtil/autogenPaymentInstance.func");
 const makeAdminUtil = require("../../util/testerUtil/autogenAdminInstance.func");
 const PaymentModel = use("App/Models/Payment");
-
-const { test, trait } = use("Test/Suite")("Payment Controller");
 
 trait("Test/ApiClient");
 trait("Auth/Client");

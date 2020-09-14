@@ -2,11 +2,8 @@
 
 const { test, trait } = use("Test/Suite")("User Controller");
 const UserModel = use("App/Models/User");
-const CustomerModel = use("App/Models/Customer");
-const makeCustomerUtil = require("../../util/testerUtil/autogenCustomerInstance.func");
 const makeUserUtil = require("../../util/testerUtil/autogenUserInstance.func");
 const makeAdminUtil = require("../../util/testerUtil/autogenAdminInstance.func");
-const Encryption = use("Encryption");
 
 trait("Test/ApiClient");
 trait("Auth/Client");

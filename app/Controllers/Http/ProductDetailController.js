@@ -2,7 +2,6 @@
 
 const productDetailValidator = require("../../../service/productDetailValidator");
 const ProductDetail = use("App/Models/ProductDetail");
-const User = use("App/Models/User");
 const Customer = use("App/Models/Customer");
 const Product = use("App/Models/Product");
 const makeProductDetailUtil = require("../../../util/ProductDetailUtil.func");

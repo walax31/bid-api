@@ -11,9 +11,9 @@ const makeProductUtil = require("../../util/testerUtil/autogenProductInstance.fu
 const makeAdminUtil = require("../../util/testerUtil/autogenAdminInstance.func");
 
 trait("Test/ApiClient");
+trait("Auth/Client");
 
 const urlEndPoint = "/api/v1/products";
-trait("Auth/Client");
 
 test("should return structured response with empty data array via get method.", async ({
   client,
