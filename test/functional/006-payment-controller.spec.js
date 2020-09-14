@@ -297,16 +297,17 @@ test("should return structured response with references via get method.", async 
     customer2.customer_id,
     product_id
   );
-  const {order_id} =await makeOrderUtil(OrderModel,customer2.customer_id,product_id)
-
-
-  const payment =await makePaymentUtil(PaymentModel, order_id)
+  const { order_id } = await makeOrderUtil(
+    OrderModel,
+    customer2.customer_id,
+    product_id
+  );
 
   const payment = await makePaymentUtil(PaymentModel, order_id);
 
   const response = await client
     .get(`${urlEndPoint}/${payment.order_id}`)
-    .loginVia(user2,"jwt")
+    .loginVia(user2, "jwt")
     .query({ references: "order" })
     .end();
 
