@@ -149,6 +149,14 @@ class BidController {
       return { status: 422, error: validation.error, data: undefined };
     }
 
+    const isBidable = await makeProductUtil(Product).hasBidableFlag(product_id);
+
+    if (!isBidable)
+      return {
+        status: 403,
+        error: "Access denied. product is not yet bidable.",
+      };
+
     const existingBids = await makeProductUtil(
       Product
     ).findExistingBidOnThisProduct(product_id);
