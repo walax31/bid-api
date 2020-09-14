@@ -96,7 +96,7 @@ class BidController {
     );
 
     if (existingBid) {
-      const bid = await makeBidUtil(Bid).getById(customer_id, references);
+      const bid = await makeBidUtil(Bid).getById(id, references);
 
       return { status: 200, error: undefined, data: bid || {} };
     }
