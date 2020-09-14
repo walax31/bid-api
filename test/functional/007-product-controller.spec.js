@@ -242,7 +242,7 @@ test("should return structured data with no references via put method.", async (
     .loginVia(user, "jwt")
     .send({ stock: 3 })
     .end();
-  console.log(response)
+
   response.assertStatus(200);
   response.assertJSONSubset({
     data: { stock: 3 },

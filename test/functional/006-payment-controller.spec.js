@@ -593,19 +593,19 @@ test("should return data index via delete method.", async ({ client }) => {
     product_id
   );
 
-  const {order_id} = await makeOrderUtil(
+  const { order_id } = await makeOrderUtil(
     OrderModel,
     customer2.customer_id,
     product_id
   );
 
-  const payment =await makePaymentUtil(PaymentModel, order_id)
-  
+  const payment = await makePaymentUtil(PaymentModel, order_id);
+
   const response = await client
     .delete(`${urlEndPoint}/${order_id}`)
     .loginVia(admin, "jwt")
     .end();
-  console.log(response)
+
   response.assertStatus(200);
   await UserModel.find(user1.user_id).then((response) => response.delete());
   await UserModel.find(user2.user_id).then((response) => response.delete());
