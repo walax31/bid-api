@@ -2,7 +2,6 @@
 
 const orderValidator = require("../../../service/orderValidator");
 const Order = use("App/Models/Order");
-const Product=use("App/Models/Product")
 const User = use("App/Models/User");
 const Customer = use("App/Models/Customer");
 const Product = use("App/Models/Product");
