@@ -345,7 +345,7 @@ test("should return structured data with no references via post method.", async 
 
   const response = await client
     .post(urlEndPoint)
-    .loginVia(user1, "jwt")
+    .loginVia(user2, "jwt")
     .send(payment)
     .end();
 
