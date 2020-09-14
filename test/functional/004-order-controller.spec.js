@@ -237,10 +237,9 @@ test("should return structured response with no references via get method.", asy
   const order =await makeOrderUtil(OrderModel,
     customer2.customer_id, 
     product_id,
-   
-  );
+  )
 
-  const response = await client.get(`${urlEndPoint}/${user2.user_id}`)
+  const response = await client.get(`${urlEndPoint}/${order.order_id}`)
   .loginVia(user2).end();
 
   response.assertStatus(200);

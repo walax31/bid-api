@@ -12,27 +12,32 @@ const makeAdminUtil = require("../../util/testerUtil/autogenAdminInstance.func")
 trait("Test/ApiClient");
 
 const urlEndPoint = "/api/v1/products";
+trait("Auth/Client");
 
 test("should return structured response with empty data array via get method.", async ({
   client,
 }) => {
+  const admin = await makeAdminUtil(UserModel);
   const response = await client.get(urlEndPoint).end();
 
   response.assertStatus(200);
   response.assertJSONSubset({
     data: [],
   });
+  await UserModel.find(admin.user_id).then((response) => response.delete());
 });
 
 test("should return structured response with empty data via get method.", async ({
   client,
 }) => {
+  const admin = await makeAdminUtil(UserModel);
   const response = await client.get(`${urlEndPoint}/1`).end();
 
   response.assertStatus(200);
   response.assertJSONSubset({
     data: {},
   });
+  await UserModel.find(admin.user_id).then((response) => response.delete());
 });
 
 test("should return error message and status code of 422 when field data is missing.", async ({
