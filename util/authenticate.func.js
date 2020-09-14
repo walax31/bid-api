@@ -136,5 +136,10 @@ module.exports = function (auth) {
 
       return { auth_id: user_id, customer_id };
     },
+    getUsername: () => {
+      return auth
+        .getUser()
+        .then((response) => response["$attributes"].username);
+    },
   };
 };
