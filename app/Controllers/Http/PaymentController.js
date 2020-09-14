@@ -94,7 +94,7 @@ class PaymentController {
   async store({ auth, request }) {
     const { body, qs } = request;
 
-    const { method, status, total } = body;
+    const { order_id, method, status, total } = body;
 
     const { references } = qs;
 
@@ -113,12 +113,12 @@ class PaymentController {
       return { status: 422, error: validation.error, data: undefined };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam(
-      Customer
-    );
+    //     const { customer_id } = await performAuthentication(auth).validateIdParam(
+    //       Customer
+    //     );
 
     const existingPayment = await makePaymentUtil(Payment).findExistingPayment(
-      customer_id
+      order_id
     );
 
     if (existingPayment)
@@ -127,10 +127,7 @@ class PaymentController {
         error: "Duplicate payment. payment already existed.",
       };
 
-    const existingOrder = await makeCustomerUtil(Customer).findExistingOrder(
-      customer_id,
-      product_id
-    );
+    const existingOrder = await makePaymentUtil(Payment).getById(order_id);
 
     if (!existingOrder)
       return {
@@ -143,6 +140,7 @@ class PaymentController {
         method,
         status,
         total,
+        order_id,
       },
       references
     );
