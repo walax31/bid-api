@@ -186,20 +186,16 @@ class ProductController {
       .findProductOnAuthUser(customer_id, id)
       .then((response) => response["$attributes"]);
 
-    const productExist = await makeCustomerUtil(Customer).findProductOnAuthUser(
-      customer_id,
-      id
-    );
+    const productExist = await makeCustomerUtil(Customer)
+      .findProductOnAuthUser(customer_id, id)
+      .then((response) => response["$attributes"]);
 
     if (productExist) {
       const fileList = [];
 
       const new_product_name = product_name
         ? product_name
-        : await makeCustomerUtil(Customer).findProductOnAuthUser(
-            customer_id,
-            id
-          );
+        : productExist.product_name;
 
       try {
         request.multipart.file(
