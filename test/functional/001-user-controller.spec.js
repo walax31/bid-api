@@ -2,7 +2,7 @@
 
 const { test, trait } = use("Test/Suite")("User Controller");
 const UserModel = use("App/Models/User");
-const CustomerModel = use("App/Models/Customer")
+const CustomerModel = use("App/Models/Customer");
 const makeCustomerUtil = require("../../util/testerUtil/autogenCustomerInstance.func");
 const makeUserUtil = require("../../util/testerUtil/autogenUserInstance.func");
 const makeAdminUtil = require("../../util/testerUtil/autogenAdminInstance.func");
@@ -32,11 +32,10 @@ test("should return structured response with empty data via get method.", async 
   client,
 }) => {
   const admin = await makeAdminUtil(UserModel);
-  const user = await makeUserUtil(UserModel);
 
   const response = await client
-    .get(`${urlEndPoint}/${user.user_id}`)
-    .loginVia(user, "jwt")
+    .get(`${urlEndPoint}/1`)
+    .loginVia(admin, "jwt")
     .end();
 
   response.assertStatus(200);
@@ -61,6 +60,7 @@ test("should return structured response with no references in an array via get m
     data: [{ user_id: user.user_id }],
   });
   await UserModel.find(admin.user_id).then((response) => response.delete());
+  await UserModel.find(user.user_id).then((response) => response.delete());
 });
 
 test("should return structured response with no references via get method.", async ({

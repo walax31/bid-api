@@ -63,10 +63,10 @@ class UserController {
       return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
-      const { user_id, username, email } = await makeUserUtil(User).getById(
+      const { user_id, username, email } = (await makeUserUtil(User).getById(
         id,
         references
-      );
+      )) || { user_id: undefined, username: undefined, email: undefined };
 
       return {
         status: 200,
