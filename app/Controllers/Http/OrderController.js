@@ -4,6 +4,7 @@ const orderValidator = require("../../../service/orderValidator");
 const Order = use("App/Models/Order");
 const User = use("App/Models/User");
 const Customer = use("App/Models/Customer");
+const Product = use("App/Models/Product");
 const makeOrderUtil = require("../../../util/OrderUtil.func");
 const makeUserUtil = require("../../../util/UserUtil.func");
 const makeCustomerUtil = require("../../../util/CustomerUtil.func");
@@ -154,7 +155,7 @@ class OrderController {
       return { status: 422, error: validation.error, data: undefined };
     }
 
-    const { data } = await makeOrderUtil(Order).create(
+    const data = await makeOrderUtil(Order).create(
       { customer_id, product_id, order_quantity },
       references
     );
