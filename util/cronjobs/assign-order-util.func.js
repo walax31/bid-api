@@ -2,11 +2,9 @@ module.exports = function (CronJob, fetch, token, attributes, timeInHours) {
   return new CronJob(
     new Date(new Date().setHours(new Date().getHours() + timeInHours)),
     async function () {
-      const body = {};
-
       const response = await fetch("http://localhost:3333/api/v1/orders", {
         method: "POST",
-        body: JSON.stringify(body),
+        body: JSON.stringify(attributes),
         header: JSON.stringify({
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
