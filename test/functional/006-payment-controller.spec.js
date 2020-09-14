@@ -215,7 +215,8 @@ test("should return structured data with no references via post method.", async 
     order_id:order_id,
     status:"pending",
     method:"sds",
-    total:2000
+    total:2000,
+    product_id:product_id
   }
 
   const response = await client
