@@ -113,10 +113,6 @@ class PaymentController {
       return { status: 422, error: validation.error, data: undefined };
     }
 
-    //     const { customer_id } = await performAuthentication(auth).validateIdParam(
-    //       Customer
-    //     );
-
     const existingPayment = await makePaymentUtil(Payment).findExistingPayment(
       order_id
     );
@@ -127,7 +123,7 @@ class PaymentController {
         error: "Duplicate payment. payment already existed.",
       };
 
-    const existingOrder = await makePaymentUtil(Payment).getById(order_id);
+    const existingOrder = await makeOrderUtil(Order).getById(order_id);
 
     if (!existingOrder)
       return {
