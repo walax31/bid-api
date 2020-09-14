@@ -297,15 +297,17 @@ test("should return structured response with references via get method.", async 
     customer2.customer_id,
     product_id
   );
-  const {order_id} =await makeOrderUtil(OrderModel,customer2.customer_id,product_id)
+  const { order_id } = await makeOrderUtil(
+    OrderModel,
+    customer2.customer_id,
+    product_id
+  );
 
-
-  const payment =await makePaymentUtil(PaymentModel, order_id)
-
+  const payment = await makePaymentUtil(PaymentModel, order_id);
 
   const response = await client
     .get(`${urlEndPoint}/${payment.order_id}`)
-    .loginVia(user2,"jwt")
+    .loginVia(user2, "jwt")
     .query({ references: "order" })
     .end();
 
@@ -421,7 +423,6 @@ test("should return structured data with references via post method.", async ({
     total: 2000,
   };
 
-
   const response = await client
     .post(urlEndPoint)
     .loginVia(user2, "jwt")
@@ -436,13 +437,11 @@ test("should return structured data with references via post method.", async ({
 
   await UserModel.find(user1.user_id).then((response) => response.delete());
   await UserModel.find(user2.user_id).then((response) => response.delete());
-  
 });
 
 test("should return structured data with no references via put method.", async ({
   client,
 }) => {
-  
   const admin = await makeAdminUtil(UserModel);
 
   const user1 = await makeUserUtil(UserModel);
@@ -478,8 +477,8 @@ test("should return structured data with no references via put method.", async (
     customer2.customer_id,
     product_id
   );
-   
- await  makePaymentUtil(PaymentModel, order.order_id)
+
+  await makePaymentUtil(PaymentModel, order.order_id);
 
   const payment = {
     order: order.order_id,
@@ -506,7 +505,6 @@ test("should return structured data with no references via put method.", async (
 test("should return structured data with references via put method.", async ({
   client,
 }) => {
-  
   const admin = await makeAdminUtil(UserModel);
 
   const user1 = await makeUserUtil(UserModel);
@@ -542,7 +540,7 @@ test("should return structured data with references via put method.", async ({
     customer2.customer_id,
     product_id
   );
-  await  makePaymentUtil(PaymentModel, order.order_id)
+  await makePaymentUtil(PaymentModel, order.order_id);
   const payment = {
     order_id: order.order_id,
     status: "pending",
