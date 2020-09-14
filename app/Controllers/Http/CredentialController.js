@@ -114,9 +114,11 @@ class CredentialController {
   }
 
   async job() {
+    const a = 1;
     const job = new CronJob(
-      "1 * * * * *",
+      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
       function () {
+        console.log(a);
         console.log("Job fired.");
         this.stop();
       },
@@ -129,11 +131,17 @@ class CredentialController {
 
   // for testing purpose
   async upload({ request }) {
-    request.multipart.file("profile_pic", {}, async (file) => {
+    request.multipart.file("credential_image", {}, async (file) => {
       await Drive.disk("s3").put(file.clientName, file.stream);
     });
 
     await request.multipart.process();
+
+    return {
+      status: 200,
+      error: undefined,
+      data: "Upload sucessful.",
+    };
   }
 
   async download() {
