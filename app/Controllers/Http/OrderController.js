@@ -67,7 +67,9 @@ class OrderController {
       return { status: 200, error: undefined, data: order || {} };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam();
+    const { customer_id } = await performAuthentication(auth).validateIdParam(
+      Customer
+    );
 
     if (customer_id) {
       const order = await makeOrderUtil(Order).getById(id, references);
