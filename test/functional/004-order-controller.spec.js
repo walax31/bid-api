@@ -64,7 +64,7 @@ test("should return error message and status code of 422 when field data is miss
     last_name: "daad",
     address: "asdasa",
     phone: "098765555",
-    path_to_credential: "sdfsfsfs",
+    // path_to_credential: "sdfsfsfs",
     is_validated: true,
   });
 
@@ -79,9 +79,8 @@ test("should return error message and status code of 422 when field data is miss
   );
 
   const order = {
-    
     product_id,
-    customer_id:customer1.customer_id
+    customer_id: customer2.customer_id,
   };
 
   const response = await client
