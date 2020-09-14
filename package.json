@@ -30,7 +30,9 @@
     "@adonisjs/vow": "^1.0.17",
     "aws-sdk": "^2.751.0",
     "cron": "^1.8.2",
+    "ms": "^2.1.2",
     "mysql": "^2.18.1",
+    "node-fetch": "^2.6.1",
     "yarn": "^1.22.5"
   },
   "devDependencies": {
