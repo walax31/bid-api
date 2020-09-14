@@ -6,6 +6,7 @@ const Customer = use("App/Models/Customer");
 const Order = use("App/Models/Order");
 const makePaymentUtil = require("../../../util/PaymentUtil.func");
 const makeOrderUtil = require("../../../util/OrderUtil.func");
+const makeCustomerUtil = require("../../../util/CustomerUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 const performAuthentication = require("../../../util/authenticate.func");
 
@@ -106,7 +107,7 @@ class PaymentController {
         data: undefined,
       };
 
-    const validation = await paymentValidator(request.body);
+    const validation = await paymentValidator(body);
 
     if (validation.error) {
       return { status: 422, error: validation.error, data: undefined };
@@ -126,8 +127,9 @@ class PaymentController {
         error: "Duplicate payment. payment already existed.",
       };
 
-    const existingOrder = await makeOrderUtil(Order).findExistingOrder(
-      customer_id
+    const existingOrder = await makeCustomerUtil(Customer).findExistingOrder(
+      customer_id,
+      product_id
     );
 
     if (!existingOrder)

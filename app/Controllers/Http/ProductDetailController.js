@@ -7,6 +7,7 @@ const Customer = use("App/Models/Customer");
 const Product = use("App/Models/Product");
 const makeProductDetailUtil = require("../../../util/ProductDetailUtil.func");
 const makeProductUtil = require("../../../util/ProductUtil.func");
+const makeCustomerUtil = require("../../../util/CustomerUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
 const performAuthentication = require("../../../util/authenticate.func");
 
@@ -93,7 +94,8 @@ class ProductDetailController {
     }
 
     const productDetail = await makeProductDetailUtil(ProductDetail).create(
-      { product_id,
+      {
+        product_id,
         product_price,
         product_bid_start,
         product_bid_increment,
@@ -161,7 +163,8 @@ class ProductDetailController {
 
     const productDetail = await makeProductDetailUtil(ProductDetail).updateById(
       id,
-      { product_id,
+      {
+        product_id,
         product_price,
         product_bid_start,
         product_bid_increment,

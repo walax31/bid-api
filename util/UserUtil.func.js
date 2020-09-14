@@ -55,9 +55,10 @@ module.exports = function (UserModel) {
     },
     hasSubmittionFlagged: (user_id) => {
       return UserModel.query()
+        .with("customer")
         .where({ user_id, is_submitted: true })
         .fetch()
-        .then((response) => response.first());
+        .then((response) => response.first().getRelated("customer"));
     },
     deleteById: async (user_id) => {
       const user = await UserModel.find(user_id);

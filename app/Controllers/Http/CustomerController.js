@@ -200,18 +200,20 @@ class CustomerController {
       return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
-      const submittedUser = await makeUserUtil(User).hasSubmittionFlagged(id);
+      const { customer_id } = await makeUserUtil(User)
+        .hasSubmittionFlagged(id)
+        .then((response) => response["$attributes"]);
 
-      if (!submittedUser)
+      if (!customer_id)
         return {
           status: 404,
           error: "User not found. this user never submitted credential.",
           data: undefined,
         };
 
-      const { customer_id, is_validated } = await makeCustomerUtil(
+      const { is_validated } = await makeCustomerUtil(
         Customer
-      ).validateUserCredential(id, references);
+      ).validateUserCredential(customer_id, references);
 
       return {
         status: 200,

@@ -182,7 +182,7 @@ class ProductController {
       Customer
     );
 
-    const { product_name, product_image } = await makeCustomerUtil(Customer)
+    const { product_image } = await makeCustomerUtil(Customer)
       .findProductOnAuthUser(customer_id, id)
       .then((response) => response["$attributes"]);
 
