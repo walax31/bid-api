@@ -51,10 +51,10 @@ module.exports = function (PaymentModel) {
 
       return payment.delete();
     },
-    findExistingPayment: (customer_id) => {
+    findExistingPayment: (order_id) => {
       return PaymentModel.query()
         .with("order", (builder) => {
-          builder.where({ customer_id });
+          builder.where({ order_id });
         })
         .fetch()
         .then((response) => response.first());
