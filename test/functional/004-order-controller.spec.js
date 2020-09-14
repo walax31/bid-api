@@ -72,6 +72,7 @@ test("should return error message and status code of 422 when field data is miss
     ProductModel,
     customer1.customer_id
   );
+
   const { bid_id } = await makeBidUtil(
     BidModel,
     customer2.customer_id,
