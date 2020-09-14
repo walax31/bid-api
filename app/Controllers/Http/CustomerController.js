@@ -1,7 +1,7 @@
 "use strict";
 
 // const Helpers = use("Helpers");
-// const Drive = use("Drive");
+const Drive = use("Drive");
 const customerValidator = require("../../../service/customerValidator");
 const Customer = use("App/Models/Customer");
 const User = use("App/Models/User");
@@ -31,12 +31,38 @@ class CustomerController {
         per_page
       );
 
-      return { status: 200, error: undefined, pages, data: rows };
+      return {
+        status: 200,
+        error: undefined,
+        pages,
+        data: rows,
+      };
+    }
+
+    const { customer_id } = await performAuthentication(auth).validateIdParam();
+
+    const validatedCredential = await makeCustomerUtil(
+      Customer
+    ).hasCredentialValidated(customer_id);
+
+    if (validatedCredential) {
+      const { rows, pages } = await makeCustomerUtil(Customer).getAll(
+        references,
+        page,
+        per_page
+      );
+
+      return {
+        status: 200,
+        error: undefined,
+        pages,
+        data: rows,
+      };
     }
 
     return {
       status: 403,
-      error: "Access denied. admin validation failed.",
+      error: "Access denied. invalid credential.",
       data: undefined,
     };
   }
@@ -70,18 +96,19 @@ class CustomerController {
 
     const { customer_id } = await performAuthentication(auth).validateIdParam();
 
-    if (customer_id === parseInt(id)) {
-      const customer = await makeCustomerUtil(Customer).getById(
-        auth_id,
-        references
-      );
+    const validatedCredential = await makeCustomerUtil(
+      Customer
+    ).hasCredentialValidated(customer_id);
+
+    if (validatedCredential) {
+      const customer = await makeCustomerUtil(Customer).getById(id, references);
 
       return { status: 200, error: undefined, data: customer || {} };
     }
 
     return {
       status: 403,
-      error: "Access denied. id param does not match authenticated id.",
+      error: "Access denied. invalid credential.",
       data: undefined,
     };
   }
@@ -129,7 +156,6 @@ class CustomerController {
         last_name,
         address,
         phone,
-        // path_to_credential,
       },
       references
     );
@@ -199,18 +225,64 @@ class CustomerController {
     );
 
     if (customer_id === parseInt(id)) {
-      const customer = await makeCustomerUtil(Customer).updateById(
-        customer_id,
-        {
-          first_name,
-          last_name,
-          address,
-          phone,
-        },
-        references
-      );
+      const username = await performAuthentication(auth).getUsername();
 
-      return { status: 200, error: undefined, data: customer };
+      const fileList = [];
+
+      try {
+        request.multipart.file(
+          "credential_image",
+          { types: ["image"], size: "2mb", extnames: ["png", "gif"] },
+          async (file) => {
+            if (
+              !(file.extname === "png") &&
+              !(file.extname === "jpg") &&
+              !(file.extname === "jpeg")
+            )
+              return {
+                status: 422,
+                error: "Validation failed. contain illegal file type.",
+                data: undefined,
+              };
+
+            await Drive.disk("s3").put(
+              `${username}.${file.extname}`,
+              file.stream
+            );
+
+            fileList.push(`${username}.${file.extname}`);
+          }
+        );
+
+        await request.multipart.process();
+      } catch (error) {
+        if (!error.message === "unsupported content-type")
+          return { status: 500, error, data: undefined };
+      }
+
+      if (first_name || last_name || address || phone || fileList.length) {
+        const customer = await makeCustomerUtil(Customer).updateById(
+          customer_id,
+          {
+            first_name,
+            last_name,
+            address,
+            phone,
+            path_to_credential: fileList.length
+              ? fileList.join(",")
+              : undefined,
+          },
+          references
+        );
+
+        return { status: 200, error: undefined, data: customer };
+      }
+
+      return {
+        status: 422,
+        error: "Missing params. update query is empty.",
+        data: undefined,
+      };
     }
 
     return {
