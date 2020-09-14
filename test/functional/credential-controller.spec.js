@@ -63,8 +63,6 @@ test("should return a new pair of tokens.", async ({ client }) => {
     error: undefined,
   });
 
-  console.log(nextResponse.body);
-
   await UserModel.find(user_id).then((response) => response.delete());
 });
 
