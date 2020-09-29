@@ -1,9 +1,9 @@
-module.exports = function (ProductModel, customer_id) {
+module.exports = function (ProductModel, customer_uuid, is_biddable = true) {
   return ProductModel.create({
-    customer_id,
+    customer_uuid,
     product_name: "product_name",
     // end_date: new Date(),
     stock: 10,
-    is_bidable:true
-  }).then((response) => response["$attributes"]);
+    is_biddable,
+  }).then((response) => response.toJSON());
 };

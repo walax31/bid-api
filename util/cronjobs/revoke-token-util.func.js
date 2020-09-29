@@ -15,6 +15,14 @@ module.exports = function (
         .fetch()
         .then((response) => response.first()["$attributes"]);
 
+      if (!token_id) {
+        console.log(
+          `Failure detected when trying to revoke token. token: ${refreshToken}`
+        );
+
+        this.stop();
+      }
+
       const token = await TokenModel.find(token_id);
 
       token.merge({ is_revoked: true });

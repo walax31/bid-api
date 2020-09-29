@@ -27,16 +27,16 @@ class UrlHandler {
 
     if (data && typeof data === "Object")
       response._lazyBody.content.data = {
-        user_id: data.user_id,
+        user_uuid: data.user_uuid,
         first_name: data.first_name,
         last_name: data.last_name,
-        address: data.address,
-        phone: data.phone,
         path_to_credential: data.path_to_credential
           ? await Drive.disk("s3").getSignedUrl(data.path_to_credential)
           : undefined,
         customer_id: data.customer_id,
+        uuid: data.uuid,
         user: data.getRelated("user") || undefined,
+        address: data.getRelated("address") || undefined,
       };
   }
 }

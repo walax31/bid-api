@@ -4,12 +4,16 @@
 const Model = use("Model");
 
 class ProductDetail extends Model {
+  static get incrementing() {
+    return false;
+  }
+
   static get primaryKey() {
-    return "product_id";
+    return "uuid";
   }
 
   product() {
-    return this.belongsTo("App/Models/Product");
+    return this.belongsTo("App/Models/Product", "uuid", "uuid");
   }
 }
 

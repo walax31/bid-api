@@ -30,10 +30,10 @@ class ProductDetailController {
 
     const { references } = qs;
 
-    const validateValue = numberTypeParamValidator(id);
+    // const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 422, error: validateValue.error, date: undefined };
+    // if (validateValue.error)
+    //   return { status: 422, error: validateValue.error, date: undefined };
 
     const productDetail = await makeProductDetailUtil(ProductDetail).getById(
       id,
@@ -46,7 +46,7 @@ class ProductDetailController {
     const { body, qs } = request;
 
     const {
-      product_id,
+      uuid,
       product_price,
       product_bid_start,
       product_bid_increment,
@@ -71,9 +71,9 @@ class ProductDetailController {
         data: undefined,
       };
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam(
-      Customer
-    );
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
 
     const validation = await productDetailValidator(request.body);
 
@@ -83,7 +83,7 @@ class ProductDetailController {
 
     const existingProduct = await makeCustomerUtil(
       Customer
-    ).findProductOnAuthUser(customer_id, product_id);
+    ).findProductOnAuthUser(customer_uuid, uuid);
 
     if (!existingProduct)
       return {
@@ -94,7 +94,7 @@ class ProductDetailController {
 
     const productDetail = await makeProductDetailUtil(ProductDetail).create(
       {
-        product_id,
+        uuid,
         product_price,
         product_bid_start,
         product_bid_increment,
@@ -103,14 +103,14 @@ class ProductDetailController {
       references
     );
 
-    const flaggedProduct = await makeProductUtil(Product).flagProductAsBidable(
-      product_id
+    const flaggedProduct = await makeProductUtil(Product).flagProductAsBiddable(
+      uuid
     );
 
     if (!flaggedProduct)
       return {
         status: 500,
-        error: "Internal error. failed to flag product as bidable.",
+        error: "Internal error. failed to flag product as biddable.",
       };
 
     return {

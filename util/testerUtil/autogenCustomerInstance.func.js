@@ -1,11 +1,15 @@
-module.exports = function (CustomerModel, user_id, is_validated = false) {
+module.exports = function (
+  CustomerModel,
+  user_uuid,
+  is_validated = false,
+  is_rejected = false
+) {
   return CustomerModel.create({
-    user_id,
+    user_uuid,
     first_name: "first_name",
     last_name: "last_name",
-    address: "address",
-    phone: "(000) 000-0000",
-    path_to_credential: `path/to/credential${user_id}`,
+    path_to_credential: `path/to/credential${user_uuid}`,
     is_validated,
-  }).then((response) => response["$attributes"]);
+    is_rejected,
+  }).then((response) => response.toJSON());
 };

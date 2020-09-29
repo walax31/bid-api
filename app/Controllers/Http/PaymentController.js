@@ -33,15 +33,15 @@ class PaymentController {
       return { status: 200, error: undefined, pages, data: rows };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam(
-      Customer
-    );
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
 
     const { rows, pages } = await makePaymentUtil(Payment).getAll(
       references,
       page,
       per_page,
-      customer_id
+      customer_uuid
     );
 
     return { status: 200, error: undefined, pages, data: rows };
@@ -63,10 +63,10 @@ class PaymentController {
         data: undefined,
       };
 
-    const validateValue = numberTypeParamValidator(id);
+    //     const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 500, error: validateValue.error, date: undefined };
+    //     if (validateValue.error)
+    //       return { status: 500, error: validateValue.error, date: undefined };
 
     if (admin) {
       const payment = await makePaymentUtil(Payment).getById(id, references);
@@ -74,11 +74,11 @@ class PaymentController {
       return { status: 200, error: undefined, data: payment || {} };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam(
-      Customer
-    );
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
 
-    if (customer_id) {
+    if (customer_uuid) {
       const payment = await makePaymentUtil(Payment).getById(id, references);
 
       return { status: 200, error: undefined, data: payment || {} };
@@ -94,7 +94,7 @@ class PaymentController {
   async store({ auth, request }) {
     const { body, qs } = request;
 
-    const { order_id, method, status, total } = body;
+    const { uuid, method, status, total } = body;
 
     const { references } = qs;
 
@@ -106,6 +106,20 @@ class PaymentController {
         error: "Access denied. authentication failed.",
         data: undefined,
       };
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
+
+    const validatedCredential = await makeCustomerUtil(
+      Customer
+    ).hasCredentialValidated(customer_uuid);
+
+    if (!validatedCredential)
+      return {
+        status: 403,
+        error: "Access denied. invalid credential.",
+        data: undefined,
+      };
 
     const validation = await paymentValidator(body);
 
@@ -114,7 +128,7 @@ class PaymentController {
     }
 
     const existingPayment = await makePaymentUtil(Payment).findExistingPayment(
-      order_id
+      uuid
     );
 
     if (existingPayment)
@@ -123,7 +137,7 @@ class PaymentController {
         error: "Duplicate payment. payment already existed.",
       };
 
-    const existingOrder = await makeOrderUtil(Order).getById(order_id);
+    const existingOrder = await makeOrderUtil(Order).getById(uuid);
 
     if (!existingOrder)
       return {
@@ -136,7 +150,7 @@ class PaymentController {
         method,
         status,
         total,
-        order_id,
+        uuid,
       },
       references
     );

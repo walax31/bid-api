@@ -6,19 +6,18 @@ const Schema = use("Schema");
 class CustomerSchema extends Schema {
   up() {
     this.create("customers", (table) => {
-      table.increments("customer_id");
-      table.timestamps();
-      table.integer("user_id").unsigned().notNullable();
+      table.uuid("uuid").unique();
       table.string("first_name", 50).notNullable();
       table.string("last_name", 50).notNullable();
-      table.string("address", 50).notNullable();
-      table.string("phone", 20).notNullable().unique();
       table.string("path_to_credential").unique();
       table.boolean("is_validated").notNullable().default(false);
+      table.boolean("is_rejected").notNullable().default(false);
+      table.uuid("user_uuid").notNullable();
+      table.timestamps();
 
       table
-        .foreign("user_id")
-        .references("users.user_id")
+        .foreign("user_uuid")
+        .references("users.uuid")
         .onDelete("CASCADE")
         .onUpdate("CASCADE");
     });

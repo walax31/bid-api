@@ -4,12 +4,16 @@
 const Model = use("Model");
 
 class Payment extends Model {
+  static get incrementing() {
+    return false;
+  }
+
   static get primaryKey() {
-    return "order_id";
+    return "uuid";
   }
 
   order() {
-    return this.belongsTo("App/Models/Order");
+    return this.belongsTo("App/Models/Order", "uuid", "uuid");
   }
 }
 

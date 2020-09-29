@@ -1,7 +1,7 @@
-module.exports = function (OrderModel, customer_id, product_id) {
+module.exports = function (OrderModel, customer_uuid, product_uuid) {
   return OrderModel.create({
-    customer_id,
-    product_id,
+    customer_uuid,
+    product_uuid,
     order_quantity: 10,
-  }).then((response) => response["$attributes"]);
+  }).then((response) => response.toJSON());
 };

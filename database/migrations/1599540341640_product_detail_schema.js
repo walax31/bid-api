@@ -6,16 +6,17 @@ const Schema = use("Schema");
 class ProductDetailSchema extends Schema {
   up() {
     this.create("product_details", (table) => {
-      table.increments("product_id");
-      table.timestamps();
+      // table.increments("product_id");
+      table.uuid("uuid").unique();
       table.integer("product_price").notNullable().unsigned();
       table.integer("product_bid_start").notNullable().unsigned();
       table.integer("product_bid_increment").notNullable().unsigned();
       table.string("product_description").notNullable();
+      table.timestamps();
 
       table
-        .foreign("product_id")
-        .references("products.product_id")
+        .foreign("uuid")
+        .references("products.uuid")
         .onDelete("CASCADE")
         .onUpdate("CASCADE");
     });

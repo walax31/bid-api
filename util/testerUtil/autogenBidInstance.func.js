@@ -1,10 +1,7 @@
-module.exports = function (BidModels,customer_id,product_id) {
-    return BidModels.create({
-     
-     customer_id,
-     bid_amount:1000,
-     product_id
-
-    }).then((response) => response["$attributes"]);
-  };
-  
+module.exports = function (BidModels, customer_uuid, product_uuid) {
+  return BidModels.create({
+    customer_uuid,
+    bid_amount: 1000,
+    product_uuid,
+  }).then((response) => response.toJSON());
+};

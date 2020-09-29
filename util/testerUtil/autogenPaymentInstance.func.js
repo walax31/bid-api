@@ -1,9 +1,8 @@
-module.exports = function (PaymentModel, order_id) {
-    return PaymentModel.create({
-        method:"pay",
-        total:20,
-        order_id
+module.exports = function (PaymentModel, uuid) {
+  return PaymentModel.create({
+    method: "promptpay",
+    total: 20,
+    uuid,
+  }).then((response) => response.toJSON());
+};
 
-    }).then((response) => response["$attributes"]);
-  };
-  

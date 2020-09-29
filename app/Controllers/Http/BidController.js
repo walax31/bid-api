@@ -33,14 +33,25 @@ class BidController {
       return { status: 200, error: undefined, pages, data: rows };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam(
-      Customer
-    );
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
 
-    if (!customer_id)
+    if (!customer_uuid)
       return {
         status: 403,
         error: "Access denied. credential validation is missing.",
+        data: undefined,
+      };
+
+    const validatedCredential = await makeCustomerUtil(
+      Customer
+    ).hasCredentialValidated(customer_uuid);
+
+    if (!validatedCredential)
+      return {
+        status: 403,
+        error: "Access denied. invalid credential.",
         data: undefined,
       };
 
@@ -48,7 +59,7 @@ class BidController {
       references,
       page,
       per_page,
-      customer_id
+      customer_uuid
     );
 
     return {
@@ -75,10 +86,10 @@ class BidController {
         data: undefined,
       };
 
-    const validateValue = numberTypeParamValidator(id);
+    // const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 422, error: validateValue.error, date: undefined };
+    // if (validateValue.error)
+    //   return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const bid = await makeBidUtil(Bid).getById(id, references);
@@ -86,12 +97,23 @@ class BidController {
       return { status: 200, error: undefined, data: bid || {} };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam(
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
+
+    const validatedCredential = await makeCustomerUtil(
       Customer
-    );
+    ).hasCredentialValidated(customer_uuid);
+
+    if (!validatedCredential)
+      return {
+        status: 403,
+        error: "Access denied. invalid credential.",
+        data: undefined,
+      };
 
     const existingBid = await makeCustomerUtil(Customer).findBidOnThisCustomer(
-      customer_id,
+      customer_uuid,
       id
     );
 
@@ -103,7 +125,7 @@ class BidController {
 
     return {
       status: 403,
-      error: "Access denied. id param does not match authentication id.",
+      error: "Access denied. id param does not match authentication uuid.",
       data: undefined,
     };
   }
@@ -111,7 +133,7 @@ class BidController {
   async store({ auth, request }) {
     const { body, qs } = request;
 
-    const { bid_amount, product_id } = body;
+    const { bid_amount, product_uuid } = body;
 
     const { references } = qs;
 
@@ -124,13 +146,13 @@ class BidController {
         data: undefined,
       };
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam(
-      Customer
-    );
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
 
     const validatedCredential = await makeCustomerUtil(
       Customer
-    ).hasCredentialValidated(customer_id);
+    ).hasCredentialValidated(customer_uuid);
 
     if (!validatedCredential)
       return {
@@ -140,48 +162,43 @@ class BidController {
       };
 
     const validation = await bidValidator({
-      customer_id,
+      customer_uuid,
       bid_amount,
-      product_id,
+      product_uuid,
     });
 
     if (validation.error) {
       return { status: 422, error: validation.error, data: undefined };
     }
 
-    const isBidable = await makeProductUtil(Product).hasBidableFlag(product_id);
+    const isBiddable = await makeProductUtil(Product).hasBiddableFlag(
+      product_uuid
+    );
 
-    if (!isBidable)
+    if (!isBiddable)
       return {
         status: 403,
-        error: "Access denied. product is not yet bidable.",
+        error: "Access denied. product is not yet biddable.",
       };
 
     const existingBids = await makeProductUtil(
       Product
-    ).findExistingBidOnThisProduct(product_id);
+    ).findExistingBidOnThisProduct(product_uuid);
 
     if (existingBids.length) {
       const sortedBid = existingBids.sort(function (bid_one, bid_two) {
         if (bid_two) {
-          return (
-            bid_two["$attributes"].bid_amount -
-            bid_one["$attributes"].bid_amount
-          );
+          return bid_two.toJSON().bid_amount - bid_one.toJSON().bid_amount;
         }
 
-        return 0 - bid_one["$attributes"].bid_amount;
+        return 0 - bid_one.toJSON().bid_amount;
       });
 
-      console.log(sortedBid);
-
-      const highestBid = sortedBid[0]["$attributes"].bid_amount;
+      const highestBid = sortedBid[0].toJSON().bid_amount;
 
       const { product_bid_increment } = await makeProductUtil(Product)
-        .getById(product_id, "productDetail")
-        .then(
-          (response) => response.getRelated("productDetail")["$attributes"]
-        );
+        .getById(product_uuid, "productDetail")
+        .then((response) => response.getRelated("productDetail").toJSON());
 
       if (!product_bid_increment)
         return {
@@ -195,11 +212,11 @@ class BidController {
         return {
           status: 422,
           error:
-            "Requirement not met. your bid amount is lower than minimum bidable amount.",
+            "Requirement not met. your bid amount is lower than minimum biddable amount.",
         };
 
       const bid = await makeBidUtil(Bid).create(
-        { customer_id, bid_amount, product_id },
+        { customer_uuid, bid_amount, product_uuid },
         references
       );
 
@@ -210,10 +227,8 @@ class BidController {
       };
     } else {
       const { product_bid_start } = await makeProductUtil(Product)
-        .getById(product_id, "productDetail")
-        .then(
-          (response) => response.getRelated("productDetail")["$attributes"]
-        );
+        .getById(product_uuid, "productDetail")
+        .then((response) => response.getRelated("productDetail").toJSON());
 
       if (!product_bid_start)
         return {
@@ -232,7 +247,7 @@ class BidController {
         };
 
       const bid = await makeBidUtil(Bid).create(
-        { customer_id, bid_amount, product_id },
+        { customer_uuid, bid_amount, product_uuid },
         references
       );
 
@@ -255,10 +270,10 @@ class BidController {
 
     const { admin } = await performAuthentication(auth).validateAdmin();
 
-    const validateValue = numberTypeParamValidator(id);
+    // const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 500, error: validateValue.error, date: undefined };
+    // if (validateValue.error)
+    //   return { status: 500, error: validateValue.error, date: undefined };
 
     if (admin) {
       const bid = await makeBidUtil(Bid).updateById(
@@ -289,10 +304,10 @@ class BidController {
         data: undefined,
       };
 
-    const validateValue = numberTypeParamValidator(id);
+    //     const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 422, error: validateValue.error, date: undefined };
+    //     if (validateValue.error)
+    //       return { status: 422, error: validateValue.error, data: undefined };
 
     if (admin) {
       const bid = await makeBidUtil(Bid).deleteById(id);

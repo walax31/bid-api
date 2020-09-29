@@ -7,15 +7,15 @@ class TokensSchema extends Schema {
   up() {
     this.create("tokens", (table) => {
       table.increments("token_id");
-      table.integer("user_id").unsigned();
+      table.uuid("user_uuid").notNullable();
       table.string("token", 255).notNullable().unique().index();
       table.string("type", 80).notNullable();
       table.boolean("is_revoked").defaultTo(false);
       table.timestamps();
 
       table
-        .foreign("user_id")
-        .references("users.user_id")
+        .foreign("user_uuid")
+        .references("users.uuid")
         .onDelete("CASCADE")
         .onUpdate("CASCADE");
     });

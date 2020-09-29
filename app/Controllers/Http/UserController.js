@@ -5,6 +5,7 @@ const CronJob = require("cron").CronJob;
 const Encryption = use("Encryption");
 const userValidator = require("../../../service/userValidator");
 const User = use("App/Models/User");
+const Customer = use("App/Models/Customer");
 const Token = use("App/Models/Token");
 const makeUserUtil = require("../../../util/UserUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
@@ -57,38 +58,31 @@ class UserController {
         data: undefined,
       };
 
-    const validateValue = numberTypeParamValidator(id);
+    // const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 422, error: validateValue.error, date: undefined };
+    // if (validateValue.error)
+    //   return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
-      const { user_id, username, email } = (await makeUserUtil(User).getById(
-        id,
-        references
-      )) || { user_id: undefined, username: undefined, email: undefined };
+      const data = (await makeUserUtil(User).getById(id, references)) || {};
 
       return {
         status: 200,
         error: undefined,
-        data:
-          { user_id, username, email: await Encryption.decrypt(email) } || {},
+        data,
       };
     }
 
-    const { auth_id } = await performAuthentication(auth).validateIdParam();
+    const { user_uuid } = await performAuthentication(auth).validateUniqueID();
 
-    if (auth_id === parseInt(id)) {
-      const { user_id, username, email } = await makeUserUtil(User).getById(
-        auth_id,
-        references
-      );
+    if (user_uuid === id) {
+      const data =
+        (await makeUserUtil(User).getById(user_uuid, references)) || {};
 
       return {
         status: 200,
         error: undefined,
-        data:
-          { user_id, username, email: await Encryption.decrypt(email) } || {},
+        data,
       };
     }
 
@@ -121,7 +115,7 @@ class UserController {
       return { status: 422, error: validation.error, data: undefined };
     }
 
-    const user = await makeUserUtil(User).create(
+    const data = await makeUserUtil(User).create(
       {
         username,
         email,
@@ -149,11 +143,7 @@ class UserController {
     return {
       status: 200,
       error: undefined,
-      data: {
-        user_id: user.user_id,
-        username: user.username,
-        is_admin: user.is_admin == 1 ?? user.is_admin,
-      },
+      data,
       tokens,
     };
   }
@@ -169,10 +159,10 @@ class UserController {
 
     const { admin } = await performAuthentication(auth).validateAdmin();
 
-    const validateValue = numberTypeParamValidator(id);
+    // const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 422, error: validateValue.error, date: undefined };
+    // if (validateValue.error)
+    //   return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const user = await makeUserUtil(User).updateById(
@@ -184,11 +174,11 @@ class UserController {
       return { status: 200, error: undefined, data: user };
     }
 
-    const { auth_id } = await performAuthentication(auth).validateIdParam();
+    const { user_uuid } = await performAuthentication(auth).validateUniqueID();
 
-    if (auth_id === parseInt(id)) {
+    if (user_uuid === id) {
       const user = await makeUserUtil(User).updateById(
-        auth_id,
+        user_uuid,
         { email },
         references
       );
@@ -208,10 +198,10 @@ class UserController {
 
     const { admin } = await performAuthentication(auth).validateAdmin();
 
-    const validateValue = numberTypeParamValidator(id);
+    // const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 422, error: validateValue.error, date: undefined };
+    // if (validateValue.error)
+    //   return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const user = await makeUserUtil(User).deleteById(id);

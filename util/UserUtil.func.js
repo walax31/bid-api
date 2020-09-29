@@ -15,53 +15,53 @@ module.exports = function (UserModel) {
     getAll: (references, page = 1, per_page = 10) => {
       return _withReferences(references).paginate(page, per_page);
     },
-    getById: (user_id, references) => {
+    getById: (uuid, references) => {
       return _withReferences(references)
-        .where({ user_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
     create: async (attributes, references) => {
-      const { user_id } = await UserModel.create(attributes);
+      const { uuid } = await UserModel.create(attributes);
 
       return _withReferences(references)
-        .where({ user_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
-    updateById: async (user_id, attributes, references) => {
-      const user = await UserModel.find(user_id);
+    updateById: async (uuid, attributes, references) => {
+      const user = await UserModel.findBy("uuid", uuid);
 
       user.merge(attributes);
 
       await user.save();
 
       return _withReferences(references)
-        .where({ user_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
-    flagSubmition: async (user_id, references) => {
-      const user = await UserModel.find(user_id);
+    flagSubmition: async (uuid, references) => {
+      const user = await UserModel.findBy("uuid", uuid);
 
       user.merge({ is_submitted: true });
 
       await user.save();
 
       return _withReferences(references)
-        .where({ user_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
-    hasSubmittionFlagged: (user_id) => {
+    hasSubmittionFlagged: (uuid) => {
       return UserModel.query()
         .with("customer")
-        .where({ user_id, is_submitted: true })
+        .where({ uuid, is_submitted: true })
         .fetch()
         .then((response) => response.first().getRelated("customer"));
     },
-    deleteById: async (user_id) => {
-      const user = await UserModel.find(user_id);
+    deleteById: async (uuid) => {
+      const user = await UserModel.findBy("uuid", uuid);
 
       return user.delete();
     },

@@ -39,11 +39,13 @@ class CustomerController {
       };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam();
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
 
     const validatedCredential = await makeCustomerUtil(
       Customer
-    ).hasCredentialValidated(customer_id);
+    ).hasCredentialValidated(customer_uuid);
 
     if (validatedCredential) {
       const { rows, pages } = await makeCustomerUtil(Customer).getAll(
@@ -94,11 +96,13 @@ class CustomerController {
       return { status: 200, error: undefined, data: customer || {} };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam();
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
 
     const validatedCredential = await makeCustomerUtil(
       Customer
-    ).hasCredentialValidated(customer_id);
+    ).hasCredentialValidated(customer_uuid);
 
     if (validatedCredential) {
       const customer = await makeCustomerUtil(Customer).getById(id, references);
@@ -119,8 +123,6 @@ class CustomerController {
     const {
       first_name,
       last_name,
-      address,
-      phone,
       // path_to_credential,
     } = body;
 
@@ -135,14 +137,12 @@ class CustomerController {
         data: undefined,
       };
 
-    const { auth_id } = await performAuthentication(auth).validateIdParam();
+    const { user_uuid } = await performAuthentication(auth).validateUniqueID();
 
     const validation = await customerValidator({
-      user_id: auth_id,
+      user_uuid,
       first_name,
       last_name,
-      address,
-      phone,
     });
 
     if (validation.error) {
@@ -151,16 +151,14 @@ class CustomerController {
 
     const customer = await makeCustomerUtil(Customer).create(
       {
-        user_id: auth_id,
+        user_uuid,
         first_name,
         last_name,
-        address,
-        phone,
       },
       references
     );
 
-    const flaggedUser = await makeUserUtil(User).flagSubmition(auth_id);
+    const flaggedUser = await makeUserUtil(User).flagSubmition(user_uuid);
 
     if (!flaggedUser)
       return {
@@ -183,7 +181,7 @@ class CustomerController {
 
     const { references } = qs;
 
-    const { first_name, last_name, address, phone } = body;
+    const { first_name, last_name } = body;
 
     const { admin, error } = await performAuthentication(auth).validateAdmin();
 
@@ -194,17 +192,17 @@ class CustomerController {
         data: undefined,
       };
 
-    const validateValue = numberTypeParamValidator(id);
+    //     const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 422, error: validateValue.error, date: undefined };
+    //     if (validateValue.error)
+    //       return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
-      const { customer_id } = await makeUserUtil(User)
+      const { customer_uuid } = await makeUserUtil(User)
         .hasSubmittionFlagged(id)
-        .then((response) => response["$attributes"]);
+        .then((response) => response.toJSON());
 
-      if (!customer_id)
+      if (!customer_uuid)
         return {
           status: 404,
           error: "User not found. this user never submitted credential.",
@@ -213,20 +211,20 @@ class CustomerController {
 
       const { is_validated } = await makeCustomerUtil(
         Customer
-      ).validateUserCredential(customer_id, references);
+      ).validateUserCredential(customer_uuid, references);
 
       return {
         status: 200,
         error: undefined,
-        data: { customer_id, is_validated },
+        data: { customer_uuid, is_validated },
       };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam(
-      Customer
-    );
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
 
-    if (customer_id === parseInt(id)) {
+    if (customer_uuid === id) {
       const username = await performAuthentication(auth).getUsername();
 
       const fileList = [];
@@ -262,14 +260,12 @@ class CustomerController {
           return { status: 500, error, data: undefined };
       }
 
-      if (first_name || last_name || address || phone || fileList.length) {
+      if (first_name || last_name || fileList.length) {
         const customer = await makeCustomerUtil(Customer).updateById(
-          customer_id,
+          customer_uuid,
           {
             first_name,
             last_name,
-            address,
-            phone,
             path_to_credential: fileList.length
               ? fileList.join(",")
               : undefined,
@@ -306,10 +302,10 @@ class CustomerController {
         data: undefined,
       };
 
-    const validateValue = numberTypeParamValidator(id);
+    // const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 422, error: validateValue.error, date: undefined };
+    // if (validateValue.error)
+    //   return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       await makeCustomerUtil(Customer).deleteById(id);
@@ -321,9 +317,11 @@ class CustomerController {
       };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam();
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
 
-    if (customer_id === parseInt(id)) {
+    if (customer_uuid === id) {
       await makeCustomerUtil(Customer).deleteById(customer_id);
 
       return {

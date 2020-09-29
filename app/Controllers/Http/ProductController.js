@@ -31,7 +31,7 @@ class ProductController {
       return { status: 200, error: undefined, pages, data: rows };
     }
 
-    const { rows, pages } = await makeProductUtil(Product).bulkHasBidableFlag(
+    const { rows, pages } = await makeProductUtil(Product).bulkHasBiddableFlag(
       references,
       page,
       per_page
@@ -56,10 +56,10 @@ class ProductController {
         data: undefined,
       };
 
-    const validateValue = numberTypeParamValidator(id);
+    // const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 422, error: validateValue.error, date: undefined };
+    // if (validateValue.error)
+    //   return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const product = await makeProductUtil(Product).getById(id, references);
@@ -67,7 +67,7 @@ class ProductController {
       return { status: 200, error: undefined, data: product || {} };
     }
 
-    const product = await makeProductUtil(Product).hasBidableFlag(
+    const product = await makeProductUtil(Product).hasBiddableFlag(
       id,
       references
     );
@@ -102,13 +102,13 @@ class ProductController {
         data: undefined,
       };
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam(
-      Customer
-    );
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
 
     const validatedCredential = await makeCustomerUtil(
       Customer
-    ).hasCredentialValidated(customer_id);
+    ).hasCredentialValidated(customer_uuid);
 
     if (!validatedCredential)
       return {
@@ -118,7 +118,7 @@ class ProductController {
       };
 
     const validation = await productValidator({
-      customer_id,
+      customer_uuid,
       product_name,
       end_date,
       stock,
@@ -130,7 +130,7 @@ class ProductController {
 
     const product = await makeProductUtil(Product).create(
       {
-        customer_id,
+        customer_uuid,
         product_name,
         end_date,
         stock,
@@ -163,10 +163,10 @@ class ProductController {
         data: undefined,
       };
 
-    const validateValue = numberTypeParamValidator(id);
+    // const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 422, error: validateValue.error, date: undefined };
+    // if (validateValue.error)
+    //   return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const product = await makeProductUtil(Product).updateById(
@@ -178,17 +178,17 @@ class ProductController {
       return { status: 200, error: undefined, data: product };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam(
-      Customer
-    );
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
 
     const { product_image } = await makeCustomerUtil(Customer)
-      .findProductOnAuthUser(customer_id, id)
-      .then((response) => response["$attributes"]);
+      .findProductOnAuthUser(customer_uuid, id)
+      .then((response) => response.toJSON());
 
     const productExist = await makeCustomerUtil(Customer)
-      .findProductOnAuthUser(customer_id, id)
-      .then((response) => response["$attributes"]);
+      .findProductOnAuthUser(customer_uuid, id)
+      .then((response) => response.toJSON());
 
     if (productExist) {
       const fileList = [];
@@ -264,10 +264,10 @@ class ProductController {
         data: undefined,
       };
 
-    const validateValue = numberTypeParamValidator(id);
+    // const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 422, error: validateValue.error, date: undefined };
+    // if (validateValue.error)
+    //   return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const product = await makeProductUtil(Product).deleteById(id);
@@ -279,15 +279,17 @@ class ProductController {
       };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam();
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID();
 
-    if (customer_id === parseInt(id)) {
+    if (customer_uuid === id) {
       const product = await makeProductUtil(Product).deleteById(id);
 
       return {
         status: 200,
         error: undefined,
-        data: { massage: `${product} is successfully removed.` },
+        data: { massage: "product is successfully removed." },
       };
     }
 

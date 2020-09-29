@@ -6,12 +6,13 @@ const Schema = use("Schema");
 class UserSchema extends Schema {
   up() {
     this.create("users", (table) => {
-      table.increments("user_id");
+      table.uuid("uuid").unique();
       table.string("username", 80).notNullable().unique();
       table.string("email", 254).notNullable().unique();
       table.string("password", 60).notNullable();
       table.boolean("is_admin").notNullable().default(false);
       table.boolean("is_submitted").notNullable().default(false);
+      table.boolean("is_banned").notNullable().default(false);
       table.timestamps();
     });
   }

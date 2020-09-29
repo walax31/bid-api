@@ -12,42 +12,42 @@ module.exports = function (BidModel) {
   };
 
   return {
-    getAll: (references, onPage = 1, perPage = 10, customer_id) => {
-      if (customer_id)
+    getAll: (references, onPage = 1, perPage = 10, customer_uuid) => {
+      if (customer_uuid)
         return _withReferences(references)
-          .where({ customer_id })
+          .where({ customer_uuid })
           .paginate(onPage, perPage);
 
       return _withReferences(references).paginate(onPage, perPage);
     },
-    getById: (bid_id, references) => {
+    getById: (uuid, references) => {
       return _withReferences(references)
-        .where({ bid_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
     create: async (attributes, references) => {
-      const { bid_id } = await BidModel.create(attributes);
+      const { uuid } = await BidModel.create(attributes);
 
       return _withReferences(references)
-        .where({ bid_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
-    updateById: async (bid_id, attributes, references) => {
-      let bid = await BidModel.find(bid_id);
+    updateById: async (uuid, attributes, references) => {
+      let bid = await BidModel.find(uuid);
 
       bid.merge(attributes);
 
       await bid.save();
 
       return _withReferences(references)
-        .where({ bid_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
-    deleteById: async (bid_id) => {
-      const bid = await BidModel.find(bid_id);
+    deleteById: async (uuid) => {
+      const bid = await BidModel.find(uuid);
 
       return bid.delete();
     },

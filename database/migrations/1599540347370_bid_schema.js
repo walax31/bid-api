@@ -6,21 +6,22 @@ const Schema = use("Schema");
 class BidSchema extends Schema {
   up() {
     this.create("bids", (table) => {
-      table.increments("bid_id");
-      table.timestamps();
-      table.integer("customer_id").unsigned().notNullable();
+      // table.increments("bid_id");
+      table.uuid("uuid").unique();
       table.integer("bid_amount").unsigned().notNullable();
-      table.integer("product_id").unsigned().notNullable();
+      table.uuid("customer_uuid").notNullable();
+      table.uuid("product_uuid").notNullable();
+      table.timestamps();
 
       table
-        .foreign("customer_id")
-        .references("customers.customer_id")
+        .foreign("customer_uuid")
+        .references("customers.uuid")
         .onDelete("CASCADE")
         .onUpdate("CASCADE");
 
       table
-        .foreign("product_id")
-        .references("products.product_id")
+        .foreign("product_uuid")
+        .references("products.uuid")
         .onDelete("CASCADE")
         .onUpdate("CASCADE");
     });

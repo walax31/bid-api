@@ -2,11 +2,11 @@
 
 const orderValidator = require("../../../service/orderValidator");
 const Order = use("App/Models/Order");
-const User = use("App/Models/User");
+// const User = use("App/Models/User");
 const Customer = use("App/Models/Customer");
 const Product = use("App/Models/Product");
 const makeOrderUtil = require("../../../util/OrderUtil.func");
-const makeUserUtil = require("../../../util/UserUtil.func");
+// const makeUserUtil = require("../../../util/UserUtil.func");
 const makeCustomerUtil = require("../../../util/CustomerUtil.func");
 const makeProductUtil = require("../../../util/ProductUtil.func");
 const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
@@ -31,11 +31,11 @@ class OrderController {
       return { status: 200, error: undefined, data: orders };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam(
-      Customer
-    );
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
 
-    const orders = await makeOrderUtil(Order).getAll(references, customer_id);
+    const orders = await makeOrderUtil(Order).getAll(references, customer_uuid);
 
     return { status: 200, error: undefined, data: orders };
   }
@@ -56,10 +56,10 @@ class OrderController {
         data: undefined,
       };
 
-    const validateValue = numberTypeParamValidator(id);
+    //     const validateValue = numberTypeParamValidator(id);
 
-    if (validateValue.error)
-      return { status: 422, error: validateValue.error, date: undefined };
+    //     if (validateValue.error)
+    //       return { status: 422, error: validateValue.error, date: undefined };
 
     if (admin) {
       const order = await makeOrderUtil(Order).getById(id, references);
@@ -67,11 +67,11 @@ class OrderController {
       return { status: 200, error: undefined, data: order || {} };
     }
 
-    const { customer_id } = await performAuthentication(auth).validateIdParam(
-      Customer
-    );
+    const { customer_uuid } = await performAuthentication(
+      auth
+    ).validateUniqueID(Customer);
 
-    if (customer_id) {
+    if (customer_uuid) {
       const order = await makeOrderUtil(Order).getById(id, references);
 
       return { status: 200, error: undefined, data: order || {} };
@@ -87,7 +87,7 @@ class OrderController {
   async store({ auth, request }) {
     const { body, qs } = request;
 
-    const { customer_id, product_id, order_quantity } = body;
+    const { customer_uuid, product_uuid, order_quantity } = body;
 
     const { references } = qs;
 
@@ -108,13 +108,24 @@ class OrderController {
         data: undefined,
       };
 
-    const auth_data = await performAuthentication(auth).validateIdParam(
+    const auth_data = await performAuthentication(auth).validateUniqueID(
       Customer
     );
 
+    const validatedCredential = await makeCustomerUtil(
+      Customer
+    ).hasCredentialValidated(auth_data.customer_uuid);
+
+    if (!validatedCredential)
+      return {
+        status: 403,
+        error: "Access denied. invalid credential.",
+        data: undefined,
+      };
+
     const authorProduct = await makeCustomerUtil(
       Customer
-    ).findProductOnAuthUser(auth_data.customer_id, product_id);
+    ).findProductOnAuthUser(auth_data.customer_uuid, product_uuid);
 
     if (!authorProduct)
       return {
@@ -126,7 +137,7 @@ class OrderController {
 
     const existingBidOnYourProduct = await makeProductUtil(
       Product
-    ).findExistingBidForThisProduct(customer_id, product_id);
+    ).findExistingBidForThisProduct(customer_uuid, product_uuid);
 
     if (!existingBidOnYourProduct)
       return {
@@ -137,7 +148,7 @@ class OrderController {
 
     const existingOrderOnThisCustomer = await makeCustomerUtil(
       Customer
-    ).findExistingOrder(customer_id, product_id);
+    ).findExistingOrder(customer_uuid, product_uuid);
 
     if (existingOrderOnThisCustomer)
       return {
@@ -148,8 +159,8 @@ class OrderController {
       };
 
     const validation = await orderValidator({
-      customer_id,
-      product_id,
+      customer_uuid,
+      product_uuid,
       order_quantity,
     });
 
@@ -158,7 +169,7 @@ class OrderController {
     }
 
     const data = await makeOrderUtil(Order).create(
-      { customer_id, product_id, order_quantity },
+      { customer_uuid, product_uuid, order_quantity },
       references
     );
 
@@ -176,7 +187,7 @@ class OrderController {
 
     const { references } = qs;
 
-    const { customer_id, product_id, order_quantity } = body;
+    const { customer_uuid, product_uuid, order_quantity } = body;
 
     const { admin, error } = await performAuthentication(auth).validateAdmin();
 
@@ -205,7 +216,7 @@ class OrderController {
 
     const order = await makeOrderUtil(Order).updateById(
       id,
-      { customer_id, product_id, order_quantity },
+      { customer_uuid, product_uuid, order_quantity },
       references
     );
 

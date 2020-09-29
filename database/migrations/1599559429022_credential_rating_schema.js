@@ -8,20 +8,20 @@ class CredentialRatingSchema extends Schema {
     this.create("credential_ratings", (table) => {
       table.increments("credential_rating_id");
       table.timestamps();
-      table.integer("customer_id").notNullable().unsigned();
+      table.uuid("customer_uuid").notNullable();
       table.integer("rating_score").notNullable();
       table.string("rating_description").notNullable();
-      table.integer("product_id").notNullable().unsigned();
+      table.uuid("product_uuid").notNullable();
 
       table
-        .foreign("customer_id")
-        .references("customers.customer_id")
+        .foreign("customer_uuid")
+        .references("customers.uuid")
         .onDelete("CASCADE")
         .onUpdate("CASCADE");
 
       table
-        .foreign("product_id")
-        .references("products.product_id")
+        .foreign("product_uuid")
+        .references("products.uuid")
         .onDelete("CASCADE")
         .onUpdate("CASCADE");
     });

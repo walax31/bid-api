@@ -3,5 +3,5 @@ module.exports = function (UserModel) {
     username: "username",
     password: "password",
     email: "example@domain.host",
-  }).then((response) => response["$attributes"]);
+  }).then((response) => response.toJSON());
 };

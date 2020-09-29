@@ -7,6 +7,7 @@ const Model = use("Model");
 const Hash = use("Hash");
 
 const Encryption = use("Encryption");
+const { v4: uuidv4 } = require("uuid");
 
 class User extends Model {
   static boot() {
@@ -17,12 +18,15 @@ class User extends Model {
      * it to the database.
      */
     this.addHook("beforeSave", async (userInstance) => {
-      if (userInstance.dirty.password) {
+      if (userInstance.dirty.password)
         userInstance.password = await Hash.make(userInstance.dirty.password);
-      }
-      if (userInstance.dirty.email) {
+
+      if (userInstance.dirty.email)
         userInstance.email = await Encryption.encrypt(userInstance.dirty.email);
-      }
+    });
+
+    this.addHook("beforeCreate", async (userInstance) => {
+      userInstance.uuid = uuidv4();
     });
   }
 
@@ -36,24 +40,24 @@ class User extends Model {
    *
    * @return {Object}
    */
+  static get incrementing() {
+    return false;
+  }
+
+  static get hidden() {
+    return ["password", "email"];
+  }
+
   static get primaryKey() {
-    return "user_id";
-  }
-
-  static get createdAtColumn() {
-    return null;
-  }
-
-  static get updatedAtColumn() {
-    return null;
+    return "uuid";
   }
 
   customer() {
-    return this.hasOne("App/Models/Customer");
+    return this.hasOne("App/Models/Customer", "uuid", "user_uuid");
   }
 
   tokens() {
-    return this.hasMany("App/Models/Token");
+    return this.hasMany("App/Models/Token", "uuid", "user_uuid");
   }
 }
 

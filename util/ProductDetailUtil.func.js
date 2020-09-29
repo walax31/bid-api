@@ -17,34 +17,34 @@ module.exports = function (ProductDetailModel) {
     getAll: (references, page = 1, per_page = 10) => {
       return _withReferences(references).paginate(page, per_page);
     },
-    getById: (product_id, references) => {
+    getById: (uuid, references) => {
       return _withReferences(references)
-        .where({ product_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
     create: async (attributes, references) => {
-      const { product_id } = await ProductDetailModel.create(attributes);
+      const { uuid } = await ProductDetailModel.create(attributes);
 
       return _withReferences(references)
-        .where({ product_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
-    updateById: async (product_id, attributes, references) => {
-      let productDetail = await ProductDetailModel.find(product_id);
+    updateById: async (uuid, attributes, references) => {
+      let productDetail = await ProductDetailModel.find(uuid);
 
       productDetail.merge(attributes);
 
       await productDetail.save();
 
       return _withReferences(references)
-        .where({ product_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
-    deleteById: async (product_id) => {
-      const productDetail = await ProductDetailModel.find(product_id);
+    deleteById: async (uuid) => {
+      const productDetail = await ProductDetailModel.find(uuid);
 
       return productDetail.delete();
     },

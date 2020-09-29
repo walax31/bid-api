@@ -15,80 +15,80 @@ module.exports = function (ProductModel) {
     getAll: (references, page = 1, per_page = 10) => {
       return _withReferences(references).paginate(page, per_page);
     },
-    getById: (product_id, references) => {
+    getById: (uuid, references) => {
       return _withReferences(references)
-        .where({ product_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
     create: async (attributes, references) => {
-      const { product_id } = await ProductModel.create(attributes);
+      const { uuid } = await ProductModel.create(attributes);
 
       return _withReferences(references)
-        .where({ product_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
-    updateById: async (product_id, attributes, references) => {
-      let product = await ProductModel.find(product_id);
+    updateById: async (uuid, attributes, references) => {
+      let product = await ProductModel.findBy("uuid", uuid);
 
       product.merge(attributes);
 
       await product.save();
 
       return _withReferences(references)
-        .where({ product_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
-    deleteById: async (product_id) => {
-      const product = await ProductModel.find(product_id);
+    deleteById: async (uuid) => {
+      const product = await ProductModel.findBy("uuid", uuid);
 
       return product.delete();
     },
-    findExistingBidOnThisProduct: (product_id) => {
+    findExistingBidOnThisProduct: (uuid) => {
       return ProductModel.query()
         .with("bids")
-        .where({ product_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first().getRelated("bids").rows);
     },
-    flagProductAsBidable: async (product_id) => {
-      const product = await ProductModel.find(product_id);
+    flagProductAsBiddable: async (uuid) => {
+      const product = await ProductModel.find(uuid);
 
-      product.merge({ is_bidable: true });
+      product.merge({ is_biddable: true });
 
       await product.save();
 
       return ProductModel.query()
-        .where({ product_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
-    bulkHasBidableFlag: (references, page = 1, per_page = 10) => {
+    bulkHasBiddableFlag: (references, page = 1, per_page = 10) => {
       return _withReferences(references)
-        .where({ is_bidable: true })
+        .where({ is_biddable: true })
         .paginate(page, per_page);
     },
-    hasBidableFlag: (product_id, references) => {
+    hasBiddableFlag: (uuid, references) => {
       return _withReferences(references)
-        .where({ product_id, is_bidable: true })
+        .where({ uuid, is_biddable: true })
         .fetch()
         .then((response) => response.first());
     },
-    findExistingBidForThisProduct: (customer_id, product_id) => {
+    findExistingBidForThisProduct: (customer_uuid, product_uuid) => {
       return ProductModel.query()
         .with("bids", (builder) => {
-          builder.where({ customer_id });
+          builder.where({ uuid: customer_uuid });
         })
-        .where({ product_id })
+        .where({ uuid: product_uuid })
         .fetch()
         .then((response) => response.first());
     },
-    productIsModeratedByCustomer: (customer_id, product_id) => {
+    productIsModeratedByCustomer: (customer_uuid, product_uuid) => {
       return ProductModel.query()
-        .with("customer", (builder) => builder.where({ customer_id }))
-        .where({ product_id })
+        .with("customer", (builder) => builder.where({ uuid: customer_uuid }))
+        .where({ uuid: product_uuid })
         .fetch()
         .then((response) => response.first());
     },

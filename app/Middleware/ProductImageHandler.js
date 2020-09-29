@@ -27,15 +27,15 @@ class ProductImageHandler {
 
     if (data && typeof data === "Object")
       response._lazyBody.content.data = {
-        product_id: data.product_id,
+        uuid: data.uuid,
         product_name: data.product_name,
         end_date: data.end_date,
         stock: data.stock,
-        is_bidable: data.is_bidable,
+        is_biddable: data.is_biddable,
         product_image: data.product_image
           ? await Drive.disk("s3").getSignedUrl(data.product_image)
           : undefined,
-        customer_id: data.customer_id,
+        customer_uuid: data.customer_uuid,
         customer: data.getRelated("customer") || undefined,
         productDetail: data.getRelated("productDetail") || undefined,
         bids: data.getRelated("bids") || undefined,

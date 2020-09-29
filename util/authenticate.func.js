@@ -14,7 +14,7 @@ module.exports = function (auth) {
           token: Encryption.decrypt(refreshToken),
         })
         .fetch()
-        .then((response) => response.first()["$attributes"]);
+        .then((response) => response.first().toJSON());
       // const { token_id } = await auth
       //   .getUser()
       //   .then((response) => response.tokens().fetch())
@@ -110,7 +110,7 @@ module.exports = function (auth) {
         return {
           admin: await auth
             .getUser()
-            .then((response) => response["$attributes"].is_admin),
+            .then((response) => response.toJSON().is_admin),
         };
       } catch (error) {
         return {
@@ -118,28 +118,19 @@ module.exports = function (auth) {
         };
       }
     },
-    validateIdParam: async (CustomerModel) => {
-      const { user_id } = await auth
-        .getUser()
-        .then((response) => response["$attributes"]);
+    validateUniqueID: async (CustomerModel) => {
+      const user = await auth.getUser().then((response) => response.toJSON());
 
       const customer = CustomerModel
-        ? await CustomerModel.query()
-            .where({ user_id })
-            .fetch()
-            .then((response) => response.first())
-        : undefined;
+        ? await CustomerModel.findBy("user_uuid", user.uuid).then((response) =>
+            response.toJSON()
+          )
+        : {};
 
-      const customer_id = customer
-        ? customer["$attributes"].customer_id
-        : undefined;
-
-      return { auth_id: user_id, customer_id };
+      return { user_uuid: user.uuid, customer_uuid: customer.uuid };
     },
     getUsername: () => {
-      return auth
-        .getUser()
-        .then((response) => response["$attributes"].username);
+      return auth.getUser().then((response) => response.toJSON().username);
     },
   };
 };

@@ -12,49 +12,49 @@ module.exports = function (PaymentModel) {
   };
 
   return {
-    getAll: (references, page = 1, per_page = 10, customer_id) => {
-      if (customer_id)
+    getAll: (references, page = 1, per_page = 10, customer_uuid) => {
+      if (customer_uuid)
         return _withReferences(references)
-          .with("order", (builder) => builder.where({ customer_id }))
+          .with("order", (builder) => builder.where({ customer_uuid }))
           .paginate(page, per_page);
 
       return _withReferences(references).paginate(page, per_page);
     },
-    getById: (order_id, references) => {
+    getById: (uuid, references) => {
       return _withReferences(references)
-        .where({ order_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
     create: async (attributes, references) => {
-      const { order_id } = await PaymentModel.create(attributes);
+      const { uuid } = await PaymentModel.create(attributes);
 
       return _withReferences(references)
-        .where({ order_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
-    updateById: async (order_id, attributes, references) => {
-      let payment = await PaymentModel.find(order_id);
+    updateById: async (uuid, attributes, references) => {
+      let payment = await PaymentModel.find(uuid);
 
       payment.merge(attributes);
 
       await payment.save();
 
       return _withReferences(references)
-        .where({ order_id })
+        .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
-    deleteById: async (order_id) => {
-      const payment = await PaymentModel.find(order_id);
+    deleteById: async (uuid) => {
+      const payment = await PaymentModel.find(uuid);
 
       return payment.delete();
     },
-    findExistingPayment: (order_id) => {
+    findExistingPayment: (uuid) => {
       return PaymentModel.query()
         .with("order", (builder) => {
-          builder.where({ order_id });
+          builder.where({ uuid });
         })
         .fetch()
         .then((response) => response.first());
