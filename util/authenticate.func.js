@@ -55,7 +55,7 @@ module.exports = function (auth) {
 
         return { tokens };
       } catch (error) {
-        return error;
+        return { error };
       }
     },
     getNewToken: async (refreshToken) => {
@@ -123,7 +123,7 @@ module.exports = function (auth) {
 
       const customer = CustomerModel
         ? await CustomerModel.findBy("user_uuid", user.uuid).then((response) =>
-            response.toJSON()
+            response ? response.toJSON() : {}
           )
         : {};
 

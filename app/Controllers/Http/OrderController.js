@@ -1,131 +1,66 @@
 "use strict";
 
-const orderValidator = require("../../../service/orderValidator");
 const Order = use("App/Models/Order");
-// const User = use("App/Models/User");
 const Customer = use("App/Models/Customer");
 const Product = use("App/Models/Product");
 const makeOrderUtil = require("../../../util/OrderUtil.func");
-// const makeUserUtil = require("../../../util/UserUtil.func");
 const makeCustomerUtil = require("../../../util/CustomerUtil.func");
 const makeProductUtil = require("../../../util/ProductUtil.func");
-const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
-const performAuthentication = require("../../../util/authenticate.func");
 
 class OrderController {
-  async index({ auth, request }) {
+  async index({ request }) {
     const { references } = request.qs;
 
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
+    switch (request.role) {
+      case "admin":
+        const orders = await makeOrderUtil(Order).getAll(references);
 
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
+        return { status: 200, error: undefined, data: orders };
+      case "customer":
+        const customerOrders = await makeOrderUtil(Order).getAll(
+          references,
+          request.customer_uuid
+        );
 
-    if (admin) {
-      const orders = await makeOrderUtil(Order).getAll(references);
-
-      return { status: 200, error: undefined, data: orders };
+        return { status: 200, error: undefined, data: customerOrders };
+      default:
     }
-
-    const { customer_uuid } = await performAuthentication(
-      auth
-    ).validateUniqueID(Customer);
-
-    const orders = await makeOrderUtil(Order).getAll(references, customer_uuid);
-
-    return { status: 200, error: undefined, data: orders };
   }
 
-  async show({ auth, request }) {
+  async show({ request }) {
     const { params, qs } = request;
 
     const { id } = params;
 
-    const { references } = qs;
+    const { references = "" } = qs;
 
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
+    switch (request.role) {
+      case "admin":
+        const order = await makeOrderUtil(Order).getById(id, references);
 
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
+        return { status: 200, error: undefined, data: order || {} };
+      case "customer":
+        const customerOrder = await makeOrderUtil(Order).getById(
+          id,
+          references,
+          request.customer_uuid
+        );
 
-    //     const validateValue = numberTypeParamValidator(id);
-
-    //     if (validateValue.error)
-    //       return { status: 422, error: validateValue.error, date: undefined };
-
-    if (admin) {
-      const order = await makeOrderUtil(Order).getById(id, references);
-
-      return { status: 200, error: undefined, data: order || {} };
+        return { status: 200, error: undefined, data: customerOrder || {} };
+      default:
     }
-
-    const { customer_uuid } = await performAuthentication(
-      auth
-    ).validateUniqueID(Customer);
-
-    if (customer_uuid) {
-      const order = await makeOrderUtil(Order).getById(id, references);
-
-      return { status: 200, error: undefined, data: order || {} };
-    }
-
-    return {
-      status: 403,
-      error: "Access denied. invalid credential.",
-      data: undefined,
-    };
   }
 
-  async store({ auth, request }) {
+  async store({ request }) {
     const { body, qs } = request;
 
     const { customer_uuid, product_uuid, order_quantity } = body;
 
     const { references } = qs;
 
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
-
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
-
-    if (admin)
-      return {
-        status: 403,
-        error:
-          "Access denied. admin should not be able to perform this action.",
-        data: undefined,
-      };
-
-    const auth_data = await performAuthentication(auth).validateUniqueID(
-      Customer
-    );
-
-    const validatedCredential = await makeCustomerUtil(
-      Customer
-    ).hasCredentialValidated(auth_data.customer_uuid);
-
-    if (!validatedCredential)
-      return {
-        status: 403,
-        error: "Access denied. invalid credential.",
-        data: undefined,
-      };
-
     const authorProduct = await makeCustomerUtil(
       Customer
-    ).findProductOnAuthUser(auth_data.customer_uuid, product_uuid);
+    ).findProductOnAuthUser(request.customer_uuid, product_uuid);
 
     if (!authorProduct)
       return {
@@ -158,16 +93,6 @@ class OrderController {
         data: undefined,
       };
 
-    const validation = await orderValidator({
-      customer_uuid,
-      product_uuid,
-      order_quantity,
-    });
-
-    if (validation.error) {
-      return { status: 422, error: validation.error, data: undefined };
-    }
-
     const data = await makeOrderUtil(Order).create(
       { customer_uuid, product_uuid, order_quantity },
       references
@@ -180,7 +105,7 @@ class OrderController {
     };
   }
 
-  async update({ auth, request }) {
+  async update({ request }) {
     const { body, params, qs } = request;
 
     const { id } = params;
@@ -188,22 +113,6 @@ class OrderController {
     const { references } = qs;
 
     const { customer_uuid, product_uuid, order_quantity } = body;
-
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
-
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
-
-    if (!admin)
-      return {
-        status: 403,
-        error: "Access denied. admin validation failed.",
-        data: undefined,
-      };
 
     const existingOrder = await makeOrderUtil(Order).getById(id);
 
@@ -223,24 +132,8 @@ class OrderController {
     return { status: 200, error: undefined, data: order };
   }
 
-  async destroy({ auth, request }) {
+  async destroy({ request }) {
     const { id } = request.params;
-
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
-
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
-
-    if (!admin)
-      return {
-        status: 403,
-        error: "Access denied. admin validation failed.",
-        data: undefined,
-      };
 
     const order = await makeOrderUtil(Order).deleteById(id);
 

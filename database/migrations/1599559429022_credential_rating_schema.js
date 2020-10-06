@@ -6,12 +6,13 @@ const Schema = use("Schema");
 class CredentialRatingSchema extends Schema {
   up() {
     this.create("credential_ratings", (table) => {
-      table.increments("credential_rating_id");
-      table.timestamps();
+      // table.increments("credential_rating_id");
+      table.uuid("uuid").unique();
       table.uuid("customer_uuid").notNullable();
       table.integer("rating_score").notNullable();
       table.string("rating_description").notNullable();
       table.uuid("product_uuid").notNullable();
+      table.timestamps();
 
       table
         .foreign("customer_uuid")

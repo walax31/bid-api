@@ -62,10 +62,7 @@ test("should return error message and status code of 422 when field data is miss
     .send(customer)
     .end();
 
-  response.assertStatus(200);
-  response.assertJSONSubset({
-    status: 422,
-  });
+  response.assertStatus(400);
 
   await UserModel.find(user.uuid).then((response) => response.delete());
 });

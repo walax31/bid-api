@@ -79,18 +79,18 @@ test("should return structured response with no references via get method.", asy
   await UserModel.find(user.uuid).then((response) => response.delete());
 });
 
-test("should return error message and status code of 422 when field data is missing.", async ({
+test("should return error message and status code of 400 when field data is missing.", async ({
   client,
 }) => {
   const UserData = {
     username: "wala",
+    email: "sdsd",
+    password: "12345678",
   };
+
   const response = await client.post(urlEndPoint).send(UserData).end();
 
-  response.assertStatus(200);
-  response.assertJSONSubset({
-    status: 422,
-  });
+  response.assertStatus(400);
 });
 
 test("should return structured data with no references via post method.", async ({
@@ -102,7 +102,7 @@ test("should return structured data with no references via post method.", async 
     password: "ewewffff",
   };
 
-  const response = await client.post(`${urlEndPoint}`).send(user).end();
+  const response = await client.post(urlEndPoint).send(user).end();
 
   response.assertStatus(200);
   response.assertJSONSubset({

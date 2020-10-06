@@ -1,14 +1,11 @@
 "use strict";
 
-const productDetailValidator = require("../../../service/productDetailValidator");
 const ProductDetail = use("App/Models/ProductDetail");
 const Customer = use("App/Models/Customer");
 const Product = use("App/Models/Product");
 const makeProductDetailUtil = require("../../../util/ProductDetailUtil.func");
 const makeProductUtil = require("../../../util/ProductUtil.func");
 const makeCustomerUtil = require("../../../util/CustomerUtil.func");
-const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
-const performAuthentication = require("../../../util/authenticate.func");
 
 class ProductDetailController {
   async index({ request }) {
@@ -30,11 +27,6 @@ class ProductDetailController {
 
     const { references } = qs;
 
-    // const validateValue = numberTypeParamValidator(id);
-
-    // if (validateValue.error)
-    //   return { status: 422, error: validateValue.error, date: undefined };
-
     const productDetail = await makeProductDetailUtil(ProductDetail).getById(
       id,
       references
@@ -42,7 +34,7 @@ class ProductDetailController {
     return { status: 200, error: undefined, data: productDetail || {} };
   }
 
-  async store({ auth, request }) {
+  async store({ request }) {
     const { body, qs } = request;
 
     const {
@@ -55,35 +47,9 @@ class ProductDetailController {
 
     const { references } = qs;
 
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
-
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
-
-    if (admin)
-      return {
-        status: 403,
-        error: "Access denied. this action is reserved for regular user only.",
-        data: undefined,
-      };
-
-    const { customer_uuid } = await performAuthentication(
-      auth
-    ).validateUniqueID(Customer);
-
-    const validation = await productDetailValidator(request.body);
-
-    if (validation.error) {
-      return { status: 422, error: validation.error, data: undefined };
-    }
-
     const existingProduct = await makeCustomerUtil(
       Customer
-    ).findProductOnAuthUser(customer_uuid, uuid);
+    ).findProductOnAuthUser(request.customer_uuid, uuid);
 
     if (!existingProduct)
       return {
@@ -120,28 +86,12 @@ class ProductDetailController {
     };
   }
 
-  async update({ auth, request }) {
+  async update({ request }) {
     const { body, params, qs } = request;
 
     const { id } = params;
 
     const { references } = qs;
-
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
-
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
-
-    if (!admin)
-      return {
-        status: 403,
-        error: "Access denied. admin validation failed.",
-        data: undefined,
-      };
 
     const product = await makeProductDetailUtil(ProductDetail).getById(id);
 
@@ -173,23 +123,8 @@ class ProductDetailController {
     return { status: 200, error: undefined, data: productDetail };
   }
 
-  async destroy({ auth, request }) {
+  async destroy({ request }) {
     const { id } = request.params;
-
-    const { error, admin } = await performAuthentication(auth).validateAdmin();
-
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
-
-    if (!admin)
-      return {
-        status: 403,
-        error: "Access denied. admin validation failed.",
-      };
 
     const productDetail = await makeProductDetailUtil(ProductDetail).deleteById(
       id
@@ -205,7 +140,7 @@ class ProductDetailController {
     return {
       status: 200,
       error: undefined,
-      data: "productDetail is successfully removed.",
+      data: `productDetail ${id} is successfully removed.`,
     };
   }
 }

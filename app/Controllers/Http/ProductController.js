@@ -1,136 +1,78 @@
 "use strict";
 
-const productValidator = require("../../../service/productValidator");
 const Product = use("App/Models/Product");
 const Customer = use("App/Models/Customer");
 const makeProductUtil = require("../../../util/ProductUtil.func");
 const makeCustomerUtil = require("../../../util/CustomerUtil.func");
-const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
-const performAuthentication = require("../../../util/authenticate.func");
 
 class ProductController {
-  async index({ auth, request }) {
+  async index({ request }) {
     const { references, page, per_page } = request.qs;
 
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
+    switch (request.role) {
+      case "admin":
+        const products = await makeProductUtil(Product).getAll(
+          references,
+          page,
+          per_page
+        );
 
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
+        return {
+          status: 200,
+          error: undefined,
+          pages: products.pages,
+          data: products.rows,
+        };
+      default:
+        const biddableProducts = await makeProductUtil(
+          Product
+        ).bulkHasBiddableFlag(references, page, per_page);
 
-    if (admin) {
-      const { rows, pages } = await makeProductUtil(Product).getAll(
-        references,
-        page,
-        per_page
-      );
-
-      return { status: 200, error: undefined, pages, data: rows };
+        return {
+          status: 200,
+          error: undefined,
+          pages: biddableProducts.pages,
+          data: biddableProducts.rows,
+        };
     }
-
-    const { rows, pages } = await makeProductUtil(Product).bulkHasBiddableFlag(
-      references,
-      page,
-      per_page
-    );
-
-    return { status: 200, error: undefined, pages, data: rows };
   }
 
-  async show({ auth, request }) {
+  async show({ request }) {
     const { params, qs } = request;
 
     const { id } = params;
 
     const { references } = qs;
 
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
+    switch (request.role) {
+      case "admin":
+        const product = await makeProductUtil(Product).getById(id, references);
 
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
+        return { status: 200, error: undefined, data: product || {} };
+      default:
+        const biddableProduct = await makeProductUtil(Product).hasBiddableFlag(
+          id,
+          references
+        );
 
-    // const validateValue = numberTypeParamValidator(id);
-
-    // if (validateValue.error)
-    //   return { status: 422, error: validateValue.error, date: undefined };
-
-    if (admin) {
-      const product = await makeProductUtil(Product).getById(id, references);
-
-      return { status: 200, error: undefined, data: product || {} };
+        return {
+          status: 200,
+          error: undefined,
+          data: biddableProduct || {},
+        };
     }
-
-    const product = await makeProductUtil(Product).hasBiddableFlag(
-      id,
-      references
-    );
-
-    return {
-      status: 200,
-      error: undefined,
-      data: product || {},
-    };
   }
 
-  async store({ auth, request }) {
+  async store({ request }) {
     const { body, qs } = request;
 
     const { product_name, end_date, stock } = body;
 
     const { references } = qs;
 
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
-
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
-
-    if (admin)
-      return {
-        status: 403,
-        error: "Access denied. this action is reserved for regular user only.",
-        data: undefined,
-      };
-
-    const { customer_uuid } = await performAuthentication(
-      auth
-    ).validateUniqueID(Customer);
-
-    const validatedCredential = await makeCustomerUtil(
-      Customer
-    ).hasCredentialValidated(customer_uuid);
-
-    if (!validatedCredential)
-      return {
-        status: 403,
-        error: "Access denied. invalid credential.",
-        data: undefined,
-      };
-
-    const validation = await productValidator({
-      customer_uuid,
-      product_name,
-      end_date,
-      stock,
-    });
-
-    if (validation.error) {
-      return { status: 422, error: validation.error, data: undefined };
-    }
-
     const product = await makeProductUtil(Product).create(
       {
-        customer_uuid,
+        customer_uuid: request.customer_uuid,
         product_name,
         end_date,
         stock,
@@ -145,7 +87,7 @@ class ProductController {
     };
   }
 
-  async update({ auth, request }) {
+  async update({ request }) {
     const { body, params, qs } = request;
 
     const { id } = params;
@@ -154,150 +96,120 @@ class ProductController {
 
     const { product_name, end_date, stock } = body;
 
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
-
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
-
-    // const validateValue = numberTypeParamValidator(id);
-
-    // if (validateValue.error)
-    //   return { status: 422, error: validateValue.error, date: undefined };
-
-    if (admin) {
-      const product = await makeProductUtil(Product).updateById(
-        id,
-        { product_name, end_date, stock },
-        references
-      );
-
-      return { status: 200, error: undefined, data: product };
-    }
-
-    const { customer_uuid } = await performAuthentication(
-      auth
-    ).validateUniqueID(Customer);
-
-    const { product_image } = await makeCustomerUtil(Customer)
-      .findProductOnAuthUser(customer_uuid, id)
-      .then((response) => response.toJSON());
-
-    const productExist = await makeCustomerUtil(Customer)
-      .findProductOnAuthUser(customer_uuid, id)
-      .then((response) => response.toJSON());
-
-    if (productExist) {
-      const fileList = [];
-
-      const new_product_name = product_name
-        ? product_name
-        : productExist.product_name;
-
-      try {
-        request.multipart.file(
-          "product_image",
-          {
-            types: ["image"],
-            size: "2mb",
-            extnames: ["png", "gif", "jpeg", "jpg"],
-          },
-          async (file) => {
-            if (
-              !(file.extname === "png") &&
-              !(file.extname === "jpg") &&
-              !(file.extname === "jpeg")
-            )
-              return {
-                status: 422,
-                error: "Validation failed. contain illegal file type.",
-                data: undefined,
-              };
-
-            await Drive.disk("s3").put(
-              `${new_product_name}.${file.extname}`,
-              file.stream
-            );
-
-            fileList.push(`${new_product_name}.${file.extname}`);
-          }
+    switch (request.role) {
+      case "admin":
+        const product = await makeProductUtil(Product).updateById(
+          id,
+          { product_name, end_date, stock },
+          references
         );
 
-        await request.multipart.process();
-      } catch (error) {
-        if (!error.message === "unsupported content-type")
-          return { status: 500, error, data: undefined };
-      }
+        return { status: 200, error: undefined, data: product };
+      case "customer":
+        const { product_image } = await makeCustomerUtil(Customer)
+          .findProductOnAuthUser(request.customer_uuid, id)
+          .then((response) => response.toJSON());
 
-      const product = await makeProductUtil(Product).updateById(
-        id,
-        {
-          product_name: new_product_name,
-          stock,
-          product_image: fileList.length ? fileList.join(",") : product_image,
-        },
-        references
-      );
+        const productExist = await makeCustomerUtil(Customer)
+          .findProductOnAuthUser(request.customer_uuid, id)
+          .then((response) => response.toJSON());
 
-      return { status: 200, error: undefined, data: product };
+        if (productExist) {
+          const fileList = [];
+
+          const new_product_name = product_name
+            ? product_name
+            : productExist.product_name;
+
+          try {
+            request.multipart.file(
+              "product_image",
+              {
+                types: ["image"],
+                size: "2mb",
+                extnames: ["png", "gif", "jpeg", "jpg"],
+              },
+              async (file) => {
+                if (
+                  !(file.extname === "png") &&
+                  !(file.extname === "jpg") &&
+                  !(file.extname === "jpeg")
+                )
+                  return {
+                    status: 422,
+                    error: "Validation failed. contain illegal file type.",
+                    data: undefined,
+                  };
+
+                await Drive.disk("s3").put(
+                  `${new_product_name}.${file.extname}`,
+                  file.stream
+                );
+
+                fileList.push(`${new_product_name}.${file.extname}`);
+              }
+            );
+
+            await request.multipart.process();
+          } catch (error) {
+            if (!error.message === "unsupported content-type")
+              return { status: 500, error, data: undefined };
+          }
+
+          const product = await makeProductUtil(Product).updateById(
+            id,
+            {
+              product_name: new_product_name,
+              stock,
+              product_image: fileList.length
+                ? fileList.join(",")
+                : product_image,
+            },
+            references
+          );
+
+          return { status: 200, error: undefined, data: product };
+        }
+
+        return {
+          status: 403,
+          error: "Access denied. id param does not match authenticated uuid.",
+          data: undefined,
+        };
+      default:
     }
-
-    return {
-      status: 403,
-      error: "Access denied. id param does not match authenticated id.",
-      data: undefined,
-    };
   }
 
-  async destroy({ auth, request }) {
+  async destroy({ request }) {
     const { id } = request.params;
 
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
+    switch (request.role) {
+      case "admin":
+        await makeProductUtil(Product).deleteById(id);
 
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
+        return {
+          status: 200,
+          error: undefined,
+          data: { massage: `product ${id} is successfully removed.` },
+        };
+      case "customer":
+        if (request.customer_uuid === id) {
+          await makeProductUtil(Product).deleteById(id);
 
-    // const validateValue = numberTypeParamValidator(id);
+          return {
+            status: 200,
+            error: undefined,
+            data: { massage: `product ${id} is successfully removed.` },
+          };
+        }
 
-    // if (validateValue.error)
-    //   return { status: 422, error: validateValue.error, date: undefined };
-
-    if (admin) {
-      const product = await makeProductUtil(Product).deleteById(id);
-
-      return {
-        status: 200,
-        error: undefined,
-        data: { massage: `${product} is successfully removed.` },
-      };
+        return {
+          status: 403,
+          error: "Access denied. id param does not match authenticated uuid.",
+          data: undefined,
+        };
+      default:
     }
-
-    const { customer_uuid } = await performAuthentication(
-      auth
-    ).validateUniqueID();
-
-    if (customer_uuid === id) {
-      const product = await makeProductUtil(Product).deleteById(id);
-
-      return {
-        status: 200,
-        error: undefined,
-        data: { massage: "product is successfully removed." },
-      };
-    }
-
-    return {
-      status: 403,
-      error: "Access denied. id param does not match authenticated id.",
-      data: undefined,
-    };
   }
 }
 

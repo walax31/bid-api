@@ -18,7 +18,13 @@ module.exports = function (OrderModel) {
 
       return _withReferences(references).fetch();
     },
-    getById: (uuid, references) => {
+    getById: (uuid, references, customer_uuid) => {
+      if (customer_uuid)
+        return _withReferences(references)
+          .where({ uuid, customer_uuid })
+          .fetch()
+          .then((response) => response.first());
+
       return _withReferences(references)
         .where({ uuid })
         .fetch()

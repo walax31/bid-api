@@ -91,7 +91,7 @@ module.exports = function (CustomerModel) {
         .fetch()
         .then((response) => response.first().getRelated("products").first());
     },
-    findBidOnThisCustomer: (uuid, bid_uuid) => {
+    bidBelongToCustomer: (uuid, bid_uuid) => {
       return CustomerModel.query()
         .with("bids", (builder) => builder.where({ uuid: bid_uuid }))
         .where({ uuid })

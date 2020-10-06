@@ -65,10 +65,7 @@ test("should return error message and status code of 422 when field data is miss
     .send(product)
     .end();
 
-  response.assertStatus(200);
-  response.assertJSONSubset({
-    status: 422,
-  });
+  response.assertStatus(400);
 
   await UserModel.find(user.uuid).then((response) => response.delete());
 });
@@ -173,10 +170,9 @@ test("should return structured data with no references via post method.", async 
 }) => {
   const user = await makeUserUtil(UserModel);
 
-  const customer = await makeCustomerUtil(CustomerModel, user.uuid, true);
+  await makeCustomerUtil(CustomerModel, user.uuid, true);
 
   const product = {
-    customer_uuid: customer.uuid,
     product_name: "sdsdas",
     stock: 3,
   };

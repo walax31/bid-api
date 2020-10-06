@@ -51,7 +51,7 @@ test("should return structured response with empty data via get method.", async 
   await UserModel.find(admin.uuid).then((response) => response.delete());
 });
 
-test("should return error message and status code of 422 when field data is missing.", async ({
+test("should return error message and status code of 400 when field data is missing.", async ({
   client,
 }) => {
   const user = await makeUserUtil(UserModel);
@@ -61,7 +61,6 @@ test("should return error message and status code of 422 when field data is miss
   const product = await makeProductUtil(ProductModel, customer.uuid);
 
   const bid = {
-    customer_uuid: customer.uuid,
     product_uuid: product.uuid,
   };
 
@@ -71,10 +70,7 @@ test("should return error message and status code of 422 when field data is miss
     .send(bid)
     .end();
 
-  response.assertStatus(200);
-  response.assertJSONSubset({
-    status: 422,
-  });
+  response.assertStatus(400);
 
   await UserModel.find(user.uuid).then((response) => response.delete());
 });
@@ -82,11 +78,9 @@ test("should return error message and status code of 422 when field data is miss
 test("should return structured response with no references in an array via get method.", async ({
   client,
 }) => {
-  const admin = await makeAdminUtil(UserModel);
-
   const user = await makeUserUtil(UserModel);
 
-  const customer = await makeCustomerUtil(CustomerModel, user.uuid);
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid, true);
 
   const product = await makeProductUtil(ProductModel, customer.uuid);
 
@@ -96,25 +90,22 @@ test("should return structured response with no references in an array via get m
     product_uuid: product.uuid,
   });
 
-  const response = await client.get(urlEndPoint).loginVia(admin, "jwt").end();
+  const response = await client.get(urlEndPoint).loginVia(user, "jwt").end();
 
   response.assertStatus(200);
   response.assertJSONSubset({
     data: [bid.toJSON()],
   });
 
-  await UserModel.find(admin.uuid).then((response) => response.delete());
   await UserModel.find(user.uuid).then((response) => response.delete());
 });
 
 test("should return structured response with references in an array via get method.", async ({
   client,
 }) => {
-  const admin = await makeAdminUtil(UserModel);
-
   const user = await makeUserUtil(UserModel);
 
-  const customer = await makeCustomerUtil(CustomerModel, user.uuid);
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid, true);
 
   const product = await makeProductUtil(ProductModel, customer.uuid);
 
@@ -126,7 +117,7 @@ test("should return structured response with references in an array via get meth
 
   const response = await client
     .get(urlEndPoint)
-    .loginVia(admin, "jwt")
+    .loginVia(user, "jwt")
     .query({ references: "customer,product" })
     .end();
 
@@ -141,7 +132,6 @@ test("should return structured response with references in an array via get meth
   });
 
   await UserModel.find(user.uuid).then((response) => response.delete());
-  await UserModel.find(admin.uuid).then((response) => response.delete());
 });
 
 test("should return structured response with no references via get method.", async ({
@@ -213,13 +203,9 @@ test("should return structured data with no references via post method.", async 
 
   const product = await makeProductUtil(ProductModel, customer.uuid);
 
-  const productDetail = await makeProductDetailUtil(
-    ProductDetailModel,
-    product.uuid
-  );
+  await makeProductDetailUtil(ProductDetailModel, product.uuid);
 
   const bid = {
-    customer_uuid: customer.uuid,
     bid_amount: 1100,
     product_uuid: product.uuid,
   };
@@ -247,13 +233,9 @@ test("should return structured data with references via post method.", async ({
 
   const product = await makeProductUtil(ProductModel, customer.uuid);
 
-  const productDetail = await makeProductDetailUtil(
-    ProductDetailModel,
-    product.uuid
-  );
+  await makeProductDetailUtil(ProductDetailModel, product.uuid);
 
   const bid = {
-    customer_uuid: customer.uuid,
     bid_amount: 1100,
     product_uuid: product.uuid,
   };

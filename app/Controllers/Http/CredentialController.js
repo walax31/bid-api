@@ -21,7 +21,8 @@ class CredentialController {
     return {
       status: 200,
       error,
-      data: tokens,
+      data: undefined,
+      tokens,
     };
   }
 
@@ -35,7 +36,8 @@ class CredentialController {
     return {
       status: 200,
       error,
-      data: tokens,
+      data: undefined,
+      tokens,
     };
   }
 
@@ -74,9 +76,9 @@ class CredentialController {
 
       const { references } = request.qs;
 
-      const { username, user_id } = await auth
+      const { username, uuid } = await auth
         .getUser()
-        .then((response) => response["$attributes"]);
+        .then((response) => response.toJSON());
 
       const processedFileReturnValue = await processMultiPartFile(
         credentialPicture,
@@ -92,7 +94,7 @@ class CredentialController {
       }
 
       const customer = await makeCustomerUtil(Customer).updateById(
-        user_id,
+        uuid,
         {
           path_to_credential: `tmpPath/uploads/${processedFileReturnValue.data}.jpg`,
         },

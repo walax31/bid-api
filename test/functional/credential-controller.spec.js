@@ -17,7 +17,7 @@ test("should return token upon login.", async ({ client, assert }) => {
     .end();
 
   response.assertStatus(200);
-  assert.isOk(response.body.data);
+  assert.isOk(response.body.tokens.token);
 
   await UserModel.find(uuid).then((response) => response.delete());
 });
@@ -47,25 +47,25 @@ test("should return a new pair of tokens.", async ({ client, assert }) => {
     .end();
 
   response.assertStatus(200);
-  assert.isOk(response.body.data);
+  assert.isOk(response.body.tokens.refreshToken);
 
   const nextResponse = await client
     .post("/api/v1/authenticate")
-    .header("refresh_token", response.body.data.refreshToken)
+    .header("refresh_token", response.body.tokens.refreshToken)
     .end();
 
   nextResponse.assertStatus(200);
-  assert.isOk(nextResponse.body.data);
+  assert.isOk(nextResponse.body.tokens.token);
 
   await UserModel.find(uuid).then((response) => response.delete());
 });
 
 test("should be able to logout.", async ({ client, assert }) => {
-  const { username, uuid } = await makeTestUserUtil(UserModel);
+  const user = await makeTestUserUtil(UserModel);
 
   const response = await client
     .post("/api/v1/login")
-    .send({ username, password: "password" })
+    .send({ username: user.username, password: "password" })
     .end();
 
   response.assertStatus(200);
@@ -75,7 +75,8 @@ test("should be able to logout.", async ({ client, assert }) => {
 
   const nextResponse = await client
     .post("/api/v1/logout")
-    .header("refresh_token", response.body.data.refreshToken)
+    .loginVia(user, "jwt")
+    .header("refresh_token", response.body.tokens.refreshToken)
     .end();
 
   nextResponse.assertStatus(200);
@@ -89,5 +90,5 @@ test("should be able to logout.", async ({ client, assert }) => {
 
   assert.equal(is_revoked, 1);
 
-  await UserModel.find(uuid).then((response) => response.delete());
+  await UserModel.find(user.uuid).then((response) => response.delete());
 });

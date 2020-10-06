@@ -1,164 +1,60 @@
 "use strict";
 
-// const Helpers = use("Helpers");
 const Drive = use("Drive");
-const customerValidator = require("../../../service/customerValidator");
 const Customer = use("App/Models/Customer");
 const User = use("App/Models/User");
 const makeCustomerUtil = require("../../../util/CustomerUtil.func");
 const makeUserUtil = require("../../../util/UserUtil.func");
-const numberTypeParamValidator = require("../../../util/numberTypeParamValidator.func");
-const performAuthentication = require("../../../util/authenticate.func");
 
 class CustomerController {
-  async index({ auth, request }) {
+  async index({ request }) {
     const { references, page, per_page } = request.qs;
 
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
-
-    if (error) {
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
-    }
-
-    if (admin) {
-      const { rows, pages } = await makeCustomerUtil(Customer).getAll(
-        references,
-        page,
-        per_page
-      );
-
-      return {
-        status: 200,
-        error: undefined,
-        pages,
-        data: rows,
-      };
-    }
-
-    const { customer_uuid } = await performAuthentication(
-      auth
-    ).validateUniqueID(Customer);
-
-    const validatedCredential = await makeCustomerUtil(
-      Customer
-    ).hasCredentialValidated(customer_uuid);
-
-    if (validatedCredential) {
-      const { rows, pages } = await makeCustomerUtil(Customer).getAll(
-        references,
-        page,
-        per_page
-      );
-
-      return {
-        status: 200,
-        error: undefined,
-        pages,
-        data: rows,
-      };
-    }
+    const { rows, pages } = await makeCustomerUtil(Customer).getAll(
+      references,
+      page,
+      per_page
+    );
 
     return {
-      status: 403,
-      error: "Access denied. invalid credential.",
-      data: undefined,
+      status: 200,
+      error: undefined,
+      pages,
+      data: rows,
     };
   }
 
-  async show({ auth, request }) {
+  async show({ request }) {
     const { params, qs } = request;
 
     const { id } = params;
 
     const { references } = qs;
 
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
+    const customer = await makeCustomerUtil(Customer).getById(id, references);
 
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
-
-    const validateValue = numberTypeParamValidator(id);
-
-    if (validateValue.error)
-      return { status: 422, error: validateValue.error, date: undefined };
-
-    if (admin) {
-      const customer = await makeCustomerUtil(Customer).getById(id, references);
-
-      return { status: 200, error: undefined, data: customer || {} };
-    }
-
-    const { customer_uuid } = await performAuthentication(
-      auth
-    ).validateUniqueID(Customer);
-
-    const validatedCredential = await makeCustomerUtil(
-      Customer
-    ).hasCredentialValidated(customer_uuid);
-
-    if (validatedCredential) {
-      const customer = await makeCustomerUtil(Customer).getById(id, references);
-
-      return { status: 200, error: undefined, data: customer || {} };
-    }
-
-    return {
-      status: 403,
-      error: "Access denied. invalid credential.",
-      data: undefined,
-    };
+    return { status: 200, error: undefined, data: customer || {} };
   }
 
-  async store({ auth, request }) {
+  async store({ request }) {
     const { body, qs } = request;
 
-    const {
-      first_name,
-      last_name,
-      // path_to_credential,
-    } = body;
+    const { first_name, last_name } = body;
 
     const { references } = qs;
 
-    const { error } = await performAuthentication(auth).authenticate();
-
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
-
-    const { user_uuid } = await performAuthentication(auth).validateUniqueID();
-
-    const validation = await customerValidator({
-      user_uuid,
-      first_name,
-      last_name,
-    });
-
-    if (validation.error) {
-      return { status: 422, error: validation.error, data: undefined };
-    }
-
     const customer = await makeCustomerUtil(Customer).create(
       {
-        user_uuid,
+        user_uuid: request.user_uuid,
         first_name,
         last_name,
       },
       references
     );
 
-    const flaggedUser = await makeUserUtil(User).flagSubmition(user_uuid);
+    const flaggedUser = await makeUserUtil(User).flagSubmition(
+      request.user_uuid
+    );
 
     if (!flaggedUser)
       return {
@@ -174,7 +70,7 @@ class CustomerController {
     };
   }
 
-  async update({ auth, request }) {
+  async update({ request }) {
     const { body, params, qs } = request;
 
     const { id } = params;
@@ -183,159 +79,126 @@ class CustomerController {
 
     const { first_name, last_name } = body;
 
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
+    switch (request.role) {
+      case "admin":
+        const { customer_uuid } = await makeUserUtil(User)
+          .hasSubmittionFlagged(id)
+          .then((response) => response.toJSON());
 
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
+        if (!customer_uuid)
+          return {
+            status: 404,
+            error: "User not found. this user never submitted credential.",
+            data: undefined,
+          };
 
-    //     const validateValue = numberTypeParamValidator(id);
+        const { is_validated } = await makeCustomerUtil(
+          Customer
+        ).validateUserCredential(customer_uuid, references);
 
-    //     if (validateValue.error)
-    //       return { status: 422, error: validateValue.error, date: undefined };
-
-    if (admin) {
-      const { customer_uuid } = await makeUserUtil(User)
-        .hasSubmittionFlagged(id)
-        .then((response) => response.toJSON());
-
-      if (!customer_uuid)
         return {
-          status: 404,
-          error: "User not found. this user never submitted credential.",
-          data: undefined,
+          status: 200,
+          error: undefined,
+          data: { customer_uuid, is_validated },
         };
+      case "customer":
+        if (request.customer_uuid === id) {
+          const username = request.username;
 
-      const { is_validated } = await makeCustomerUtil(
-        Customer
-      ).validateUserCredential(customer_uuid, references);
+          const fileList = [];
 
-      return {
-        status: 200,
-        error: undefined,
-        data: { customer_uuid, is_validated },
-      };
-    }
+          try {
+            request.multipart.file(
+              "credential_image",
+              { types: ["image"], size: "2mb", extnames: ["png", "gif"] },
+              async (file) => {
+                if (
+                  !(file.extname === "png") &&
+                  !(file.extname === "jpg") &&
+                  !(file.extname === "jpeg")
+                )
+                  return {
+                    status: 422,
+                    error: "Validation failed. contain illegal file type.",
+                    data: undefined,
+                  };
 
-    const { customer_uuid } = await performAuthentication(
-      auth
-    ).validateUniqueID(Customer);
+                await Drive.disk("s3").put(
+                  `${username}.${file.extname}`,
+                  file.stream
+                );
 
-    if (customer_uuid === id) {
-      const username = await performAuthentication(auth).getUsername();
-
-      const fileList = [];
-
-      try {
-        request.multipart.file(
-          "credential_image",
-          { types: ["image"], size: "2mb", extnames: ["png", "gif"] },
-          async (file) => {
-            if (
-              !(file.extname === "png") &&
-              !(file.extname === "jpg") &&
-              !(file.extname === "jpeg")
-            )
-              return {
-                status: 422,
-                error: "Validation failed. contain illegal file type.",
-                data: undefined,
-              };
-
-            await Drive.disk("s3").put(
-              `${username}.${file.extname}`,
-              file.stream
+                fileList.push(`${username}.${file.extname}`);
+              }
             );
 
-            fileList.push(`${username}.${file.extname}`);
+            await request.multipart.process();
+          } catch (error) {
+            if (!error.message === "unsupported content-type")
+              return { status: 500, error, data: undefined };
           }
-        );
 
-        await request.multipart.process();
-      } catch (error) {
-        if (!error.message === "unsupported content-type")
-          return { status: 500, error, data: undefined };
-      }
+          if (first_name || last_name || fileList.length) {
+            const customer = await makeCustomerUtil(Customer).updateById(
+              request.customer_uuid,
+              {
+                first_name,
+                last_name,
+                path_to_credential: fileList.length
+                  ? fileList.join(",")
+                  : undefined,
+              },
+              references
+            );
 
-      if (first_name || last_name || fileList.length) {
-        const customer = await makeCustomerUtil(Customer).updateById(
-          customer_uuid,
-          {
-            first_name,
-            last_name,
-            path_to_credential: fileList.length
-              ? fileList.join(",")
-              : undefined,
-          },
-          references
-        );
+            return { status: 200, error: undefined, data: customer };
+          }
 
-        return { status: 200, error: undefined, data: customer };
-      }
+          return {
+            status: 422,
+            error: "Missing params. update query is empty.",
+            data: undefined,
+          };
+        }
 
-      return {
-        status: 422,
-        error: "Missing params. update query is empty.",
-        data: undefined,
-      };
+        return {
+          status: 403,
+          error: "Access denied. id param does not match authenticated uuid.",
+          data: undefined,
+        };
     }
-
-    return {
-      status: 403,
-      error: "Access denied. id param does not match authenticated id.",
-      data: undefined,
-    };
   }
 
-  async destroy({ auth, request }) {
+  async destroy({ request }) {
     const { id } = request.params;
 
-    const { admin, error } = await performAuthentication(auth).validateAdmin();
+    switch (request.role) {
+      case "admin":
+        await makeCustomerUtil(Customer).deleteById(id);
 
-    if (error)
-      return {
-        status: 403,
-        error: "Access denied. authentication failed.",
-        data: undefined,
-      };
+        return {
+          status: 200,
+          error: undefined,
+          data: `customer ${id} is successfully removed.`,
+        };
+      case "customer":
+        if (request.customer_uuid === id) {
+          await makeCustomerUtil(Customer).deleteById(id);
 
-    // const validateValue = numberTypeParamValidator(id);
+          return {
+            status: 200,
+            error: undefined,
+            data: `customer ${id} is successfully removed.`,
+          };
+        }
 
-    // if (validateValue.error)
-    //   return { status: 422, error: validateValue.error, date: undefined };
-
-    if (admin) {
-      await makeCustomerUtil(Customer).deleteById(id);
-
-      return {
-        status: 200,
-        error: undefined,
-        data: "customer is successfully removed.",
-      };
+        return {
+          status: 403,
+          error: "Access denied. id param does not match authenticated uuid.",
+          data: undefined,
+        };
+      default:
     }
-
-    const { customer_uuid } = await performAuthentication(
-      auth
-    ).validateUniqueID(Customer);
-
-    if (customer_uuid === id) {
-      await makeCustomerUtil(Customer).deleteById(customer_id);
-
-      return {
-        status: 200,
-        error: undefined,
-        data: "customer is successfully removed.",
-      };
-    }
-
-    return {
-      status: 403,
-      error: "Access denied. id param does not match authenticated id.",
-      data: undefined,
-    };
   }
 }
 

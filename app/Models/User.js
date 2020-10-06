@@ -56,6 +56,10 @@ class User extends Model {
     return this.hasOne("App/Models/Customer", "uuid", "user_uuid");
   }
 
+  alerts() {
+    return this.hasMany("App/Models/Alert", "uuid", "user_uuid");
+  }
+
   tokens() {
     return this.hasMany("App/Models/Token", "uuid", "user_uuid");
   }

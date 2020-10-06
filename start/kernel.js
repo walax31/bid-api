@@ -35,10 +35,14 @@ const globalMiddleware = [
 |
 */
 const namedMiddleware = {
-  auth: "Adonis/Middleware/Auth",
-  guest: "Adonis/Middleware/AllowGuestOnly",
+  auth: "App/Middleware/Auth",
+  credential: "App/Middleware/Credential",
   url: "App/Middleware/UrlHandler",
   product: "App/Middleware/ProductImageHandler",
+  // logger: "App/Middleware/Logger",
+  validator: "App/Middleware/Validator",
+  cron: "App/Middleware/CronInitiate",
+  file: "App/Middleware/HandleFileUpload",
 };
 
 /*

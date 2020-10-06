@@ -52,7 +52,7 @@ test("should return structured response with empty data via get method.", async 
   await UserModel.find(admin.uuid).then((response) => response.delete());
 });
 
-test("should return error message and status code of 422 when field data is missing.", async ({
+test("should return error message and status code of 400 when field data is missing.", async ({
   client,
 }) => {
   const user1 = await makeUserUtil(UserModel);
@@ -69,15 +69,14 @@ test("should return error message and status code of 422 when field data is miss
     user_uuid: user2.uuid,
     first_name: "dfsfss",
     last_name: "daad",
-    // path_to_credential: "sdfsfsfs",
     is_validated: true,
   });
 
   const product = await makeProductUtil(ProductModel, customer1.uuid);
 
-  const bid = await makeBidUtil(BidModel, customer2.uuid, product.uuid);
+  await makeBidUtil(BidModel, customer2.uuid, product.uuid);
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid);
+  await makeOrderUtil(OrderModel, customer2.uuid, product.uuid);
 
   const payment = {
     method: "sada",
@@ -89,10 +88,7 @@ test("should return error message and status code of 422 when field data is miss
     .send(payment)
     .end();
 
-  response.assertStatus(200);
-  response.assertJSONSubset({
-    status: 422,
-  });
+  response.assertStatus(400);
 
   await UserModel.find(user1.uuid).then((response) => response.delete());
   await UserModel.find(user2.uuid).then((response) => response.delete());
@@ -121,7 +117,7 @@ test("should return structured response with no references in an array via get m
 
   const product = await makeProductUtil(ProductModel, customer1.uuid);
 
-  const bid = await makeBidUtil(BidModel, customer2.uuid, product.uuid);
+  await makeBidUtil(BidModel, customer2.uuid, product.uuid);
 
   const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid);
 
@@ -161,7 +157,7 @@ test("should return structured response with references in an array via get meth
 
   const product = await makeProductUtil(ProductModel, customer1.uuid);
 
-  const bid = await makeBidUtil(BidModel, customer2.uuid, product.uuid);
+  await makeBidUtil(BidModel, customer2.uuid, product.uuid);
 
   const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid);
 
@@ -177,6 +173,7 @@ test("should return structured response with references in an array via get meth
   response.assertJSONSubset({
     data: [
       {
+        uuid: payment.uuid,
         order: { uuid: order.uuid },
       },
     ],
