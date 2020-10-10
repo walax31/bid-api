@@ -1,14 +1,16 @@
-module.exports = function (UserModel) {
+module.exports = function (CronModel) {
   const _withReferences = (references) => {
-    const _User = UserModel.query();
+    const _CronJob = CronModel.query();
 
     if (references) {
       const extractedReferences = references.split(",");
 
-      extractedReferences.forEach((reference) => _User.with(reference));
+      extractedReferences.forEach((reference) => {
+        _CronJob.with(reference);
+      });
     }
 
-    return _User;
+    return _CronJob;
   };
 
   return {
@@ -21,8 +23,14 @@ module.exports = function (UserModel) {
         .fetch()
         .then((response) => response.first());
     },
+    getByToken: (content, references) => {
+      return _withReferences(references)
+        .where({ content })
+        .fetch()
+        .then((response) => response.first());
+    },
     create: async (attributes, references) => {
-      const { uuid } = await UserModel.create(attributes);
+      const { uuid } = await CronModel.create(attributes);
 
       return _withReferences(references)
         .where({ uuid })
@@ -30,38 +38,31 @@ module.exports = function (UserModel) {
         .then((response) => response.first());
     },
     updateById: async (uuid, attributes, references) => {
-      const user = await UserModel.find(uuid);
+      await CronModel.find(uuid).then(async (cron) => {
+        cron.merge(attributes);
 
-      user.merge(attributes);
-
-      await user.save();
-
-      return _withReferences(references)
-        .where({ uuid })
-        .fetch()
-        .then((response) => response.first());
-    },
-    flagSubmition: async (uuid, references) => {
-      const user = await UserModel.find(uuid);
-
-      user.merge({ is_submitted: true });
-
-      await user.save();
+        await cron.save();
+      });
 
       return _withReferences(references)
         .where({ uuid })
         .fetch()
         .then((response) => response.first());
     },
-    hasSubmittionFlagged: (uuid) => {
-      return UserModel.query()
-        .with("customer")
-        .where({ uuid, is_submitted: true })
+    updateByToken: async (content, attributes, references) => {
+      await CronModel.findBy("content", content).then(async (cron) => {
+        cron.merge(attributes);
+
+        await cron.save();
+      });
+
+      return _withReferences(references)
+        .where({ content })
         .fetch()
-        .then((response) => response.first().getRelated("customer"));
+        .then((response) => response.first());
     },
     deleteById: (uuid) => {
-      return UserModel.find(uuid).then((response) => response.delete());
+      return CronModel.find(uuid).then((response) => response.delete());
     },
   };
 };

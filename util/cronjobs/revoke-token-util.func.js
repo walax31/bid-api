@@ -1,40 +1,71 @@
-module.exports = function (
-  CronJob,
+module.exports = async function (
+  // CronJob,
   Encryption,
   TokenModel,
-  refreshToken,
-  timeInMinutes
+  CronModel,
+  CronUtil,
+  uuid,
+  refreshToken
+  // timeInMinutes
 ) {
-  return new CronJob(
-    new Date(new Date().setMinutes(new Date().getMinutes() + timeInMinutes)),
-    async function () {
-      const decryptedToken = await Encryption.decrypt(refreshToken);
+  const decryptedToken = await Encryption.decrypt(refreshToken);
 
-      const { token_id } = await TokenModel.query()
-        .where({ token: decryptedToken })
-        .fetch()
-        .then((response) => response.first()["$attributes"]);
+  await TokenModel.query()
+    .where({ token: decryptedToken })
+    .fetch()
+    .then(async (response) => {
+      const { token_id } = response.first().toJSON();
 
-      if (!token_id) {
-        console.log(
-          `Failure detected when trying to revoke token. token: ${refreshToken}`
-        );
+      await TokenModel.find(token_id)
+        .then(async (response) => {
+          response.merge({ is_revoked: true });
 
-        this.stop();
-      }
-
-      const token = await TokenModel.find(token_id);
-
-      token.merge({ is_revoked: true });
-
-      await token.save();
+          await response.save();
+        })
+        .catch((e) => console.log(e));
 
       console.log(`${refreshToken} is revoked at ${new Date()}.`);
+    })
+    .catch((e) =>
+      console.log(
+        `Error detected when trying to revoke token. Token: ${refreshToken}. Error: ${e}`
+      )
+    )
+    .finally(async () => {
+      await CronUtil(CronModel).updateById(uuid, { job_active: false });
 
-      this.stop();
-    },
-    null,
-    true,
-    "Asia/Bangkok"
-  );
+      global.CronJobManager.deleteJob(uuid);
+    });
+  // return new CronJob(
+  //   new Date(new Date().setMinutes(new Date().getMinutes() + timeInMinutes)),
+  //   async function () {
+  //     const decryptedToken = await Encryption.decrypt(refreshToken);
+
+  //     await TokenModel.query()
+  //       .where({ token: decryptedToken })
+  //       .fetch()
+  //       .then(async (response) => {
+  //         const { token_id } = response.first().toJSON();
+
+  //         await TokenModel.find(token_id)
+  //           .then(async (response) => {
+  //             response.merge({ is_revoked: true });
+
+  //             await response.save();
+  //           })
+  //           .catch((e) => console.log(e));
+
+  //         console.log(`${refreshToken} is revoked at ${new Date()}.`);
+  //       })
+  //       .catch((e) =>
+  //         console.log(
+  //           `Error detected when trying to revoke token. Token: ${refreshToken}. Error: ${e}`
+  //         )
+  //       )
+  //       .finally(() => this.stop());
+  //   },
+  //   null,
+  //   true,
+  //   "Asia/Bangkok"
+  // );
 };
