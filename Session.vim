@@ -13,7 +13,7 @@ badd +23 app/Controllers/Http/CredentialController.js
 badd +82 test/functional/credential-controller.spec.js
 badd +31 util/authenticate.func.js
 badd +37 util/cronjobs/revoke-token-util.func.js
-badd +62 app/Middleware/CronInitiate.js
+badd +74 app/Middleware/CronInitiate.js
 badd +16 app/Models/CronJob.js
 badd +59 util/cronjobs/cronjob-util.func.js
 badd +23 util/UserUtil.func.js
@@ -64,7 +64,7 @@ normal! zt
 normal! 024|
 wincmd w
 argglobal
-if bufexists("app/Middleware/CronInitiate.js") | buffer app/Middleware/CronInitiate.js | else | edit app/Middleware/CronInitiate.js | endif
+if bufexists("start/routes.js") | buffer start/routes.js | else | edit start/routes.js | endif
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -74,12 +74,13 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 25 - ((13 * winheight(0) + 25) / 50)
+let s:l = 1 - ((0 * winheight(0) + 25) / 50)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-25
-normal! 056|
+1
+normal! 0
+lcd ~/Documents/appman-workspace/bid-api
 wincmd w
 2wincmd w
 exe 'vert 1resize ' . ((&columns * 102 + 106) / 213)
