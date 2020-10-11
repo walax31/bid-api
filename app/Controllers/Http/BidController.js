@@ -2,17 +2,19 @@
 
 const Bid = use('App/Models/Bid')
 const Customer = use('App/Models/Customer')
+
 const makeCustomerUtil = require('../../../util/CustomerUtil.func')
 const makeBidUtil = require('../../../util/BidUtil.func')
 const broadcast = require('../../../util/ws/broadcast-product.util.func')
+
 const Ws = use('Ws')
 
 class BidController {
-  async index({ request }) {
+  async index ({ request }) {
     const { references, page, per_page } = request.qs
 
     switch (request.role) {
-      case 'admin':
+      case 'admin': {
         const allBids = await makeBidUtil(Bid).getAll(
           references,
           page,
@@ -25,7 +27,8 @@ class BidController {
           pages: allBids.pages,
           data: allBids.rows
         }
-      case 'customer':
+      }
+      case 'customer': {
         const customerBids = await makeBidUtil(Bid).getAll(
           references,
           page,
@@ -39,11 +42,17 @@ class BidController {
           pages: customerBids.pages,
           data: customerBids.rows
         }
+      }
       default:
+        return {
+          status: 200,
+          error: undefined,
+          data: undefined
+        }
     }
   }
 
-  async show({ request }) {
+  async show ({ request }) {
     const { params, qs } = request
 
     const { id } = params
@@ -51,25 +60,27 @@ class BidController {
     const { references } = qs
 
     switch (request.role) {
-      case 'admin':
+      case 'admin': {
         const bid = await makeBidUtil(Bid).getById(id, references)
 
         return { status: 200, error: undefined, data: bid || {} }
-      case 'customer':
-        const existingBid = await makeCustomerUtil(
-          Customer
-        ).bidBelongToCustomer(request.customer_uuid, id)
+      }
+      case 'customer': {
+        const existingBid = await makeCustomerUtil(Customer).bidBelongToCustomer(request.customer_uuid, id)
 
         if (existingBid) {
           const bid = await makeBidUtil(Bid).getById(id, references)
 
           return { status: 200, error: undefined, data: bid || {} }
         }
+        return { status: 200, error: undefined, data: undefined }
+      }
       default:
+        return { status: 200, error: undefined, data: undefined }
     }
   }
 
-  async store({ request }) {
+  async store ({ request }) {
     const { body, qs } = request
 
     const { bid_amount, product_uuid } = body
@@ -90,7 +101,7 @@ class BidController {
     }
   }
 
-  async update({ request }) {
+  async update ({ request }) {
     const { body, params, qs } = request
 
     const { id } = params
@@ -108,17 +119,18 @@ class BidController {
     return { status: 200, error: undefined, data: bid }
   }
 
-  async destroy({ request }) {
+  async destroy ({ request }) {
     const { id } = request.params
 
     const bid = await makeBidUtil(Bid).deleteById(id)
 
-    if (bid)
+    if (bid) {
       return {
         status: 200,
         error: undefined,
         data: `successfully removed bid ${id}.`
       }
+    }
 
     return {
       status: 404,

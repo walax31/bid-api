@@ -3,12 +3,13 @@
 const ProductDetail = use('App/Models/ProductDetail')
 const Customer = use('App/Models/Customer')
 const Product = use('App/Models/Product')
+
 const makeProductDetailUtil = require('../../../util/ProductDetailUtil.func')
 const makeProductUtil = require('../../../util/ProductUtil.func')
 const makeCustomerUtil = require('../../../util/CustomerUtil.func')
 
 class ProductDetailController {
-  async index({ request }) {
+  async index ({ request }) {
     const { references, page, per_page } = request.qs
 
     const { rows, pages } = await makeProductDetailUtil(ProductDetail).getAll(
@@ -20,7 +21,7 @@ class ProductDetailController {
     return { status: 200, error: undefined, pages, data: rows }
   }
 
-  async show({ request }) {
+  async show ({ request }) {
     const { params, qs } = request
 
     const { id } = params
@@ -34,7 +35,7 @@ class ProductDetailController {
     return { status: 200, error: undefined, data: productDetail || {} }
   }
 
-  async store({ request }) {
+  async store ({ request }) {
     const { body, qs } = request
 
     const {
@@ -47,16 +48,15 @@ class ProductDetailController {
 
     const { references } = qs
 
-    const existingProduct = await makeCustomerUtil(
-      Customer
-    ).findProductOnAuthUser(request.customer_uuid, uuid)
+    const existingProduct = await makeCustomerUtil(Customer).findProductOnAuthUser(request.customer_uuid, uuid)
 
-    if (!existingProduct)
+    if (!existingProduct) {
       return {
         status: 404,
         error: 'Product not found. product does not seem to exist.',
         data: undefined
       }
+    }
 
     const productDetail = await makeProductDetailUtil(ProductDetail).create(
       {
@@ -69,15 +69,14 @@ class ProductDetailController {
       references
     )
 
-    const flaggedProduct = await makeProductUtil(Product).flagProductAsBiddable(
-      uuid
-    )
+    const flaggedProduct = await makeProductUtil(Product).flagProductAsBiddable(uuid)
 
-    if (!flaggedProduct)
+    if (!flaggedProduct) {
       return {
         status: 500,
         error: 'Internal error. failed to flag product as biddable.'
       }
+    }
 
     return {
       status: 200,
@@ -86,7 +85,7 @@ class ProductDetailController {
     }
   }
 
-  async update({ request }) {
+  async update ({ request }) {
     const { body, params, qs } = request
 
     const { id } = params
@@ -95,12 +94,13 @@ class ProductDetailController {
 
     const product = await makeProductDetailUtil(ProductDetail).getById(id)
 
-    if (!product)
+    if (!product) {
       return {
         status: 404,
         error: 'Product not found. product you are looking for does not exist.',
         data: undefined
       }
+    }
 
     const {
       product_price,
@@ -123,19 +123,18 @@ class ProductDetailController {
     return { status: 200, error: undefined, data: productDetail }
   }
 
-  async destroy({ request }) {
+  async destroy ({ request }) {
     const { id } = request.params
 
-    const productDetail = await makeProductDetailUtil(ProductDetail).deleteById(
-      id
-    )
+    const productDetail = await makeProductDetailUtil(ProductDetail).deleteById(id)
 
-    if (!productDetail)
+    if (!productDetail) {
       return {
         status: 404,
         error: 'Product not found. product you are looking for does not exist.',
         data: undefined
       }
+    }
 
     return {
       status: 200,

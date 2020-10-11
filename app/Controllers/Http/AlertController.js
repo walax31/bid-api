@@ -1,10 +1,11 @@
 'use strict'
 
 const Alert = use('App/Models/Alert')
+
 const makeAlertUtil = require('../../../util/alertUtil.func')
 
 class AlertController {
-  async index({ request }) {
+  async index ({ request }) {
     const { references = '', page, per_page } = request.qs
 
     const { rows, pages } = await makeAlertUtil(Alert).getAll(
@@ -22,7 +23,7 @@ class AlertController {
     }
   }
 
-  async show({ request }) {
+  async show ({ request }) {
     const { params, qs, user_uuid } = request
 
     const { id } = params
@@ -38,7 +39,7 @@ class AlertController {
     }
   }
 
-  async store() {
+  async store () {
     return {
       status: 403,
       error: 'Access denied. alert cannot be created directly.',
@@ -46,7 +47,7 @@ class AlertController {
     }
   }
 
-  async update() {
+  async update () {
     return {
       status: 403,
       error: 'Access denied. alert cannot be updated directly.',
@@ -54,7 +55,7 @@ class AlertController {
     }
   }
 
-  async delete() {
+  async delete () {
     return {
       status: 403,
       error: 'Access denied. alert cannot be deleted directly.',

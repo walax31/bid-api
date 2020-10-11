@@ -1,55 +1,52 @@
-module.exports = function (BidModel) {
-  const _withReferences = (references) => {
-    const _Bid = BidModel.query();
+module.exports = function makeBidUtil (BidModel) {
+  const withReferences = references => {
+    const Bid = BidModel.query()
 
     if (references) {
-      const extractedReferences = references.split(",");
+      const extractedReferences = references.split(',')
 
-      extractedReferences.forEach((reference) => _Bid.with(reference));
+      extractedReferences.forEach(reference => Bid.with(reference))
     }
 
-    return _Bid;
-  };
+    return Bid
+  }
 
   return {
     getAll: (references, onPage = 1, perPage = 10, customer_uuid) => {
-      if (customer_uuid)
-        return _withReferences(references)
+      if (customer_uuid) {
+        return withReferences(references)
           .where({ customer_uuid })
-          .paginate(onPage, perPage);
+          .paginate(onPage, perPage)
+      }
 
-      return _withReferences(references).paginate(onPage, perPage);
+      return withReferences(references).paginate(onPage, perPage)
     },
-    getById: (uuid, references) => {
-      return _withReferences(references)
+    getById: (uuid, references) =>
+      withReferences(references)
         .where({ uuid })
         .fetch()
-        .then((response) => response.first());
-    },
+        .then(response => response.first()),
     create: async (attributes, references) => {
-      const { uuid } = await BidModel.create(attributes);
+      const { uuid } = await BidModel.create(attributes)
 
-      return _withReferences(references)
+      return withReferences(references)
         .where({ uuid })
         .fetch()
-        .then((response) => response.first());
+        .then(response => response.first())
     },
     updateById: async (uuid, attributes, references) => {
-      let bid = await BidModel.find(uuid);
+      const bid = await BidModel.find(uuid)
 
-      bid.merge(attributes);
+      bid.merge(attributes)
 
-      await bid.save();
+      await bid.save()
 
-      return _withReferences(references)
+      return withReferences(references)
         .where({ uuid })
         .fetch()
-        .then((response) => response.first());
+        .then(response => response.first())
     },
-    deleteById: async (uuid) => {
-      const bid = await BidModel.find(uuid);
-
-      return bid.delete();
-    },
-  };
-};
+    deleteById: uuid =>
+      BidModel.find(uuid).then(response => response.delete())
+  }
+}

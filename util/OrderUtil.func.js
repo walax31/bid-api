@@ -1,59 +1,58 @@
-module.exports = function (OrderModel) {
-  const _withReferences = (references) => {
-    const _Order = OrderModel.query();
+module.exports = function makeOrderUtil (OrderModel) {
+  const withReferences = references => {
+    const Order = OrderModel.query()
 
     if (references) {
-      const extractedReferences = references.split(",");
+      const extractedReferences = references.split(',')
 
-      extractedReferences.forEach((reference) => _Order.with(reference));
+      extractedReferences.forEach(reference => Order.with(reference))
     }
 
-    return _Order;
-  };
+    return Order
+  }
 
   return {
     getAll: (references, customer_uuid) => {
-      if (customer_uuid)
-        return _withReferences(references).where({ customer_uuid }).fetch();
+      if (customer_uuid) {
+        return withReferences(references).where({ customer_uuid }).fetch()
+      }
 
-      return _withReferences(references).fetch();
+      return withReferences(references).fetch()
     },
     getById: (uuid, references, customer_uuid) => {
-      if (customer_uuid)
-        return _withReferences(references)
+      if (customer_uuid) {
+        return withReferences(references)
           .where({ uuid, customer_uuid })
           .fetch()
-          .then((response) => response.first());
+          .then(response => response.first())
+      }
 
-      return _withReferences(references)
+      return withReferences(references)
         .where({ uuid })
         .fetch()
-        .then((response) => response.first());
+        .then(response => response.first())
     },
     create: async (attributes, references) => {
-      const { uuid } = await OrderModel.create(attributes);
+      const { uuid } = await OrderModel.create(attributes)
 
-      return _withReferences(references)
+      return withReferences(references)
         .where({ uuid })
         .fetch()
-        .then((response) => response.first());
+        .then(response => response.first())
     },
     updateById: async (uuid, attributes, references) => {
-      let order = await OrderModel.find(uuid);
+      const order = await OrderModel.find(uuid)
 
-      order.merge(attributes);
+      order.merge(attributes)
 
-      await order.save();
+      await order.save()
 
-      return _withReferences(references)
+      return withReferences(references)
         .where({ uuid })
         .fetch()
-        .then((response) => response.first());
+        .then(response => response.first())
     },
-    deleteById: async (uuid) => {
-      const order = await OrderModel.find(uuid);
-
-      return order.delete();
-    },
-  };
-};
+    deleteById: uuid =>
+      OrderModel.find(uuid).then(response => response.delete())
+  }
+}

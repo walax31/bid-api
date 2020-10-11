@@ -3,11 +3,12 @@
 const Drive = use('Drive')
 const Customer = use('App/Models/Customer')
 const User = use('App/Models/User')
+
 const makeCustomerUtil = require('../../../util/CustomerUtil.func')
 const makeUserUtil = require('../../../util/UserUtil.func')
 
 class CustomerController {
-  async index({ request }) {
+  async index ({ request }) {
     const { references, page, per_page } = request.qs
 
     const { rows, pages } = await makeCustomerUtil(Customer).getAll(
@@ -24,7 +25,7 @@ class CustomerController {
     }
   }
 
-  async show({ request }) {
+  async show ({ request }) {
     const { params, qs } = request
 
     const { id } = params
@@ -36,7 +37,7 @@ class CustomerController {
     return { status: 200, error: undefined, data: customer || {} }
   }
 
-  async store({ request }) {
+  async store ({ request }) {
     const { body, qs } = request
 
     const { first_name, last_name } = body
@@ -52,16 +53,15 @@ class CustomerController {
       references
     )
 
-    const flaggedUser = await makeUserUtil(User).flagSubmition(
-      request.user_uuid
-    )
+    const flaggedUser = await makeUserUtil(User).flagSubmition(request.user_uuid)
 
-    if (!flaggedUser)
+    if (!flaggedUser) {
       return {
         status: 500,
         error: 'Internal error. failed to flag user submittion.',
         data: undefined
       }
+    }
 
     return {
       status: 200,
@@ -70,7 +70,7 @@ class CustomerController {
     }
   }
 
-  async update({ request }) {
+  async update ({ request }) {
     const { body, params, qs } = request
 
     const { id } = params
@@ -80,30 +80,30 @@ class CustomerController {
     const { first_name, last_name } = body
 
     switch (request.role) {
-      case 'admin':
+      case 'admin': {
         const { customer_uuid } = await makeUserUtil(User)
           .hasSubmittionFlagged(id)
-          .then((response) => response.toJSON())
+          .then(response => response.toJSON())
 
-        if (!customer_uuid)
+        if (!customer_uuid) {
           return {
             status: 404,
             error: 'User not found. this user never submitted credential.',
             data: undefined
           }
+        }
 
-        const { is_validated } = await makeCustomerUtil(
-          Customer
-        ).validateUserCredential(customer_uuid, references)
+        const { is_validated } = await makeCustomerUtil(Customer).validateUserCredential(customer_uuid, references)
 
         return {
           status: 200,
           error: undefined,
           data: { customer_uuid, is_validated }
         }
-      case 'customer':
+      }
+      case 'customer': {
         if (request.customer_uuid === id) {
-          const username = request.username
+          const { username } = request
 
           const fileList = []
 
@@ -111,17 +111,18 @@ class CustomerController {
             request.multipart.file(
               'credential_image',
               { types: ['image'], size: '2mb', extnames: ['png', 'gif'] },
-              async (file) => {
+              async file => {
                 if (
                   !(file.extname === 'png') &&
                   !(file.extname === 'jpg') &&
                   !(file.extname === 'jpeg')
-                )
+                ) {
                   return {
                     status: 422,
                     error: 'Validation failed. contain illegal file type.',
                     data: undefined
                   }
+                }
 
                 await Drive.disk('s3').put(
                   `${username}.${file.extname}`,
@@ -134,8 +135,9 @@ class CustomerController {
 
             await request.multipart.process()
           } catch (error) {
-            if (!error.message === 'unsupported content-type')
+            if (!error.message === 'unsupported content-type') {
               return { status: 500, error, data: undefined }
+            }
           }
 
           if (first_name || last_name || fileList.length) {
@@ -166,14 +168,21 @@ class CustomerController {
           error: 'Access denied. id param does not match authenticated uuid.',
           data: undefined
         }
+      }
+      default:
+        return {
+          status: 200,
+          error: undefined,
+          data: undefined
+        }
     }
   }
 
-  async destroy({ request }) {
+  async destroy ({ request }) {
     const { id } = request.params
 
     switch (request.role) {
-      case 'admin':
+      case 'admin': {
         await makeCustomerUtil(Customer).deleteById(id)
 
         return {
@@ -181,7 +190,8 @@ class CustomerController {
           error: undefined,
           data: `customer ${id} is successfully removed.`
         }
-      case 'customer':
+      }
+      case 'customer': {
         if (request.customer_uuid === id) {
           await makeCustomerUtil(Customer).deleteById(id)
 
@@ -197,7 +207,13 @@ class CustomerController {
           error: 'Access denied. id param does not match authenticated uuid.',
           data: undefined
         }
+      }
       default:
+        return {
+          status: 200,
+          error: undefined,
+          data: undefined
+        }
     }
   }
 }

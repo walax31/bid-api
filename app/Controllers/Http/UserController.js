@@ -2,13 +2,14 @@
 
 const Env = use('Env')
 const User = use('App/Models/User')
-const makeUserUtil = require('../../../util/UserUtil.func')
 const CronModel = use('App/Models/CronJob')
+
+const makeUserUtil = require('../../../util/UserUtil.func')
 const makeCronUtil = require('../../../util/cronjobs/cronjob-util.func')
 const performAuthentication = require('../../../util/authenticate.func')
 
 class UserController {
-  async index({ request }) {
+  async index ({ request }) {
     const { references, page, per_page } = request.qs
 
     const { rows, pages } = await makeUserUtil(User).getAll(
@@ -20,7 +21,7 @@ class UserController {
     return { status: 200, error: undefined, pages, data: rows }
   }
 
-  async show({ request }) {
+  async show ({ request }) {
     const { params, qs } = request
 
     const { id } = params
@@ -28,7 +29,7 @@ class UserController {
     const { references } = qs
 
     switch (request.role) {
-      case 'customer':
+      case 'customer': {
         if (request.user_uuid === id) {
           const data =
             (await makeUserUtil(User).getById(request.user_uuid, references)) ||
@@ -45,8 +46,8 @@ class UserController {
           error: 'Access denied. id param does not match authenticated id.',
           data: undefined
         }
-
-      case 'admin':
+      }
+      case 'admin': {
         const data = (await makeUserUtil(User).getById(id, references)) || {}
 
         return {
@@ -54,11 +55,17 @@ class UserController {
           error: undefined,
           data
         }
+      }
       default:
+        return {
+          status: 200,
+          error: undefined,
+          data: undefined
+        }
     }
   }
 
-  async store({ auth, request }) {
+  async store ({ auth, request }) {
     const { body, qs } = request
 
     const { username, email, password, key } = body
@@ -102,7 +109,7 @@ class UserController {
     }
   }
 
-  async update({ request }) {
+  async update ({ request }) {
     const { body, params, qs } = request
 
     const { id } = params
@@ -112,7 +119,7 @@ class UserController {
     const { email } = body
 
     switch (request.role) {
-      case 'admin':
+      case 'admin': {
         const user = await makeUserUtil(User).updateById(
           id,
           { email },
@@ -120,7 +127,8 @@ class UserController {
         )
 
         return { status: 200, error: undefined, data: user }
-      case 'customer':
+      }
+      case 'customer': {
         if (request.user_uuid === id) {
           const user = await makeUserUtil(User).updateById(
             request.user_uuid,
@@ -136,10 +144,17 @@ class UserController {
           error: 'Access denied. id param does not match authenticated uuid.',
           data: undefined
         }
+      }
+      default:
+        return {
+          status: 200,
+          error: undefined,
+          data: undefined
+        }
     }
   }
 
-  async destroy({ request }) {
+  async destroy ({ request }) {
     const { id } = request.params
 
     const user = await makeUserUtil(User).deleteById(id)

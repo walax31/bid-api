@@ -1,52 +1,46 @@
-module.exports = function (AlertModel) {
-  const _withReferences = (references) => {
-    const _alert = AddressModel.query();
+module.exports = function makeAlertUtil (AlertModel) {
+  const withReferences = references => {
+    const alert = AlertModel.query()
 
     if (references) {
-      const extractedReferences = references.split(",");
+      const extractedReferences = references.split(',')
 
-      extractedReferences.forEach((reference) => _alert.with(reference));
+      extractedReferences.forEach(reference => alert.with(reference))
     }
 
-    return _alert;
-  };
+    return alert
+  }
 
   return {
-    getAll: (user_uuid, references, onPage = 1, perPage = 10) => {
-      return _withReferences(references)
-        .where({ user_uuid })
-        .paginate(onPage, perPage);
-    },
-    getById: (uuid, user_uuid, references) => {
-      return _withReferences(references)
+    getAll: (user_uuid, references, onPage = 1, perPage = 10) =>
+      withReferences(references).where({ user_uuid }).paginate(onPage, perPage),
+    getById: (uuid, user_uuid, references) =>
+      withReferences(references)
         .where({ uuid, user_uuid })
         .fetch()
-        .then((response) => response.first());
-    },
+        .then(response => response.first()),
     create: async (attributes, references) => {
-      const { uuid } = await AddressModel.create(attributes).then((response) =>
-        response.toJSON()
-      );
+      const { uuid } = await AlertModel.create(attributes).then(response =>
+        response.toJSON())
 
-      return _withReferences(references)
+      return withReferences(references)
         .where({ uuid })
         .fetch()
-        .then((response) => response.first());
+        .then(response => response.first())
     },
     updateById: async (uuid, attributes, references) => {
-      const alert = await AddressModel.find(uuid);
+      const alert = await AlertModel.find(uuid)
 
-      alert.merge(attributes);
+      alert.merge(attributes)
 
-      await alert.save();
+      await alert.save()
 
-      return _withReferences(references)
+      return withReferences(references)
         .where({ uuid })
         .fetch()
-        .then((response) => response.first());
+        .then(response => response.first())
     },
-    deleteById: (uuid) => {
-      return AlertModel.find(uuid).then((response) => response.delete());
-    },
-  };
-};
+    deleteById: uuid =>
+      AlertModel.find(uuid).then(response => response.delete())
+  }
+}

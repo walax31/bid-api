@@ -1,63 +1,59 @@
-module.exports = function (PaymentModel) {
-  const _withReferences = (references) => {
-    const _Payment = PaymentModel.query();
+module.exports = function makePaymentUtil (PaymentModel) {
+  const withReferences = references => {
+    const Payment = PaymentModel.query()
 
     if (references) {
-      const extractedReferences = references.split(",");
+      const extractedReferences = references.split(',')
 
-      extractedReferences.forEach((reference) => _Payment.with(reference));
+      extractedReferences.forEach(reference => Payment.with(reference))
     }
 
-    return _Payment;
-  };
+    return Payment
+  }
 
   return {
     getAll: (references, page = 1, per_page = 10, customer_uuid) => {
-      if (customer_uuid)
-        return _withReferences(references)
-          .with("order", (builder) => builder.where({ customer_uuid }))
-          .paginate(page, per_page);
+      if (customer_uuid) {
+        return withReferences(references)
+          .with('order', builder => builder.where({ customer_uuid }))
+          .paginate(page, per_page)
+      }
 
-      return _withReferences(references).paginate(page, per_page);
+      return withReferences(references).paginate(page, per_page)
     },
-    getById: (uuid, references) => {
-      return _withReferences(references)
+    getById: (uuid, references) =>
+      withReferences(references)
         .where({ uuid })
         .fetch()
-        .then((response) => response.first());
-    },
+        .then(response => response.first()),
     create: async (attributes, references) => {
-      const { uuid } = await PaymentModel.create(attributes);
+      const { uuid } = await PaymentModel.create(attributes)
 
-      return _withReferences(references)
+      return withReferences(references)
         .where({ uuid })
         .fetch()
-        .then((response) => response.first());
+        .then(response => response.first())
     },
     updateById: async (uuid, attributes, references) => {
-      let payment = await PaymentModel.find(uuid);
+      const payment = await PaymentModel.find(uuid)
 
-      payment.merge(attributes);
+      payment.merge(attributes)
 
-      await payment.save();
+      await payment.save()
 
-      return _withReferences(references)
+      return withReferences(references)
         .where({ uuid })
         .fetch()
-        .then((response) => response.first());
+        .then(response => response.first())
     },
-    deleteById: async (uuid) => {
-      const payment = await PaymentModel.find(uuid);
-
-      return payment.delete();
-    },
-    findExistingPayment: (uuid) => {
-      return PaymentModel.query()
-        .with("order", (builder) => {
-          builder.where({ uuid });
+    deleteById: uuid =>
+      PaymentModel.find(uuid).then(response => response.delete()),
+    findExistingPayment: uuid =>
+      PaymentModel.query()
+        .with('order', builder => {
+          builder.where({ uuid })
         })
         .fetch()
-        .then((response) => response.first());
-    },
-  };
-};
+        .then(response => response.first())
+  }
+}

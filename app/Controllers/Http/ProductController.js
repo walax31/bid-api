@@ -2,15 +2,17 @@
 
 const Product = use('App/Models/Product')
 const Customer = use('App/Models/Customer')
+const Drive = use('Drive')
+
 const makeProductUtil = require('../../../util/ProductUtil.func')
 const makeCustomerUtil = require('../../../util/CustomerUtil.func')
 
 class ProductController {
-  async index({ request }) {
+  async index ({ request }) {
     const { references, page, per_page } = request.qs
 
     switch (request.role) {
-      case 'admin':
+      case 'admin': {
         const products = await makeProductUtil(Product).getAll(
           references,
           page,
@@ -23,10 +25,9 @@ class ProductController {
           pages: products.pages,
           data: products.rows
         }
-      default:
-        const biddableProducts = await makeProductUtil(
-          Product
-        ).bulkHasBiddableFlag(references, page, per_page)
+      }
+      default: {
+        const biddableProducts = await makeProductUtil(Product).bulkHasBiddableFlag(references, page, per_page)
 
         return {
           status: 200,
@@ -34,10 +35,11 @@ class ProductController {
           pages: biddableProducts.pages,
           data: biddableProducts.rows
         }
+      }
     }
   }
 
-  async show({ request }) {
+  async show ({ request }) {
     const { params, qs } = request
 
     const { id } = params
@@ -45,11 +47,12 @@ class ProductController {
     const { references } = qs
 
     switch (request.role) {
-      case 'admin':
+      case 'admin': {
         const product = await makeProductUtil(Product).getById(id, references)
 
         return { status: 200, error: undefined, data: product || {} }
-      default:
+      }
+      default: {
         const biddableProduct = await makeProductUtil(Product).hasBiddableFlag(
           id,
           references
@@ -60,10 +63,11 @@ class ProductController {
           error: undefined,
           data: biddableProduct || {}
         }
+      }
     }
   }
 
-  async store({ request }) {
+  async store ({ request }) {
     const { body, qs } = request
 
     const { product_name, end_date, stock } = body
@@ -87,7 +91,7 @@ class ProductController {
     }
   }
 
-  async update({ request }) {
+  async update ({ request }) {
     const { body, params, qs } = request
 
     const { id } = params
@@ -97,7 +101,7 @@ class ProductController {
     const { product_name, end_date, stock } = body
 
     switch (request.role) {
-      case 'admin':
+      case 'admin': {
         const product = await makeProductUtil(Product).updateById(
           id,
           { product_name, end_date, stock },
@@ -105,21 +109,20 @@ class ProductController {
         )
 
         return { status: 200, error: undefined, data: product }
-      case 'customer':
+      }
+      case 'customer': {
         const { product_image } = await makeCustomerUtil(Customer)
           .findProductOnAuthUser(request.customer_uuid, id)
-          .then((response) => response.toJSON())
+          .then(response => response.toJSON())
 
         const productExist = await makeCustomerUtil(Customer)
           .findProductOnAuthUser(request.customer_uuid, id)
-          .then((response) => response.toJSON())
+          .then(response => response.toJSON())
 
         if (productExist) {
           const fileList = []
 
-          const new_product_name = product_name
-            ? product_name
-            : productExist.product_name
+          const new_product_name = product_name || productExist.product_name
 
           try {
             request.multipart.file(
@@ -129,17 +132,18 @@ class ProductController {
                 size: '2mb',
                 extnames: ['png', 'gif', 'jpeg', 'jpg']
               },
-              async (file) => {
+              async file => {
                 if (
                   !(file.extname === 'png') &&
                   !(file.extname === 'jpg') &&
                   !(file.extname === 'jpeg')
-                )
+                ) {
                   return {
                     status: 422,
                     error: 'Validation failed. contain illegal file type.',
                     data: undefined
                   }
+                }
 
                 await Drive.disk('s3').put(
                   `${new_product_name}.${file.extname}`,
@@ -152,8 +156,9 @@ class ProductController {
 
             await request.multipart.process()
           } catch (error) {
-            if (!error.message === 'unsupported content-type')
+            if (!error.message === 'unsupported content-type') {
               return { status: 500, error, data: undefined }
+            }
           }
 
           const product = await makeProductUtil(Product).updateById(
@@ -176,15 +181,21 @@ class ProductController {
           error: 'Access denied. id param does not match authenticated uuid.',
           data: undefined
         }
+      }
       default:
+        return {
+          status: 200,
+          error: undefined,
+          data: undefined
+        }
     }
   }
 
-  async destroy({ request }) {
+  async destroy ({ request }) {
     const { id } = request.params
 
     switch (request.role) {
-      case 'admin':
+      case 'admin': {
         await makeProductUtil(Product).deleteById(id)
 
         return {
@@ -192,7 +203,8 @@ class ProductController {
           error: undefined,
           data: { massage: `product ${id} is successfully removed.` }
         }
-      case 'customer':
+      }
+      case 'customer': {
         if (request.customer_uuid === id) {
           await makeProductUtil(Product).deleteById(id)
 
@@ -208,7 +220,13 @@ class ProductController {
           error: 'Access denied. id param does not match authenticated uuid.',
           data: undefined
         }
+      }
       default:
+        return {
+          status: 200,
+          error: undefined,
+          data: undefined
+        }
     }
   }
 }
