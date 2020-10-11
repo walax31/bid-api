@@ -1,18 +1,20 @@
 'use strict'
 
-const Drive = use('Drive')
+// const Drive = use('Drive')
 const Encryption = use('Encryption')
 const performAuthentication = require('../../../util/authenticate.func')
 const processMultiPartFile = require('../../../service/multiPartFileProcessor')
 const makeCustomerUtil = require('../../../util/CustomerUtil.func')
+
 const Customer = use('App/Models/Customer')
 const Token = use('App/Models/Token')
-const CronJob = require('cron').CronJob
+// const { CronJob } = require('cron')
+
 const CronModel = use('App/Models/CronJob')
 const makeCronUtil = require('../../../util/cronjobs/cronjob-util.func')
 
 class CredentialController {
-  async login({ auth, request }) {
+  async login ({ auth, request }) {
     const { username, password } = request.all()
 
     const { tokens, error } = await performAuthentication(auth).login({
@@ -42,12 +44,10 @@ class CredentialController {
     }
   }
 
-  async reAuthenticate({ auth, request }) {
+  async reAuthenticate ({ auth, request }) {
     const refreshToken = request.header('refreshToken')
 
-    const { tokens, error } = await performAuthentication(auth).getNewToken(
-      refreshToken
-    )
+    const { tokens, error } = await performAuthentication(auth).getNewToken(refreshToken)
 
     if (tokens) {
       const { uuid } = await makeCronUtil(CronModel).getByToken(
@@ -77,7 +77,7 @@ class CredentialController {
     }
   }
 
-  async logout({ auth, request }) {
+  async logout ({ auth, request }) {
     const refreshToken = request.header('refreshToken')
 
     const { data, error } = await performAuthentication(auth).logout(
@@ -86,9 +86,7 @@ class CredentialController {
       refreshToken
     )
 
-    const { uuid } = await makeCronUtil(CronModel).updateByToken(refreshToken, {
-      job_active: false
-    })
+    const { uuid } = await makeCronUtil(CronModel).updateByToken(refreshToken, { job_active: false })
 
     global.CronJobManager.deleteJob(uuid)
 
@@ -108,7 +106,7 @@ class CredentialController {
     }
   }
 
-  async validate({ auth, request }) {
+  async validate ({ auth, request }) {
     try {
       await performAuthentication(auth).authenticate()
 
@@ -121,7 +119,7 @@ class CredentialController {
 
       const { username, uuid } = await auth
         .getUser()
-        .then((response) => response.toJSON())
+        .then(response => response.toJSON())
 
       const processedFileReturnValue = await processMultiPartFile(
         credentialPicture,
@@ -138,9 +136,7 @@ class CredentialController {
 
       const customer = await makeCustomerUtil(Customer).updateById(
         uuid,
-        {
-          path_to_credential: `tmpPath/uploads/${processedFileReturnValue.data}.jpg`
-        },
+        { path_to_credential: `tmpPath/uploads/${processedFileReturnValue.data}.jpg` },
         references
       )
 
@@ -160,45 +156,45 @@ class CredentialController {
 
   // for testing purpose
   // FIXME: Remove before production
-  async job() {
-    const a = 1
-    const job = new CronJob(
-      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
-      function () {
-        console.log(a)
-        console.log('Job fired.')
-        this.stop()
-      },
-      null,
-      true,
-      'Asia/Bangkok'
-    )
-    job.start()
-  }
+  // async job () {
+  //   const a = 1
+  //   const job = new CronJob(
+  //     new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+  //     function() {
+  //       console.log(a)
+  //       console.log('Job fired.')
+  //       this.stop()
+  //     },
+  //     null,
+  //     true,
+  //     'Asia/Bangkok'
+  //   )
+  //   job.start()
+  // }
 
-  async upload({ request }) {
-    request.multipart.file('credential_image', {}, async (file) => {
-      await Drive.disk('s3').put(file.clientName, file.stream)
-    })
+  // async upload ({ request }) {
+  //   request.multipart.file('credential_image', {}, async file => {
+  //     await Drive.disk('s3').put(file.clientName, file.stream)
+  //   })
 
-    await request.multipart.process()
+  //   await request.multipart.process()
 
-    return {
-      status: 200,
-      error: undefined,
-      data: 'Upload sucessful.'
-    }
-  }
+  //   return {
+  //     status: 200,
+  //     error: undefined,
+  //     data: 'Upload sucessful.'
+  //   }
+  // }
 
-  async download() {
-    const url = await Drive.disk('s3').getSignedUrl('GMK+9009+Apple.jpeg')
+  // async download () {
+  //   const url = await Drive.disk('s3').getSignedUrl('GMK+9009+Apple.jpeg')
 
-    return {
-      status: 200,
-      error: undefined,
-      data: url
-    }
-  }
+  //   return {
+  //     status: 200,
+  //     error: undefined,
+  //     data: url
+  //   }
+  // }
   // for testing purpose
 }
 

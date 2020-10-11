@@ -6,7 +6,7 @@ const Schema = use('Schema')
 class TokensSchema extends Schema {
   up () {
     this.create('tokens', table => {
-      table.increments('token_id')
+      table.uuid('uuid').unique()
       table.uuid('user_uuid').notNullable()
       table.string('token', 255).notNullable().unique().index()
       table.string('type', 80).notNullable()

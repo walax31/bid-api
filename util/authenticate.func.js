@@ -1,22 +1,18 @@
-module.exports = function (auth) {
-  const _withAuthentication = () => {
-    return auth.check()
-  }
+module.exports = function performAuthentication (auth) {
+  const withAuthentication = () => auth.check()
 
-  const _withRefreshTokenRevoked = async (
+  const withRefreshTokenRevoked = async (
     TokenModel,
     Encryption,
     refreshToken
   ) => {
     try {
-      const { token_id } = await TokenModel.query()
-        .where({
-          token: Encryption.decrypt(refreshToken)
-        })
+      const { uuid } = await TokenModel.query()
+        .where({ token: Encryption.decrypt(refreshToken) })
         .fetch()
-        .then((response) => response.first().toJSON())
+        .then(response => response.first().toJSON())
 
-      const token = await TokenModel.find(token_id)
+      const token = await TokenModel.find(uuid)
 
       token.merge({ is_revoked: true })
 
@@ -31,7 +27,7 @@ module.exports = function (auth) {
   return {
     authenticate: async () => {
       try {
-        await _withAuthentication()
+        await withAuthentication()
 
         return { error: undefined }
       } catch (error) {
@@ -47,15 +43,13 @@ module.exports = function (auth) {
         return { error }
       }
     },
-    getNewToken: async (refreshToken) => {
+    getNewToken: async refreshToken => {
       try {
         const tokens = await auth
           .newRefreshToken()
           .generateForRefreshToken(refreshToken)
 
-        return {
-          tokens
-        }
+        return { tokens }
       } catch (error) {
         return { error }
       }
@@ -66,7 +60,7 @@ module.exports = function (auth) {
 
         //   if (error) throw new Error(error);
 
-        const { data, error } = await _withRefreshTokenRevoked(
+        const { data, error } = await withRefreshTokenRevoked(
           TokenModel,
           Encryption,
           refreshToken
@@ -84,32 +78,28 @@ module.exports = function (auth) {
     },
     validateAdmin: async () => {
       try {
-        await _withAuthentication()
+        await withAuthentication()
 
         return {
           admin: await auth
             .getUser()
-            .then((response) => response.toJSON().is_admin)
+            .then(response => response.toJSON().is_admin)
         }
       } catch (error) {
-        return {
-          error
-        }
+        return { error }
       }
     },
-    validateUniqueID: async (CustomerModel) => {
-      const user = await auth.getUser().then((response) => response.toJSON())
+    validateUniqueID: async CustomerModel => {
+      const user = await auth.getUser().then(response => response.toJSON())
 
       const customer = CustomerModel
-        ? await CustomerModel.findBy('user_uuid', user.uuid).then((response) =>
-            response ? response.toJSON() : {}
-          )
+        ? await CustomerModel.findBy('user_uuid', user.uuid).then(response =>
+          (response ? response.toJSON() : {}))
         : {}
 
       return { user_uuid: user.uuid, customer_uuid: customer.uuid }
     },
-    getUsername: () => {
-      return auth.getUser().then((response) => response.toJSON().username)
-    }
+    getUsername: () =>
+      auth.getUser().then(response => response.toJSON().username)
   }
 }
