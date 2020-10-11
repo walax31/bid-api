@@ -18,99 +18,103 @@ test('should return empty array of rows from makeBidUtil', async ({ assert }) =>
 })
 
 test('should return object of created index from makeBidUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { bid_id } = await makeBidUtil(BidModel)
+  const { uuid } = await makeBidUtil(BidModel)
     .create({
-      customer_id,
+      customer_uuid: customer.uuid,
       bid_amount: 1100,
-      product_id
+      product_uuid: product.uuid
     })
-    .then(response => response.$attributes)
+    .then(response => response.toJSON())
 
-  assert.isOk(bid_id)
+  assert.isOk(uuid)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return array of row from makeBidUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  await BidModel.create({ customer_id, bid_amount: 1100, product_id })
+  await BidModel.create({
+    customer_uuid: customer.uuid,
+    bid_amount: 1100,
+    product_uuid: product.uuid
+  })
 
   const bids = await makeBidUtil(BidModel).getAll('')
 
   assert.isAbove(bids.rows.length, 0)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return object of requested created index from makeBidUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { bid_id } = await BidModel.create({
-    customer_id,
+  const { uuid } = await BidModel.create({
+    customer_uuid: customer.uuid,
     bid_amount: 1100,
-    product_id
-  }).then(response => response.$attributes)
+    product_uuid: product.uuid
+  }).then(response => response.toJSON())
 
-  const bid = await makeBidUtil(BidModel).getById(bid_id, '')
+  const bid = await makeBidUtil(BidModel).getById(uuid, '')
 
   assert.isOk(bid)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return modified object of updated index form makeBidUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { bid_id } = await BidModel.create({
-    customer_id,
+  const { uuid } = await BidModel.create({
+    customer_uuid: customer.uuid,
     bid_amount: 1100,
-    product_id
-  }).then(response => response.$attributes)
+    product_uuid: product.uuid
+  }).then(response => response.toJSON())
 
   const { bid_amount } = await makeBidUtil(BidModel)
-    .updateById(bid_id, { bid_amount: 1200 }, '')
-    .then(response => response.$attributes)
+    .updateById(uuid, { bid_amount: 1200 }, '')
+    .then(response => response.toJSON())
 
   assert.equal(bid_amount, 1200)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return index of deleted index from makeBidUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { bid_id } = await BidModel.create({
-    customer_id,
+  const { uuid } = await BidModel.create({
+    customer_uuid: customer.uuid,
     bid_amount: 1100,
-    product_id
-  }).then(response => response.$attributes)
+    product_uuid: product.uuid
+  }).then(response => response.toJSON())
 
-  const deletedBid = await makeBidUtil(BidModel).deleteById(bid_id)
+  const deletedBid = await makeBidUtil(BidModel).deleteById(uuid)
 
   assert.isOk(deletedBid)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })

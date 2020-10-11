@@ -98,7 +98,7 @@ class CredentialController {
     //   await Token.query()
     //     .where({ token: Encryption.decrypt(refreshToken) })
     //     .fetch()
-    //     .then((response) => response.first()["$attributes"].token_id)
+    //     .then((response) => response.first().toJSON().token_id)
     // );
 
     return {

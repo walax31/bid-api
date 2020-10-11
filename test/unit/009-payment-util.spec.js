@@ -20,95 +20,95 @@ test('should return empty array of rows from makePaymentUtil', async ({ assert }
 })
 
 test('should return object of created index from makePaymentUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { order_id } = await makeOrderUtil(OrderModel, customer_id, product_id)
+  const { uuid } = await makeOrderUtil(OrderModel, customer.uuid, product.uuid)
 
   const payment = await makePaymentUtil(PaymentModel).create({
-    order_id,
+    uuid,
     method: 'banking',
     total: 2
   })
 
   assert.isOk(payment)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return array of row from makePaymentUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { order_id } = await makeOrderUtil(OrderModel, customer_id, product_id)
+  const { uuid } = await makeOrderUtil(OrderModel, customer.uuid, product.uuid)
 
-  await PaymentModel.create({ order_id, method: 'banking', total: 2 })
+  await PaymentModel.create({ uuid, method: 'banking', total: 2 })
 
   const payments = await makePaymentUtil(PaymentModel).getAll('')
 
   assert.isAbove(payments.rows.length, 0)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return object of requested created index from makePaymentUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { order_id } = await makeOrderUtil(OrderModel, customer_id, product_id)
+  const { uuid } = await makeOrderUtil(OrderModel, customer.uuid, product.uuid)
 
-  await PaymentModel.create({ order_id, method: 'banking', total: 2 })
+  await PaymentModel.create({ uuid, method: 'banking', total: 2 })
 
-  const payment = await makePaymentUtil(PaymentModel).getById(order_id, '')
+  const payment = await makePaymentUtil(PaymentModel).getById(uuid, '')
 
   assert.isOk(payment)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return modified object of updated index form makePaymentUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { order_id } = await makeOrderUtil(OrderModel, customer_id, product_id)
+  const { uuid } = await makeOrderUtil(OrderModel, customer.uuid, product.uuid)
 
-  await PaymentModel.create({ order_id, method: 'banking', total: 2 })
+  await PaymentModel.create({ uuid, method: 'banking', total: 2 })
 
   const { status } = await makePaymentUtil(PaymentModel)
-    .updateById(order_id, { status: 'accepted' }, '')
-    .then(response => response.$attributes)
+    .updateById(uuid, { status: 'accepted' }, '')
+    .then(response => response.toJSON())
 
   assert.equal(status, 'accepted')
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return index of deleted index from makePaymentUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { order_id } = await makeOrderUtil(OrderModel, customer_id, product_id)
+  const { uuid } = await makeOrderUtil(OrderModel, customer.uuid, product.uuid)
 
-  await PaymentModel.create({ order_id, method: 'banking', total: 2 })
+  await PaymentModel.create({ uuid, method: 'banking', total: 2 })
 
-  const deletedPayment = await makePaymentUtil(PaymentModel).deleteById(order_id)
+  const deletedPayment = await makePaymentUtil(PaymentModel).deleteById(uuid)
 
   assert.isOk(deletedPayment)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })

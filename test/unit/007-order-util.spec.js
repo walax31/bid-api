@@ -19,77 +19,77 @@ test('should return empty array of rows from makeOrderUtil', async ({ assert }) 
 })
 
 test('should return object of created index from makeOrderUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { order_id } = await makeOrderUtil(OrderModel)
+  const { uuid } = await makeOrderUtil(OrderModel)
     .create({
-      customer_id,
-      product_id,
+      customer_uuid: customer.uuid,
+      product_uuid: product.uuid,
       order_quantity: 10
     })
-    .then(response => response.$attributes)
+    .then(response => response.toJSON())
 
-  assert.isOk(order_id)
+  assert.isOk(uuid)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return array of row from makeOrderUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  await makeTestOrderUtil(OrderModel, customer_id, product_id)
+  await makeTestOrderUtil(OrderModel, customer.uuid, product.uuid)
 
   const orders = await makeOrderUtil(OrderModel).getAll('')
 
   assert.isAbove(orders.rows.length, 0)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return object of requested created index from makeOrderUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { order_id } = await makeTestOrderUtil(
+  const { uuid } = await makeTestOrderUtil(
     OrderModel,
-    customer_id,
-    product_id
+    customer.uuid,
+    product.uuid
   )
 
-  const order = await makeOrderUtil(OrderModel).getById(order_id, '')
+  const order = await makeOrderUtil(OrderModel).getById(uuid, '')
 
   assert.isOk(order)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return index of deleted index from makeOrderUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { order_id } = await makeTestOrderUtil(
+  const { uuid } = await makeTestOrderUtil(
     OrderModel,
-    customer_id,
-    product_id
+    customer.uuid,
+    product.uuid
   )
 
-  const deletedOrder = await makeOrderUtil(OrderModel).deleteById(order_id)
+  const deletedOrder = await makeOrderUtil(OrderModel).deleteById(uuid)
 
   assert.isOk(deletedOrder)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })

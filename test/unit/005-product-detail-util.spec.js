@@ -113,23 +113,23 @@ test('should return modified object of updated index form makeProductDetailUtil.
 })
 
 test('should return index of deleted index from makeProductDetailUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const { uuid } = await makeProductUtil(ProductModel, customer.uuid)
 
   await ProductDetailModel.create({
-    product_id,
+    uuid,
     product_price: 1000,
     product_bid_start: 500,
     product_bid_increment: 100,
     product_description: 'a_product_description'
   })
 
-  const deletedProductDetail = await makeProductDetailUtil(ProductDetailModel).deleteById(product_id)
+  const deletedProductDetail = await makeProductDetailUtil(ProductDetailModel).deleteById(uuid)
 
   assert.isOk(deletedProductDetail)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })

@@ -17,77 +17,77 @@ test('should return empty array of rows from makeProductUtil', async ({ assert }
 })
 
 test('should return object of created index from makeProductUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel)
+  const product = await makeProductUtil(ProductModel)
     .create({
-      customer_id,
+      customer_uuid: customer.uuid,
       product_name: 'product_name',
       stock: 10
     })
-    .then(response => response.$attributes)
+    .then(response => response.toJSON())
 
-  assert.isOk(product_id)
+  assert.isOk(product.uuid)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return array of row from makeProductUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  await makeTestProductUtil(ProductModel, customer_id)
+  await makeTestProductUtil(ProductModel, customer.uuid)
 
   const products = await makeProductUtil(ProductModel).getAll('')
 
   assert.isAbove(products.rows.length, 0)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return object of requested created index from makeProductUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeTestProductUtil(ProductModel, customer_id)
+  const { uuid } = await makeTestProductUtil(ProductModel, customer.uuid)
 
-  const product = await makeProductUtil(ProductModel).getById(product_id, '')
+  const product = await makeProductUtil(ProductModel).getById(uuid, '')
 
   assert.isOk(product)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return modified object of updated index form makeProductUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeTestProductUtil(ProductModel, customer_id)
+  const { uuid } = await makeTestProductUtil(ProductModel, customer.uuid)
 
   const { stock } = await makeProductUtil(ProductModel)
-    .updateById(product_id, { stock: 20 }, '')
-    .then(response => response.$attributes)
+    .updateById(uuid, { stock: 20 }, '')
+    .then(response => response.toJSON())
 
   assert.equal(stock, 20)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return index of deleted index from makeProductUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeTestProductUtil(ProductModel, customer_id)
+  const { uuid } = await makeTestProductUtil(ProductModel, customer.uuid)
 
-  const deletedProduct = await makeProductUtil(ProductModel).deleteById(product_id)
+  const deletedProduct = await makeProductUtil(ProductModel).deleteById(uuid)
 
   assert.isOk(deletedProduct)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })

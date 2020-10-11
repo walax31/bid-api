@@ -1,20 +1,20 @@
-"use strict";
+'use strict'
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
-const Model = use("Model");
+const Model = use('Model')
 
 class Payment extends Model {
-  static get incrementing() {
-    return false;
+  static get incrementing () {
+    return false
   }
 
-  static get primaryKey() {
-    return "uuid";
+  static get primaryKey () {
+    return 'uuid'
   }
 
-  order() {
-    return this.belongsTo("App/Models/Order", "uuid", "uuid");
+  order () {
+    return this.belongsTo('App/Models/Order', 'uuid', 'uuid')
   }
 }
 
-module.exports = Payment;
+module.exports = Payment

@@ -18,113 +18,109 @@ test('should return empty array of rows from makeCredentialRatingUtil', async ({
 })
 
 test('should return object of created index from makeCredentialRatingUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
   const credentialRating = await makeCredentialRatingUtil(CredentialRatingModel).create({
-    customer_id,
+    customer_uuid: customer.uuid,
     rating_score: 100,
     rating_description: 'someratingdescription',
-    product_id
+    product_uuid: product.uuid
   })
 
-  const { credential_rating_id } = credentialRating.$attributes
+  const { uuid } = credentialRating.toJSON()
 
-  assert.isOk(credential_rating_id)
+  assert.isOk(uuid)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return array of row from makeCredentialRatingUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
   await CredentialRatingModel.create({
-    customer_id,
+    customer_uuid: customer.uuid,
     rating_score: 100,
     rating_description: 'someratingdescription',
-    product_id
+    product_uuid: product.uuid
   })
 
   const credentialRatings = await makeCredentialRatingUtil(CredentialRatingModel).getAll('')
 
   assert.isAbove(credentialRatings.rows.length, 0)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return object of requested created index from makeCredentialRatingUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { credential_rating_id } = await CredentialRatingModel.create({
-    customer_id,
+  const { uuid } = await CredentialRatingModel.create({
+    customer_uuid: customer.uuid,
     rating_score: 100,
     rating_description: 'someratingdescription',
-    product_id
-  }).then(response => response.$attributes)
+    product_uuid: product.uuid
+  }).then(response => response.toJSON())
 
-  const credentialRating = await makeCredentialRatingUtil(CredentialRatingModel).getById(credential_rating_id, '')
+  const credentialRating = await makeCredentialRatingUtil(CredentialRatingModel).getById(uuid, '')
 
   assert.isOk(credentialRating)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return modified object of updated index form makeCredentialRatingUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { credential_rating_id } = await CredentialRatingModel.create({
-    customer_id,
+  const { uuid } = await CredentialRatingModel.create({
+    customer_uuid: customer.uuid,
     rating_score: 100,
     rating_description: 'someratingdescription',
-    product_id
-  }).then(response => response.$attributes)
+    product_uuid: product.uuid
+  }).then(response => response.toJSON())
 
-  const credentialRating = await makeCredentialRatingUtil(CredentialRatingModel).updateById(
-    credential_rating_id,
-    { rating_description: 'a_new_description' },
-    ''
-  )
+  const credentialRating = await makeCredentialRatingUtil(CredentialRatingModel).updateById(uuid, { rating_description: 'a_new_description' }, '')
 
   assert.equal(
-    credentialRating.$attributes.rating_description,
+    credentialRating.toJSON().rating_description,
     'a_new_description'
   )
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })
 
 test('should return index of deleted index from makeCredentialRatingUtil.', async ({ assert }) => {
-  const { user_id } = await makeUserUtil(UserModel)
+  const user = await makeUserUtil(UserModel)
 
-  const { customer_id } = await makeCustomerUtil(CustomerModel, user_id)
+  const customer = await makeCustomerUtil(CustomerModel, user.uuid)
 
-  const { product_id } = await makeProductUtil(ProductModel, customer_id)
+  const product = await makeProductUtil(ProductModel, customer.uuid)
 
-  const { credential_rating_id } = await CredentialRatingModel.create({
-    customer_id,
+  const { uuid } = await CredentialRatingModel.create({
+    customer_uuid: customer.uuid,
     rating_score: 100,
     rating_description: 'someratingdescription',
-    product_id
-  }).then(response => response.$attributes)
+    product_uuid: product.uuid
+  }).then(response => response.toJSON())
 
-  const deletedCredentialRating = await makeCredentialRatingUtil(CredentialRatingModel).deleteById(credential_rating_id)
+  const deletedCredentialRating = await makeCredentialRatingUtil(CredentialRatingModel).deleteById(uuid)
 
   assert.isOk(deletedCredentialRating)
 
-  await UserModel.find(user_id).then(query => query.delete())
+  await UserModel.find(user.uuid).then(query => query.delete())
 })

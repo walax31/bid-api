@@ -1,58 +1,46 @@
-module.exports = function (CredentialRatingModel) {
-  const _withReferences = (references) => {
-    const _CredentialRating = CredentialRatingModel.query();
+module.exports = function makeCredentialRatingUtil (CredentialRatingModel) {
+  const withReferences = references => {
+    const CredentialRating = CredentialRatingModel.query()
 
     if (references) {
-      const extractedReferences = references.split(",");
+      const extractedReferences = references.split(',')
 
-      extractedReferences.forEach((reference) =>
-        _CredentialRating.with(reference)
-      );
+      extractedReferences.forEach(reference =>
+        CredentialRating.with(reference))
     }
 
-    return _CredentialRating;
-  };
+    return CredentialRating
+  }
 
   return {
-    getAll: (references, page = 1, per_page = 10) => {
-      return _withReferences(references).paginate(page, per_page);
-    },
-    getById: (credential_rating_id, references) => {
-      return _withReferences(references)
-        .where({ credential_rating_id })
+    getAll: (references, page = 1, per_page = 10) =>
+      withReferences(references).paginate(page, per_page),
+    getById: (uuid, references) =>
+      withReferences(references)
+        .where({ uuid })
         .fetch()
-        .then((response) => response.first());
-    },
+        .then(response => response.first()),
     create: async (attributes, references) => {
-      const { credential_rating_id } = await CredentialRatingModel.create(
-        attributes
-      );
+      const { uuid } = await CredentialRatingModel.create(attributes)
 
-      return _withReferences(references)
-        .where({ credential_rating_id })
+      return withReferences(references)
+        .where({ uuid })
         .fetch()
-        .then((response) => response.first());
+        .then(response => response.first())
     },
-    updateById: async (credential_rating_id, attributes, references) => {
-      let CredentialRatingDetail = await CredentialRatingModel.find(
-        credential_rating_id
-      );
+    updateById: async (uuid, attributes, references) => {
+      const CredentialRatingDetail = await CredentialRatingModel.find(uuid)
 
-      CredentialRatingDetail.merge(attributes);
+      CredentialRatingDetail.merge(attributes)
 
-      await CredentialRatingDetail.save();
+      await CredentialRatingDetail.save()
 
-      return _withReferences(references)
-        .where({ credential_rating_id })
+      return withReferences(references)
+        .where({ uuid })
         .fetch()
-        .then((response) => response.first());
+        .then(response => response.first())
     },
-    deleteById: async (credential_rating_id) => {
-      const CredentialRatingDetail = await CredentialRatingModel.find(
-        credential_rating_id
-      );
-
-      return CredentialRatingDetail.delete();
-    },
-  };
-};
+    deleteById: uuid =>
+      CredentialRatingModel.find(uuid).then(response => response.delete())
+  }
+}
