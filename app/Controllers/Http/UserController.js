@@ -162,7 +162,7 @@ class UserController {
     return {
       status: 200,
       error: undefined,
-      data: { massage: `${user} is successfully removed.` }
+      data: { message: `${user} is successfully removed.` }
     }
   }
 }

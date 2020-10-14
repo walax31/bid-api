@@ -39,27 +39,45 @@ class AlertController {
     }
   }
 
-  async store () {
+  async store ({ request }) {
+    const { qs, body } = request
+
+    const { references } = qs
+
+    const alert = await makeAlertUtil(Alert).create(body, references)
+
     return {
-      status: 403,
-      error: 'Access denied. alert cannot be created directly.',
-      data: undefined
+      status: 200,
+      error: undefined,
+      data: alert
     }
   }
 
-  async update () {
+  async update ({ request }) {
+    const { params, qs, body } = request
+
+    const { id } = params
+
+    const { references } = qs
+
+    const alert = await makeAlertUtil(Alert).updateById(id, body, references)
+
     return {
-      status: 403,
-      error: 'Access denied. alert cannot be updated directly.',
-      data: undefined
+      status: 200,
+      error: undefined,
+      data: alert
     }
   }
 
-  async delete () {
+  async destroy ({ request }) {
+    const { id } = request.params
+
+    await makeAlertUtil(Alert).deleteById(id)
+
     return {
-      status: 403,
-      error: 'Access denied. alert cannot be deleted directly.',
-      data: undefined
+      status: 200,
+      error: undefined,
+      data: { message: `Alert ${id} is successfully removed.` }
     }
   }
 }

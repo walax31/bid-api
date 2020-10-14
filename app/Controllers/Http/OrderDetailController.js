@@ -87,7 +87,7 @@ class OrderDetailController {
     return {
       status: 200,
       error: undefined,
-      data: { massage: `${orderDetail} is successfully removed.` },
+      data: { message: `${orderDetail} is successfully removed.` },
     };
   }
 }

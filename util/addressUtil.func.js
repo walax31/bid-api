@@ -16,7 +16,7 @@ module.exports = function makeAddressUtil (AddressModel) {
       withReferences(references).paginate(onPage, perPage),
     getById: (uuid, references, customer_uuid) =>
       withReferences(references)
-        .where(customer_uuid ? { uuid } : { uuid, customer_uuid })
+        .where(customer_uuid ? { uuid, customer_uuid } : { uuid })
         .fetch()
         .then(response => response.first()),
     create: async (attributes, references) => {
@@ -26,7 +26,7 @@ module.exports = function makeAddressUtil (AddressModel) {
       return withReferences(references)
         .where({ uuid })
         .fetch()
-        .then(response => response.toJSON())
+        .then(response => response.first())
     },
     updateById: async (uuid, attributes, references) => {
       const address = await AddressModel.find(uuid)

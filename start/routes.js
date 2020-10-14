@@ -149,13 +149,23 @@ Route.group(() => {
       [['/addresses.destroy'], ['auth:customer', 'credential:strict']]
     ]))
 
-  Route.resource('/alerts', 'AddressController')
+  Route.resource('/alerts', 'AlertController')
     .validator(new Map([[['/alerts.store'], ['StoreAlert']]]))
     .middleware(new Map([
       [['/alerts.index'], ['auth:customer,admin']],
       [['/alerts.show'], ['auth:customer,admin']],
       [['/alerts.store'], ['auth:customer,admin', 'credential:strict']],
-      [['/alerts.update'], ['auth:customer,admin']],
+      [['/alerts.update'], ['auth:customer,admin', 'credential:strict']],
       [['/alerts.destroy'], ['auth:admin']]
+    ]))
+
+  Route.resource('/tags', 'TagController')
+    .validator(new Map([[['/tags.store'], ['StoreTag']]]))
+    .middleware(new Map([
+      [['/tags.index'], ['auth:all']],
+      [['/tags.show'], ['auth:all']],
+      [['/tags.store'], ['auth:customer', 'credential:strict']],
+      [['/tags.update'], ['auth:admin']],
+      [['/tags.destroy'], ['auth:admin']]
     ]))
 }).prefix('api/v1')

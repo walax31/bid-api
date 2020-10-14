@@ -15,7 +15,7 @@ class AlertSchema extends Schema {
       table.string('type').notNullable()
       table.string('content').notNullable()
       table.string('reference').notNullable()
-      table.string('accept').notNullable().default('Okay')
+      table.string('accept').notNullable().default('Accept')
       table.string('decline').notNullable().default('Cancel')
       table.timestamps()
 

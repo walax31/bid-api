@@ -201,7 +201,7 @@ class ProductController {
         return {
           status: 200,
           error: undefined,
-          data: { massage: `product ${id} is successfully removed.` }
+          data: { message: `product ${id} is successfully removed.` }
         }
       }
       case 'customer': {
@@ -211,7 +211,7 @@ class ProductController {
           return {
             status: 200,
             error: undefined,
-            data: { massage: `product ${id} is successfully removed.` }
+            data: { message: `product ${id} is successfully removed.` }
           }
         }
 

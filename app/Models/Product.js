@@ -44,6 +44,16 @@ class Product extends Model {
   credentialRating () {
     return this.hasOne('App/Models/CredentialRating', 'uuid', 'product_uuid')
   }
+
+  tags () {
+    return this.belongsToMany(
+      'App/Models/Tag',
+      'product_uuid',
+      'tag_uuid',
+      'uuid',
+      'uuid'
+    ).pivotTable('product_tags')
+  }
 }
 
 module.exports = Product
