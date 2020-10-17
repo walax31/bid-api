@@ -104,14 +104,8 @@ Route.group(() => {
   Route.resource('/customers', 'CustomerController')
     .validator(new Map([[['/customers.store'], ['StoreCustomer']]]))
     .middleware(new Map([
-      [
-        ['/customers.index'],
-        ['auth:customer,admin', 'credential:strict', 'url']
-      ],
-      [
-        ['/customers.show'],
-        ['auth:customer,admin', 'credential:strict', 'url']
-      ],
+      [['/customers.index'], ['auth:customer,admin', 'credential:strict']],
+      [['/customers.show'], ['auth:customer,admin', 'credential:strict']],
       [['/customers.store'], ['auth:customer']],
       [['/customers.update'], ['auth:customer,admin', 'broadcast:alert']],
       [['/customers.destroy'], ['auth:customer,admin']]
