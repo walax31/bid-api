@@ -23,12 +23,12 @@ Route.get('/', () => ({
 
 Route.group(() => {
   Route.resource('/bids', 'BidController')
-    .validator(new Map([[['/bids.store'], ['StoreBid']]]))
+    .validator(new Map([[['store'], ['StoreBid']]]))
     .middleware(new Map([
-      [['/bids.index'], ['auth:customer,admin', 'credential:strict']],
-      [['/bids.show'], ['auth:customer,admin', 'credential:strict']],
+      [['index'], ['auth:customer,admin', 'credential:strict']],
+      [['show'], ['auth:customer,admin', 'credential:strict']],
       [
-        ['/bids.store'],
+        ['store'],
         [
           'auth:customer',
           'credential:strict',
@@ -36,8 +36,8 @@ Route.group(() => {
           'broadcast:bid'
         ]
       ],
-      [['/bids.update'], ['auth:admin']],
-      [['/bids.destroy'], ['auth:admin']]
+      [['update'], ['auth:admin']],
+      [['destroy'], ['auth:admin']]
     ]))
 
   Route.resource('/users', 'UserController')
@@ -84,101 +84,92 @@ Route.group(() => {
   ).middleware('auth:customer', 'credential:strict')
 
   Route.resource('/credentialRatings', 'CredentialRatingController')
-    .validator(new Map([[['/credentialRatings.store'], ['StoreCredentialRating']]]))
+    .validator(new Map([[['store'], ['StoreCredentialRating']]]))
     .middleware(new Map([
-      [
-        ['/credentialRatings.index'],
-        ['auth:customer,admin', 'credantial:strict']
-      ],
-      [
-        ['/credentialRatings.show'],
-        ['auth:customer,admin', 'credential:strict']
-      ],
-      [['/credentialRatings.store'], ['auth:customer']],
-      [['/credentialRatings.update'], ['auth:customer']],
-      [['/credentialRatings.destroy'], ['auth:customer,admin']]
+      [['index'], ['auth:customer,admin', 'credantial:strict']],
+      [['show'], ['auth:customer,admin', 'credential:strict']],
+      [['store'], ['auth:customer']],
+      [['update'], ['auth:customer']],
+      [['destroy'], ['auth:customer,admin']]
     ]))
 
   Route.resource('/customers', 'CustomerController')
-    .validator(new Map([[['/customers.store'], ['StoreCustomer']]]))
+    .validator(new Map([[['store'], ['StoreCustomer']]]))
     .middleware(new Map([
-      [['/customers.index'], ['auth:customer,admin', 'credential:strict']],
-      [['/customers.show'], ['auth:customer,admin', 'credential:strict']],
-      [['/customers.store'], ['auth:customer']],
-      [['/customers.update'], ['auth:customer,admin', 'broadcast:alert']],
-      [['/customers.destroy'], ['auth:customer,admin']]
+      [['index'], ['auth:customer,admin', 'credential:strict']],
+      [['show'], ['auth:customer,admin', 'credential:strict']],
+      [['store'], ['auth:customer']],
+      [['update'], ['auth:customer,admin', 'broadcast:alert']],
+      [['destroy'], ['auth:customer,admin']]
     ]))
 
   Route.resource('/orders', 'OrderController')
-    .validator(new Map([[['/orders.store'], ['StoreOrder']]]))
+    .validator(new Map([[['store'], ['StoreOrder']]]))
     .middleware(new Map([
-      [['/orders.index'], ['auth:customer,admin', 'credential:strict']],
-      [['/orders.show'], ['auth:customer,admin', 'credential:strict']],
-      [['/orders.store'], ['auth:admin']],
-      [['/orders.update'], ['auth:admin']],
-      [['/orders.destroy'], ['auth:admin']]
+      [['index'], ['auth:customer,admin', 'credential:strict']],
+      [['show'], ['auth:customer,admin', 'credential:strict']],
+      [['store'], ['auth:admin']],
+      [['update'], ['auth:admin']],
+      [['destroy'], ['auth:admin']]
     ]))
 
   Route.resource('/payments', 'PaymentController')
-    .validator(new Map([[['/payments.store'], ['StorePayment']]]))
+    .validator(new Map([[['store'], ['StorePayment']]]))
     .middleware(new Map([
-      [['/payments.index'], ['auth:customer,admin', 'credential:strict']],
-      [['/payments.show'], ['auth:customer,admin', 'credential:strict']],
-      [['/payments.store'], ['auth:customer', 'credential:strict']],
-      [['/payments.update'], ['auth:admin']],
-      [['/payments.destroy'], ['auth:admin']]
+      [['index'], ['auth:customer,admin', 'credential:strict']],
+      [['show'], ['auth:customer,admin', 'credential:strict']],
+      [['store'], ['auth:customer', 'credential:strict']],
+      [['update'], ['auth:admin']],
+      [['destroy'], ['auth:admin']]
     ]))
 
   Route.resource('/products', 'ProductController')
-    .validator(new Map([[['/products.store'], ['StoreProduct']]]))
+    .validator(new Map([[['store'], ['StoreProduct']]]))
     .middleware(new Map([
-      [['/products.index'], ['auth:all', 'product']],
-      [['/products.show'], ['auth:all', 'product']],
-      [['/products.store'], ['auth:customer', 'credential:strict']],
-      [['/products.update'], ['auth:customer,admin']],
-      [['/products.destroy'], ['auth:customer,admin']]
+      [['index'], ['auth:all']],
+      [['show'], ['auth:all']],
+      [['store'], ['auth:customer', 'credential:strict']],
+      [['update'], ['auth:customer,admin']],
+      [['destroy'], ['auth:customer,admin']]
     ]))
 
   Route.resource('/productDetails', 'ProductDetailController')
-    .validator(new Map([[['/productDetails.store'], ['StoreProductDetail']]]))
+    .validator(new Map([[['store'], ['StoreProductDetail']]]))
     .middleware(new Map([
-      [['/productDetails.index'], ['auth:all']],
-      [['/productDetails.show'], ['auth:all']],
-      [
-        ['/productDetails.store'],
-        ['auth:customer,admin', 'credential:strict', 'cron:order']
-      ],
-      [['/productDetails.update'], ['auth:admin']],
-      [['/productDetails.destroy'], ['auth:admin']]
+      [['index'], ['auth:all']],
+      [['show'], ['auth:all']],
+      [['store'], ['auth:customer,admin', 'credential:strict', 'cron:order']],
+      [['update'], ['auth:admin']],
+      [['destroy'], ['auth:admin']]
     ]))
 
   Route.resource('/addresses', 'AddressController')
-    .validator(new Map([[['/addresses.store'], ['StoreAddress']]]))
+    .validator(new Map([[['store'], ['StoreAddress']]]))
     .middleware(new Map([
-      [['/addresses.index'], ['auth:customer,admin']],
-      [['/addresses.show'], ['auth:customer,admin']],
-      [['/addresses.store'], ['auth:customer']],
-      [['/addresses.update'], ['auth:customer', 'credential:strict']],
-      [['/addresses.destroy'], ['auth:customer', 'credential:strict']]
+      [['index'], ['auth:customer,admin']],
+      [['show'], ['auth:customer,admin']],
+      [['store'], ['auth:customer']],
+      [['update'], ['auth:customer', 'credential:strict']],
+      [['destroy'], ['auth:customer', 'credential:strict']]
     ]))
 
   Route.resource('/alerts', 'AlertController')
-    .validator(new Map([[['/alerts.store'], ['StoreAlert']]]))
+    .validator(new Map([[['store'], ['StoreAlert']]]))
     .middleware(new Map([
-      [['/alerts.index'], ['auth:customer,admin']],
-      [['/alerts.show'], ['auth:customer,admin']],
-      [['/alerts.store'], ['auth:customer,admin', 'credential:strict']],
-      [['/alerts.update'], ['auth:customer,admin']],
-      [['/alerts.destroy'], ['auth:admin']]
+      [['index'], ['auth:customer,admin']],
+      [['show'], ['auth:customer,admin']],
+      [['store'], ['auth:customer,admin', 'credential:strict']],
+      [['update'], ['auth:customer,admin']],
+      [['destroy'], ['auth:admin']]
     ]))
 
   Route.resource('/tags', 'TagController')
-    .validator(new Map([[['/tags.store'], ['StoreTag']]]))
+    .validator(new Map([[['store'], ['StoreTag']]]))
     .middleware(new Map([
-      [['/tags.index'], ['auth:all']],
-      [['/tags.show'], ['auth:all']],
-      [['/tags.store'], ['auth:customer', 'credential:strict']],
-      [['/tags.update'], ['auth:admin']],
-      [['/tags.destroy'], ['auth:admin']]
+      [['index'], ['auth:all']],
+      [['show'], ['auth:all']],
+      [['store'], ['auth:customer', 'credential:strict']],
+      [['update'], ['auth:admin']],
+      [['destroy'], ['auth:admin']]
     ]))
 }).prefix('api/v1')
