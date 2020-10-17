@@ -60,8 +60,6 @@ Route.group(() => {
     'cron:token'
   )
 
-  Route.post('/validate', 'CredentialController.validate')
-
   Route.post('/logout', 'CredentialController.logout').middleware('auth:customer,admin')
 
   Route.get(

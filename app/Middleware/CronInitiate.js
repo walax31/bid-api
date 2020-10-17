@@ -37,7 +37,7 @@ class CronInitiate {
         if (!global.CronJobManager) {
           global.CronJobManager = new CronJobManager(
             uuid,
-            new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+            new Date(new Date().setDate(new Date().getDate() + 7)),
             () =>
               createRevokeTokenCronJob(
                 Encryption,
@@ -55,7 +55,7 @@ class CronInitiate {
         } else if (!global.CronJobManager.exists(uuid)) {
           global.CronJobManager.add(
             uuid,
-            new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+            new Date(new Date().setDate(new Date().getDate() + 7)),
             () =>
               createRevokeTokenCronJob(
                 Encryption,
@@ -73,7 +73,7 @@ class CronInitiate {
         } else {
           global.CronJobManager.update(
             uuid,
-            new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+            new Date(new Date().setDate(new Date().getDate() + 7)),
             () =>
               createRevokeTokenCronJob(
                 Encryption,
