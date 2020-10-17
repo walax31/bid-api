@@ -33,6 +33,10 @@ class Order extends Model {
     return this.belongsTo('App/Models/Customer', 'customer_uuid', 'uuid')
   }
 
+  bid () {
+    return this.belongsTo('App/Models/Bid', 'bid_uuid', 'uuid')
+  }
+
   payment () {
     return this.hasOne('App/Models/Payment', 'uuid', 'uuid')
   }

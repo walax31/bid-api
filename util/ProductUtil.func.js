@@ -46,7 +46,7 @@ module.exports = function makeProductUtil (ProductModel) {
         .with('bids')
         .where({ uuid })
         .fetch()
-        .then(response => response.first().getRelated('bids').rows),
+        .then(response => response.first().getRelated('bids')),
     flagProductAsBiddable: async uuid => {
       const product = await ProductModel.find(uuid)
 
@@ -68,14 +68,14 @@ module.exports = function makeProductUtil (ProductModel) {
         .where({ uuid, is_biddable: true })
         .fetch()
         .then(response => response.first()),
-    findExistingBidForThisProduct: (customer_uuid, product_uuid) =>
+    findExistingBidOnThisProductViaCustomer: (customer_uuid, product_uuid) =>
       ProductModel.query()
         .with('bids', builder => {
-          builder.where({ uuid: customer_uuid })
+          builder.where({ customer_uuid })
         })
         .where({ uuid: product_uuid })
         .fetch()
-        .then(response => response.first()),
+        .then(response => response.first().getRelated('bids')),
     productIsModeratedByCustomer: (customer_uuid, product_uuid) =>
       ProductModel.query()
         .with('customer', builder => builder.where({ uuid: customer_uuid }))

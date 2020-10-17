@@ -86,6 +86,11 @@ module.exports = function makeCustomerUtil (CustomerModel) {
         .with('bids', builder => builder.where({ uuid: bid_uuid }))
         .where({ uuid })
         .fetch()
-        .then(response => response.first().getRelated('bids').first())
+        .then(response => response.first().getRelated('bids').first()),
+    credentialBelongToCustomer: (uuid, path_to_credential) =>
+      CustomerModel.query()
+        .where({ uuid, path_to_credential })
+        .fetch()
+        .then(response => response.first())
   }
 }

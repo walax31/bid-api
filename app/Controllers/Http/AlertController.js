@@ -1,14 +1,16 @@
 'use strict'
 
 const Alert = use('App/Models/Alert')
+const CronModel = use('App/Models/CronJob')
 
 const makeAlertUtil = require('../../../util/alertUtil.func')
+const makeCronUtil = require('../../../util/cronjobs/cronjob-util.func')
 
 class AlertController {
   async index ({ request }) {
     const { references = '', page, per_page } = request.qs
 
-    const { rows, pages } = await makeAlertUtil(Alert).getAll(
+    const { rows, pages } = await makeAlertUtil(Alert).getAllValid(
       request.user_uuid,
       references,
       page,
@@ -60,7 +62,35 @@ class AlertController {
 
     const { references } = qs
 
-    const alert = await makeAlertUtil(Alert).updateById(id, body, references)
+    const { is_proceeded, is_cancelled, expiration_date } = body
+
+    if (is_proceeded || is_cancelled || expiration_date) {
+      const alert = await makeAlertUtil(Alert).alertBelongToUser(
+        id,
+        request.user_uuid
+      )
+
+      if (!alert) {
+        return {
+          status: 403,
+          error: 'Access denied. this alert does not belong to you.',
+          data: undefined
+        }
+      }
+
+      const cronjob = await makeCronUtil(CronModel).getByToken(id)
+      if (is_proceeded || is_cancelled) {
+        global.CronJobManager.deleteJob(cronjob.uuid)
+      } else if (expiration_date) {
+        global.CronJobManager.update(cronjob.uuid, expiration_date)
+      }
+    }
+
+    const alert = await makeAlertUtil(Alert).updateById(
+      id,
+      { is_proceeded, is_cancelled, expiration_date },
+      references
+    )
 
     return {
       status: 200,

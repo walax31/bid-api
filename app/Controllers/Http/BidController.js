@@ -1,54 +1,27 @@
 'use strict'
 
 const Bid = use('App/Models/Bid')
-const Customer = use('App/Models/Customer')
 
-const makeCustomerUtil = require('../../../util/CustomerUtil.func')
 const makeBidUtil = require('../../../util/BidUtil.func')
-const broadcast = require('../../../util/ws/broadcast-product.util.func')
+// const broadcast = require('../../../util/ws/broadcast-product.util.func')
 
-const Ws = use('Ws')
+// const Ws = use('Ws')
 
 class BidController {
   async index ({ request }) {
     const { references, page, per_page } = request.qs
 
-    switch (request.role) {
-      case 'admin': {
-        const allBids = await makeBidUtil(Bid).getAll(
-          references,
-          page,
-          per_page
-        )
+    const { rows, pages } = await makeBidUtil(Bid).getAll(
+      references,
+      page,
+      per_page
+    )
 
-        return {
-          status: 200,
-          error: undefined,
-          pages: allBids.pages,
-          data: allBids.rows
-        }
-      }
-      case 'customer': {
-        const customerBids = await makeBidUtil(Bid).getAll(
-          references,
-          page,
-          per_page,
-          request.customer_uuid
-        )
-
-        return {
-          status: 200,
-          error: undefined,
-          pages: customerBids.pages,
-          data: customerBids.rows
-        }
-      }
-      default:
-        return {
-          status: 200,
-          error: undefined,
-          data: undefined
-        }
+    return {
+      status: 200,
+      error: undefined,
+      pages,
+      data: rows
     }
   }
 
@@ -59,25 +32,9 @@ class BidController {
 
     const { references } = qs
 
-    switch (request.role) {
-      case 'admin': {
-        const bid = await makeBidUtil(Bid).getById(id, references)
+    const bid = await makeBidUtil(Bid).getById(id, references)
 
-        return { status: 200, error: undefined, data: bid || {} }
-      }
-      case 'customer': {
-        const existingBid = await makeCustomerUtil(Customer).bidBelongToCustomer(request.customer_uuid, id)
-
-        if (existingBid) {
-          const bid = await makeBidUtil(Bid).getById(id, references)
-
-          return { status: 200, error: undefined, data: bid || {} }
-        }
-        return { status: 200, error: undefined, data: undefined }
-      }
-      default:
-        return { status: 200, error: undefined, data: undefined }
-    }
+    return { status: 200, error: undefined, data: bid || {} }
   }
 
   async store ({ request }) {
@@ -92,7 +49,7 @@ class BidController {
       references
     )
 
-    broadcast(Ws, product_uuid, 'product:newBid', bid.toJSON())
+    // broadcast(Ws, product_uuid, 'product:newBid', bid.toJSON())
 
     return {
       status: 200,

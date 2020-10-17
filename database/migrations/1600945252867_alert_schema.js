@@ -7,7 +7,7 @@ class AlertSchema extends Schema {
   up () {
     this.create('alerts', table => {
       table.uuid('uuid').unique()
-      table.time('expiration_date').notNullable().default(this.fn.now())
+      table.timestamp('expiration_date').notNullable().default(this.fn.now())
       table.boolean('is_expired').notNullable().default(false)
       table.boolean('is_proceeded').notNullable().default(false)
       table.boolean('is_cancelled').notNullable().default(false)

@@ -42,7 +42,8 @@ const namedMiddleware = {
   // logger: "App/Middleware/Logger",
   validator: 'App/Middleware/Validator',
   cron: 'App/Middleware/CronInitiate',
-  file: 'App/Middleware/HandleFileUpload'
+  file: 'App/Middleware/HandleFileUpload',
+  broadcast: 'App/Middleware/Broadcast'
 }
 
 /*

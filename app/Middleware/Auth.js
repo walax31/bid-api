@@ -24,30 +24,32 @@ class Auth {
     }
 
     if (request.role !== 'guest') {
-      const { user_uuid, customer_uuid } = await performAuthentication(auth).validateUniqueID(CustomerModel)
+      // eslint-disable-next-line
+      const { user_uuid, customer_uuid } = await performAuthentication(
+        auth).validateUniqueID(CustomerModel)
 
       request.user_uuid = user_uuid
       request.customer_uuid = customer_uuid
       request.username = await performAuthentication(auth).getUsername()
     }
 
-    if (!properties.find(prop => prop === 'all')) {
-      if (request.role === 'guest') {
-        if (!properties.find(prop => prop === 'guest')) {
-          response.send({
-            status: 403,
-            error: 'Access denied. authentication failed.',
-            data: undefined
-          })
+    try {
+      if (!properties.find(prop => prop === 'all')) {
+        if (request.role === 'guest') {
+          if (!properties.find(prop => prop === 'guest')) {
+            throw new Error('Access denied. authentication failed.')
+          }
+        } else if (!properties.find(prop => prop === request.role)) {
+          throw new Error('Access denied. your role does not have access right to this route.')
         }
-      } else if (!properties.find(prop => prop === request.role)) {
-        response.send({
-          status: 403,
-          error:
-            'Access denied. your role does not have access right to this route.',
-          data: undefined
-        })
       }
+    } catch (e) {
+      response.status(403).send({
+        status: 403,
+        error: e.toString(),
+        data: undefined
+      })
+      return
     }
 
     await next()
@@ -58,10 +60,10 @@ class Auth {
    * @param {Request} ctx.request
    * @param {Function} next
    */
-  // async wsHandle ({ request }, next) {
-  // call next to advance the request
-  // await next()
-  // }
+  async wsHandle ({ request }, next) {
+    // call next to advance the request
+    await next()
+  }
 }
 
 module.exports = Auth

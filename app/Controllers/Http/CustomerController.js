@@ -1,17 +1,21 @@
 'use strict'
 
 const Drive = use('Drive')
-const Customer = use('App/Models/Customer')
-const User = use('App/Models/User')
+const CustomerModel = use('App/Models/Customer')
+const UserModel = use('App/Models/User')
+const AlertModel = use('App/Models/Alert')
+const CronModel = use('App/Models/CronJob')
 
 const makeCustomerUtil = require('../../../util/CustomerUtil.func')
 const makeUserUtil = require('../../../util/UserUtil.func')
+const makeAlertUtil = require('../../../util/alertUtil.func')
+const makeCronUtil = require('../../../util/cronjobs/cronjob-util.func')
 
 class CustomerController {
   async index ({ request }) {
     const { references, page, per_page } = request.qs
 
-    const { rows, pages } = await makeCustomerUtil(Customer).getAll(
+    const { rows, pages } = await makeCustomerUtil(CustomerModel).getAll(
       references,
       page,
       per_page
@@ -32,7 +36,10 @@ class CustomerController {
 
     const { references } = qs
 
-    const customer = await makeCustomerUtil(Customer).getById(id, references)
+    const customer = await makeCustomerUtil(CustomerModel).getById(
+      id,
+      references
+    )
 
     return { status: 200, error: undefined, data: customer || {} }
   }
@@ -44,7 +51,7 @@ class CustomerController {
 
     const { references } = qs
 
-    const customer = await makeCustomerUtil(Customer).create(
+    const customer = await makeCustomerUtil(CustomerModel).create(
       {
         user_uuid: request.user_uuid,
         first_name,
@@ -53,7 +60,7 @@ class CustomerController {
       references
     )
 
-    const flaggedUser = await makeUserUtil(User).flagSubmition(request.user_uuid)
+    const flaggedUser = await makeUserUtil(UserModel).flagSubmition(request.user_uuid)
 
     if (!flaggedUser) {
       return {
@@ -81,11 +88,11 @@ class CustomerController {
 
     switch (request.role) {
       case 'admin': {
-        const { customer_uuid } = await makeUserUtil(User)
+        const { uuid } = await makeUserUtil(UserModel)
           .hasSubmittionFlagged(id)
           .then(response => response.toJSON())
 
-        if (!customer_uuid) {
+        if (!uuid) {
           return {
             status: 404,
             error: 'User not found. this user never submitted credential.',
@@ -93,62 +100,43 @@ class CustomerController {
           }
         }
 
-        const { is_validated } = await makeCustomerUtil(Customer).validateUserCredential(customer_uuid, references)
+        // eslint-disable-next-line
+        const { is_validated } = await makeCustomerUtil(
+          CustomerModel).validateUserCredential(uuid, references)
+
+        const alert = await makeAlertUtil(AlertModel).create({
+          expiration_date: new Date(new Date().setHours(new Date().getHours() + 72)),
+          user_uuid: id,
+          type: 'credential',
+          content: 'Your credential has been validated.',
+          reference: 'none',
+          accept: 'Thanks',
+          decline: 'none'
+        })
+
+        const { uuid: cron_uuid } = await makeCronUtil(CronModel)
+          .create({
+            job_title: 'alert',
+            content: alert.uuid
+          })
+          .then(query => query.toJSON())
 
         return {
           status: 200,
           error: undefined,
-          data: { customer_uuid, is_validated }
+          data: { customer_uuid: uuid, is_validated },
+          alert,
+          cron_uuid
         }
       }
       case 'customer': {
         if (request.customer_uuid === id) {
-          const { username } = request
-
-          const fileList = []
-
-          try {
-            request.multipart.file(
-              'credential_image',
-              { types: ['image'], size: '2mb', extnames: ['png', 'gif'] },
-              async file => {
-                if (
-                  !(file.extname === 'png') &&
-                  !(file.extname === 'jpg') &&
-                  !(file.extname === 'jpeg')
-                ) {
-                  return {
-                    status: 422,
-                    error: 'Validation failed. contain illegal file type.',
-                    data: undefined
-                  }
-                }
-
-                await Drive.disk('s3').put(
-                  `${username}.${file.extname}`,
-                  file.stream
-                )
-
-                fileList.push(`${username}.${file.extname}`)
-              }
-            )
-
-            await request.multipart.process()
-          } catch (error) {
-            if (!error.message === 'unsupported content-type') {
-              return { status: 500, error, data: undefined }
-            }
-          }
-
-          if (first_name || last_name || fileList.length) {
-            const customer = await makeCustomerUtil(Customer).updateById(
+          if (first_name || last_name) {
+            const customer = await makeCustomerUtil(CustomerModel).updateById(
               request.customer_uuid,
               {
                 first_name,
-                last_name,
-                path_to_credential: fileList.length
-                  ? fileList.join(',')
-                  : undefined
+                last_name
               },
               references
             )
@@ -182,18 +170,9 @@ class CustomerController {
     const { id } = request.params
 
     switch (request.role) {
-      case 'admin': {
-        await makeCustomerUtil(Customer).deleteById(id)
-
-        return {
-          status: 200,
-          error: undefined,
-          data: `customer ${id} is successfully removed.`
-        }
-      }
       case 'customer': {
-        if (request.customer_uuid === id) {
-          await makeCustomerUtil(Customer).deleteById(id)
+        if (request.customer_uuid !== id) {
+          await makeCustomerUtil(CustomerModel).deleteById(id)
 
           return {
             status: 200,
@@ -206,6 +185,15 @@ class CustomerController {
           status: 403,
           error: 'Access denied. id param does not match authenticated uuid.',
           data: undefined
+        }
+      }
+      case 'admin': {
+        await makeCustomerUtil(CustomerModel).deleteById(id)
+
+        return {
+          status: 200,
+          error: undefined,
+          data: `customer ${id} is successfully removed.`
         }
       }
       default:

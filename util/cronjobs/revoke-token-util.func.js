@@ -1,4 +1,4 @@
-module.exports = async function (
+module.exports = async function revokeTokenUtil (
   // CronJob,
   Encryption,
   TokenModel,
@@ -8,34 +8,35 @@ module.exports = async function (
   refreshToken
   // timeInMinutes
 ) {
-  const decryptedToken = await Encryption.decrypt(refreshToken);
+  const decryptedToken = await Encryption.decrypt(refreshToken)
 
   await TokenModel.query()
     .where({ token: decryptedToken })
     .fetch()
-    .then(async (response) => {
-      const { token_id } = response.first().toJSON();
+    .then(async response => {
+      const token = response.first().toJSON()
 
-      await TokenModel.find(token_id)
-        .then(async (response) => {
-          response.merge({ is_revoked: true });
+      await TokenModel.find(token.uuid)
+        .then(async query => {
+          query.merge({ is_revoked: true })
 
-          await response.save();
+          await query.save()
         })
-        .catch((e) => console.log(e));
+        // eslint-disable-next-line
+        .catch((e) => console.log(e))
 
-      console.log(`${refreshToken} is revoked at ${new Date()}.`);
+      // eslint-disable-next-line
+      console.log(`${refreshToken} is revoked at ${new Date()}.`)
     })
-    .catch((e) =>
+    .catch(e =>
+      // eslint-disable-next-line
       console.log(
-        `Error detected when trying to revoke token. Token: ${refreshToken}. Error: ${e}`
-      )
-    )
+        `Error detected when trying to revoke token. Token: ${refreshToken}. Error: ${e}`))
     .finally(async () => {
-      await CronUtil(CronModel).updateById(uuid, { job_active: false });
+      await CronUtil(CronModel).updateById(uuid, { job_active: false })
 
-      global.CronJobManager.deleteJob(uuid);
-    });
+      global.CronJobManager.deleteJob(uuid)
+    })
   // return new CronJob(
   //   new Date(new Date().setMinutes(new Date().getMinutes() + timeInMinutes)),
   //   async function () {
@@ -68,4 +69,4 @@ module.exports = async function (
   //   true,
   //   "Asia/Bangkok"
   // );
-};
+}

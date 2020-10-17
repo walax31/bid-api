@@ -32,6 +32,10 @@ class Bid extends Model {
   product () {
     return this.belongsTo('App/Models/Product', 'product_uuid', 'uuid')
   }
+
+  order () {
+    return this.hasOne('App/Models/Order', 'uuid', 'bid_uuid')
+  }
 }
 
 module.exports = Bid

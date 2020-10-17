@@ -12,15 +12,8 @@ module.exports = function makeBidUtil (BidModel) {
   }
 
   return {
-    getAll: (references, onPage = 1, perPage = 10, customer_uuid) => {
-      if (customer_uuid) {
-        return withReferences(references)
-          .where({ customer_uuid })
-          .paginate(onPage, perPage)
-      }
-
-      return withReferences(references).paginate(onPage, perPage)
-    },
+    getAll: (references, onPage = 1, perPage = 10) =>
+      withReferences(references).paginate(onPage, perPage),
     getById: (uuid, references) =>
       withReferences(references)
         .where({ uuid })

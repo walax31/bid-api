@@ -1,10 +1,14 @@
 'use strict'
 
 class StoreCredential {
+  get validateAll () {
+    return true
+  }
+
   get rules () {
     return {
       // validation rules
-      credential_image: 'file|file_ext:png,jpg|file_size:2mb|file_types:image'
+      credential_image: 'file_ext:png,jpg|file_size:2mb|file_types:image'
     }
   }
 

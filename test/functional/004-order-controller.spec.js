@@ -1,13 +1,13 @@
 'use strict'
 
-const makeBidUtil = require('../../util/testerUtil/autogenBidInstance.func')
-const makeUserUtil = require('../../util/testerUtil/autogenUserInstance.func')
-const makeCustomerUtil = require('../../util/testerUtil/autogenCustomerInstance.func')
-const makeProductUtil = require('../../util/testerUtil/autogenProductInstance.func')
-const makeOrderUtil = require('../../util/testerUtil/autogenOrderInstance.func')
-const makeAdminUtil = require('../../util/testerUtil/autogenAdminInstance.func')
+const makeTesterBidUtil = require('../../util/testerUtil/autogenBidInstance.func')
+const makeTesterUserUtil = require('../../util/testerUtil/autogenUserInstance.func')
+const makeTesterCustomerUtil = require('../../util/testerUtil/autogenCustomerInstance.func')
+const makeTesterProductUtil = require('../../util/testerUtil/autogenProductInstance.func')
+const makeTesterOrderUtil = require('../../util/testerUtil/autogenOrderInstance.func')
+const makeTesterAdminUtil = require('../../util/testerUtil/autogenAdminInstance.func')
 
-const { test, trait } = use('Test/Suite')('Oder Controller')
+const { test, trait } = use('Test/Suite')('Order Controller')
 const BidModel = use('App/Models/Bid')
 const OrderModel = use('App/Models/Order')
 const UserModel = use('App/Models/User')
@@ -20,7 +20,7 @@ trait('Auth/Client')
 const urlEndPoint = '/api/v1/orders'
 
 test('should return structured response with empty data array via get method.', async ({ client }) => {
-  const admin = await makeAdminUtil(UserModel)
+  const admin = await makeTesterAdminUtil(UserModel)
 
   const response = await client.get(urlEndPoint).loginVia(admin, 'jwt').end()
 
@@ -31,7 +31,7 @@ test('should return structured response with empty data array via get method.', 
 })
 
 test('should return structured response with empty data via get method.', async ({ client }) => {
-  const admin = await makeAdminUtil(UserModel)
+  const admin = await makeTesterAdminUtil(UserModel)
 
   const response = await client
     .get(`${urlEndPoint}/1`)
@@ -45,7 +45,7 @@ test('should return structured response with empty data via get method.', async 
 })
 
 test('should return error message and status code of 400 when field data is missing.', async ({ client }) => {
-  const user1 = await makeUserUtil(UserModel)
+  const user1 = await makeTesterUserUtil(UserModel)
 
   const user2 = await UserModel.create({
     username: 'wada',
@@ -53,7 +53,11 @@ test('should return error message and status code of 400 when field data is miss
     password: '1233131231'
   }).then(response => response.toJSON())
 
-  const customer1 = await makeCustomerUtil(CustomerModel, user1.uuid, true)
+  const customer1 = await makeTesterCustomerUtil(
+    CustomerModel,
+    user1.uuid,
+    true
+  )
 
   const customer2 = await CustomerModel.create({
     user_uuid: user2.uuid,
@@ -62,9 +66,9 @@ test('should return error message and status code of 400 when field data is miss
     is_validated: true
   })
 
-  const product = await makeProductUtil(ProductModel, customer1.uuid)
+  const product = await makeTesterProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  await makeTesterBidUtil(BidModel, customer2.uuid, product.uuid)
 
   const order = {
     product_uuid: product.uuid,
@@ -84,7 +88,7 @@ test('should return error message and status code of 400 when field data is miss
 })
 
 test('should return structured response with no references in an array via get method.', async ({ client }) => {
-  const user1 = await makeUserUtil(UserModel)
+  const user1 = await makeTesterUserUtil(UserModel)
 
   const user2 = await UserModel.create({
     username: 'wada',
@@ -92,7 +96,11 @@ test('should return structured response with no references in an array via get m
     password: '1233131231'
   }).then(response => response.toJSON())
 
-  const customer1 = await makeCustomerUtil(CustomerModel, user1.uuid, true)
+  const customer1 = await makeTesterCustomerUtil(
+    CustomerModel,
+    user1.uuid,
+    true
+  )
 
   const customer2 = await CustomerModel.create({
     user_uuid: user2.uuid,
@@ -101,11 +109,16 @@ test('should return structured response with no references in an array via get m
     is_validated: true
   })
 
-  const product = await makeProductUtil(ProductModel, customer1.uuid)
+  const product = await makeTesterProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeTesterBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeTesterOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   const response = await client.get(urlEndPoint).loginVia(user2, 'jwt').end()
 
@@ -117,7 +130,7 @@ test('should return structured response with no references in an array via get m
 })
 
 test('should return structured response with references in an array via get method.', async ({ client }) => {
-  const user1 = await makeUserUtil(UserModel)
+  const user1 = await makeTesterUserUtil(UserModel)
 
   const user2 = await UserModel.create({
     username: 'wada',
@@ -125,7 +138,11 @@ test('should return structured response with references in an array via get meth
     password: '1233131231'
   }).then(response => response.toJSON())
 
-  const customer1 = await makeCustomerUtil(CustomerModel, user1.uuid, true)
+  const customer1 = await makeTesterCustomerUtil(
+    CustomerModel,
+    user1.uuid,
+    true
+  )
 
   const customer2 = await CustomerModel.create({
     user_uuid: user2.uuid,
@@ -134,11 +151,11 @@ test('should return structured response with references in an array via get meth
     is_validated: true
   })
 
-  const product = await makeProductUtil(ProductModel, customer1.uuid)
+  const product = await makeTesterProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeTesterBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  await makeTesterOrderUtil(OrderModel, customer2.uuid, product.uuid, bid.uuid)
 
   const response = await client
     .get(urlEndPoint)
@@ -161,7 +178,7 @@ test('should return structured response with references in an array via get meth
 })
 
 test('should return structured response with no references via get method.', async ({ client }) => {
-  const user1 = await makeUserUtil(UserModel)
+  const user1 = await makeTesterUserUtil(UserModel)
 
   const user2 = await UserModel.create({
     username: 'wada',
@@ -169,7 +186,11 @@ test('should return structured response with no references via get method.', asy
     password: '1233131231'
   }).then(response => response.toJSON())
 
-  const customer1 = await makeCustomerUtil(CustomerModel, user1.uuid, true)
+  const customer1 = await makeTesterCustomerUtil(
+    CustomerModel,
+    user1.uuid,
+    true
+  )
 
   const customer2 = await CustomerModel.create({
     user_uuid: user2.uuid,
@@ -178,10 +199,15 @@ test('should return structured response with no references via get method.', asy
     is_validated: true
   })
 
-  const product = await makeProductUtil(ProductModel, customer1.uuid)
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const product = await makeTesterProductUtil(ProductModel, customer1.uuid)
+  const bid = await makeTesterBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeTesterOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   const response = await client
     .get(`${urlEndPoint}/${order.uuid}`)
@@ -196,7 +222,7 @@ test('should return structured response with no references via get method.', asy
 })
 
 test('should return structured response with references via get method.', async ({ client }) => {
-  const user1 = await makeUserUtil(UserModel)
+  const user1 = await makeTesterUserUtil(UserModel)
 
   const user2 = await UserModel.create({
     username: 'wada',
@@ -204,7 +230,11 @@ test('should return structured response with references via get method.', async 
     password: '1233131231'
   }).then(response => response.toJSON())
 
-  const customer1 = await makeCustomerUtil(CustomerModel, user1.uuid, true)
+  const customer1 = await makeTesterCustomerUtil(
+    CustomerModel,
+    user1.uuid,
+    true
+  )
 
   const customer2 = await CustomerModel.create({
     user_uuid: user2.uuid,
@@ -213,11 +243,16 @@ test('should return structured response with references via get method.', async 
     is_validated: true
   })
 
-  const product = await makeProductUtil(ProductModel, customer1.uuid)
+  const product = await makeTesterProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeTesterBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeTesterOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   const response = await client
     .get(`${urlEndPoint}/${order.uuid}`)
@@ -238,7 +273,9 @@ test('should return structured response with references via get method.', async 
 })
 
 test('should return structured data with no references via post method.', async ({ client }) => {
-  const user1 = await makeUserUtil(UserModel)
+  const admin = await makeTesterAdminUtil(UserModel)
+
+  const user1 = await makeTesterUserUtil(UserModel)
 
   const user2 = await UserModel.create({
     username: 'wada',
@@ -246,7 +283,11 @@ test('should return structured data with no references via post method.', async 
     password: '1233131231'
   }).then(response => response.toJSON())
 
-  const customer1 = await makeCustomerUtil(CustomerModel, user1.uuid, true)
+  const customer1 = await makeTesterCustomerUtil(
+    CustomerModel,
+    user1.uuid,
+    true
+  )
 
   const customer2 = await CustomerModel.create({
     user_uuid: user2.uuid,
@@ -255,19 +296,27 @@ test('should return structured data with no references via post method.', async 
     is_validated: true
   })
 
-  const product = await makeProductUtil(ProductModel, customer1.uuid)
+  const product = await makeTesterProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  await makeTesterBidUtil(BidModel, customer2.uuid, product.uuid)
+  await makeTesterBidUtil(BidModel, customer2.uuid, product.uuid, 1200)
+  const bid = await makeTesterBidUtil(
+    BidModel,
+    customer2.uuid,
+    product.uuid,
+    1500
+  )
 
   const order = {
     order_quantity: 1,
     customer_uuid: customer2.uuid,
-    product_uuid: product.uuid
+    product_uuid: product.uuid,
+    bid_uuid: bid.uuid
   }
 
   const response = await client
     .post(urlEndPoint)
-    .loginVia(user1, 'jwt')
+    .loginVia(admin, 'jwt')
     .send(order)
     .end()
 
@@ -276,10 +325,13 @@ test('should return structured data with no references via post method.', async 
 
   await UserModel.find(user1.uuid).then(query => query.delete())
   await UserModel.find(user2.uuid).then(query => query.delete())
+  await UserModel.find(admin.uuid).then(query => query.delete())
 })
 
 test('should return structured data with references via post method.', async ({ client }) => {
-  const user1 = await makeUserUtil(UserModel)
+  const admin = await makeTesterAdminUtil(UserModel)
+
+  const user1 = await makeTesterUserUtil(UserModel)
 
   const user2 = await UserModel.create({
     username: 'wada',
@@ -287,7 +339,11 @@ test('should return structured data with references via post method.', async ({ 
     password: '1233131231'
   }).then(response => response.toJSON())
 
-  const customer1 = await makeCustomerUtil(CustomerModel, user1.uuid, true)
+  const customer1 = await makeTesterCustomerUtil(
+    CustomerModel,
+    user1.uuid,
+    true
+  )
 
   const customer2 = await CustomerModel.create({
     user_uuid: user2.uuid,
@@ -296,21 +352,22 @@ test('should return structured data with references via post method.', async ({ 
     is_validated: true
   })
 
-  const product = await makeProductUtil(ProductModel, customer1.uuid)
+  const product = await makeTesterProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeTesterBidUtil(BidModel, customer2.uuid, product.uuid)
 
   const order = {
     order_quantity: 1,
     customer_uuid: customer2.uuid,
-    product_uuid: product.uuid
+    product_uuid: product.uuid,
+    bid_uuid: bid.uuid
   }
 
   const response = await client
     .post(urlEndPoint)
-    .loginVia(user1, 'jwt')
+    .loginVia(admin, 'jwt')
     .send(order)
-    .query({ references: 'customer,product' })
+    .query({ references: 'customer,product.bids' })
     .end()
 
   response.assertStatus(200)
@@ -318,18 +375,19 @@ test('should return structured data with references via post method.', async ({ 
     data: {
       uuid: response.body.data.uuid,
       customer: { uuid: customer2.uuid },
-      product: { uuid: product.uuid }
+      product: { uuid: product.uuid, bids: [{ uuid: bid.uuid }] }
     }
   })
 
   await UserModel.find(user1.uuid).then(query => query.delete())
   await UserModel.find(user2.uuid).then(query => query.delete())
+  await UserModel.find(admin.uuid).then(query => query.delete())
 })
 
 test('should return structured data with no references via put method.', async ({ client }) => {
-  const admin = await makeAdminUtil(UserModel)
+  const admin = await makeTesterAdminUtil(UserModel)
 
-  const user1 = await makeUserUtil(UserModel)
+  const user1 = await makeTesterUserUtil(UserModel)
 
   const user2 = await UserModel.create({
     username: 'wada',
@@ -337,7 +395,11 @@ test('should return structured data with no references via put method.', async (
     password: '1233131231'
   }).then(response => response.toJSON())
 
-  const customer1 = await makeCustomerUtil(CustomerModel, user1.uuid, true)
+  const customer1 = await makeTesterCustomerUtil(
+    CustomerModel,
+    user1.uuid,
+    true
+  )
 
   const customer2 = await CustomerModel.create({
     user_uuid: user2.uuid,
@@ -346,11 +408,16 @@ test('should return structured data with no references via put method.', async (
     is_validated: true
   })
 
-  const product = await makeProductUtil(ProductModel, customer1.uuid)
+  const product = await makeTesterProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeTesterBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeTesterOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   const response = await client
     .put(`${urlEndPoint}/${order.uuid}`)
@@ -367,9 +434,9 @@ test('should return structured data with no references via put method.', async (
 })
 
 test('should return structured data with references via put method.', async ({ client }) => {
-  const admin = await makeAdminUtil(UserModel)
+  const admin = await makeTesterAdminUtil(UserModel)
 
-  const user1 = await makeUserUtil(UserModel)
+  const user1 = await makeTesterUserUtil(UserModel)
 
   const user2 = await UserModel.create({
     username: 'wada',
@@ -377,7 +444,11 @@ test('should return structured data with references via put method.', async ({ c
     password: '1233131231'
   }).then(response => response.toJSON())
 
-  const customer1 = await makeCustomerUtil(CustomerModel, user1.uuid, true)
+  const customer1 = await makeTesterCustomerUtil(
+    CustomerModel,
+    user1.uuid,
+    true
+  )
 
   const customer2 = await CustomerModel.create({
     user_uuid: user2.uuid,
@@ -386,11 +457,16 @@ test('should return structured data with references via put method.', async ({ c
     is_validated: true
   })
 
-  const product = await makeProductUtil(ProductModel, customer1.uuid)
+  const product = await makeTesterProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeTesterBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeTesterOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   const response = await client
     .put(`${urlEndPoint}/${order.uuid}`)
@@ -414,9 +490,9 @@ test('should return structured data with references via put method.', async ({ c
 })
 
 test('should return data index via delete method.', async ({ client }) => {
-  const admin = await makeAdminUtil(UserModel)
+  const admin = await makeTesterAdminUtil(UserModel)
 
-  const user1 = await makeUserUtil(UserModel)
+  const user1 = await makeTesterUserUtil(UserModel)
 
   const user2 = await UserModel.create({
     username: 'wada',
@@ -424,7 +500,11 @@ test('should return data index via delete method.', async ({ client }) => {
     password: '1233131231'
   }).then(response => response.toJSON())
 
-  const customer1 = await makeCustomerUtil(CustomerModel, user1.uuid, true)
+  const customer1 = await makeTesterCustomerUtil(
+    CustomerModel,
+    user1.uuid,
+    true
+  )
 
   const customer2 = await CustomerModel.create({
     user_uuid: user2.uuid,
@@ -433,11 +513,16 @@ test('should return data index via delete method.', async ({ client }) => {
     is_validated: true
   })
 
-  const product = await makeProductUtil(ProductModel, customer1.uuid)
+  const product = await makeTesterProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeTesterBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeTesterOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   const response = await client
     .delete(`${urlEndPoint}/${order.uuid}`)

@@ -66,9 +66,9 @@ test('should return error message and status code of 400 when field data is miss
 
   const product = await makeProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  await makeOrderUtil(OrderModel, customer2.uuid, product.uuid, bid.uuid)
 
   const payment = { method: 'sada' }
 
@@ -104,9 +104,14 @@ test('should return structured response with no references in an array via get m
 
   const product = await makeProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   const payment = await makePaymentUtil(PaymentModel, order.uuid)
 
@@ -139,9 +144,14 @@ test('should return structured response with references in an array via get meth
 
   const product = await makeProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   const payment = await makePaymentUtil(PaymentModel, order.uuid)
 
@@ -185,9 +195,14 @@ test('should return structured response with no references via get method.', asy
 
   const product = await makeProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   const payment = await makePaymentUtil(PaymentModel, order.uuid)
 
@@ -223,9 +238,14 @@ test('should return structured response with references via get method.', async 
 
   const product = await makeProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   const payment = await makePaymentUtil(PaymentModel, order.uuid)
 
@@ -263,9 +283,14 @@ test('should return structured data with no references via post method.', async 
 
   const product = await makeProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   const payment = {
     uuid: order.uuid,
@@ -308,9 +333,14 @@ test('should return structured data with references via post method.', async ({ 
 
   const product = await makeProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   const payment = {
     uuid: order.uuid,
@@ -355,9 +385,14 @@ test('should return structured data with no references via put method.', async (
 
   const product = await makeProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   await makePaymentUtil(PaymentModel, order.uuid)
 
@@ -397,9 +432,14 @@ test('should return structured data with references via put method.', async ({ c
 
   const product = await makeProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   await makePaymentUtil(PaymentModel, order.uuid)
 
@@ -441,9 +481,14 @@ test('should return data index via delete method.', async ({ client }) => {
 
   const product = await makeProductUtil(ProductModel, customer1.uuid)
 
-  await makeBidUtil(BidModel, customer2.uuid, product.uuid)
+  const bid = await makeBidUtil(BidModel, customer2.uuid, product.uuid)
 
-  const order = await makeOrderUtil(OrderModel, customer2.uuid, product.uuid)
+  const order = await makeOrderUtil(
+    OrderModel,
+    customer2.uuid,
+    product.uuid,
+    bid.uuid
+  )
 
   await makePaymentUtil(PaymentModel, order.uuid)
 

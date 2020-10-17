@@ -3,12 +3,17 @@
 const makeTesterAlertUtil = require('../../util/testerUtil/autogenAlertInstance.func')
 const makeTesterUserUtil = require('../../util/testerUtil/autogenUserInstance.func')
 const makeTesterAdminUtil = require('../../util/testerUtil/autogenAdminInstance.func')
+const makeAlertUtil = require('../../util/alertUtil.func')
 const makeTesterCustomerUtil = require('../../util/testerUtil/autogenCustomerInstance.func')
+const makeCronUtil = require('../../util/cronjobs/cronjob-util.func')
+const expireAlertUtil = require('../../util/cronjobs/expire-alert-util.func')
 
 const { test, trait } = use('Test/Suite')('Alert Controller')
 const AlertModel = use('App/Models/Alert')
 const UserModel = use('App/Models/User')
 const CustomerModel = use('App/Models/Customer')
+const CronModel = use('App/Models/CronJob')
+const CronJobManager = require('cron-job-manager')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -19,7 +24,7 @@ const API_ENDPOINT = '/api/v1/alerts'
  * index (customer,admin)
  * show (customer,admin)
  * store (customer,admin) (strict)
- * update (customer,admin) (strict)
+ * update (customer,admin)
  * destroy (admin)
  * */
 
@@ -209,14 +214,57 @@ test('should return structured data with no references via put method.', async (
 
   const alert = await makeTesterAlertUtil(AlertModel, user.uuid)
 
+  const cronjob = await makeCronUtil(CronModel).create({
+    job_title: 'alert',
+    content: alert.uuid
+  })
+
+  if (global.CronJobManager) {
+    global.CronJobManager.add(
+      cronjob.uuid,
+      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+      () =>
+        expireAlertUtil(
+          CronModel,
+          makeCronUtil,
+          cronjob.uuid,
+          AlertModel,
+          makeAlertUtil,
+          alert.uuid
+        ),
+      {
+        start: true,
+        timeZone: 'Asia/Bangkok'
+      }
+    )
+  } else {
+    global.CronJobManager = new CronJobManager(
+      cronjob.uuid,
+      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+      () =>
+        expireAlertUtil(
+          CronModel,
+          makeCronUtil,
+          cronjob.uuid,
+          AlertModel,
+          makeAlertUtil,
+          alert.uuid
+        ),
+      {
+        start: true,
+        timeZone: 'Asia/Bangkok'
+      }
+    )
+  }
+
   const response = await client
     .put(`${API_ENDPOINT}/${alert.uuid}`)
     .loginVia(user, 'jwt')
-    .send({ content: 'new_content' })
+    .send({ is_proceeded: 1 })
     .end()
 
   response.assertStatus(200)
-  response.assertJSONSubset({ data: { content: 'new_content' } })
+  response.assertJSONSubset({ data: { is_proceeded: 1 } })
 
   await cleanUp(alert)
   await cleanUpUser(user)
@@ -230,15 +278,58 @@ test('should return structured data with references via put method.', async ({ c
 
   const alert = await makeTesterAlertUtil(AlertModel, user.uuid)
 
+  const cronjob = await makeCronUtil(CronModel).create({
+    job_title: 'alert',
+    content: alert.uuid
+  })
+
+  if (global.CronJobManager) {
+    global.CronJobManager.add(
+      cronjob.uuid,
+      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+      () =>
+        expireAlertUtil(
+          CronModel,
+          makeCronUtil,
+          cronjob.uuid,
+          AlertModel,
+          makeAlertUtil,
+          alert.uuid
+        ),
+      {
+        start: true,
+        timeZone: 'Asia/Bangkok'
+      }
+    )
+  } else {
+    global.CronJobManager = new CronJobManager(
+      cronjob.uuid,
+      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+      () =>
+        expireAlertUtil(
+          CronModel,
+          makeCronUtil,
+          cronjob.uuid,
+          AlertModel,
+          makeAlertUtil,
+          alert.uuid
+        ),
+      {
+        start: true,
+        timeZone: 'Asia/Bangkok'
+      }
+    )
+  }
+
   const response = await client
     .put(`${API_ENDPOINT}/${alert.uuid}`)
     .loginVia(user, 'jwt')
-    .send({ content: 'new_content' })
+    .send({ is_proceeded: 1 })
     .query({ references: 'user' })
     .end()
 
   response.assertStatus(200)
-  response.assertJSONSubset({ data: { content: 'new_content', user: { uuid: user.uuid } } })
+  response.assertJSONSubset({ data: { is_proceeded: 1, user: { uuid: user.uuid } } })
 
   await cleanUp(alert)
   await cleanUpUser(user)

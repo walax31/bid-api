@@ -1,7 +1,13 @@
-module.exports = function (OrderModel, customer_uuid, product_uuid) {
+module.exports = function autogenOrderInstance (
+  OrderModel,
+  customer_uuid,
+  product_uuid,
+  bid_uuid
+) {
   return OrderModel.create({
     customer_uuid,
     product_uuid,
     order_quantity: 10,
-  }).then((response) => response.toJSON());
-};
+    bid_uuid
+  }).then(response => response.toJSON())
+}

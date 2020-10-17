@@ -1,17 +1,18 @@
 module.exports = (WsProvider, id, type, data) => {
-  const channel = WsProvider.getChannel("alert:*");
+  const channel = WsProvider.getChannel('alert:*')
 
-  if (!channel) return;
+  if (!channel) return
 
-  const topic = channel.topic(`alert:${id}`);
+  const topic = channel.topic(`alert:${id}`)
 
   if (!topic) {
-    console.log("this user is not actively monitering their session.");
-    return;
+    // ! FIXME: Remove console logging before production.
+    console.log('this user is not actively monitering their session.')
+    return
   }
 
-  topic.broadcastToAll(`alert`, {
+  topic.broadcastToAll('alert', {
     type,
-    data,
-  });
-};
+    data
+  })
+}

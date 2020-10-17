@@ -61,22 +61,14 @@ class OrderController {
   async store ({ request }) {
     const { body, qs } = request
 
-    const { customer_uuid, product_uuid, order_quantity } = body
+    const { customer_uuid, product_uuid, order_quantity, bid_uuid } = body
 
     const { references } = qs
 
-    const authorProduct = await makeCustomerUtil(Customer).findProductOnAuthUser(request.customer_uuid, product_uuid)
-
-    if (!authorProduct) {
-      return {
-        status: 403,
-        error:
-          "Access denied. cannot initiate order for product you don't own.",
-        data: undefined
-      }
-    }
-
-    const existingBidOnYourProduct = await makeProductUtil(Product).findExistingBidForThisProduct(customer_uuid, product_uuid)
+    // eslint-disable-next-line
+    const existingBidOnYourProduct = await makeProductUtil(Product)
+      .findExistingBidOnThisProductViaCustomer(customer_uuid, product_uuid)
+      .then(query => query.toJSON())
 
     if (!existingBidOnYourProduct) {
       return {
@@ -86,7 +78,9 @@ class OrderController {
       }
     }
 
-    const existingOrderOnThisCustomer = await makeCustomerUtil(Customer).findExistingOrder(customer_uuid, product_uuid)
+    // eslint-disable-next-line
+    const existingOrderOnThisCustomer = await makeCustomerUtil(
+      Customer).findExistingOrder(customer_uuid, product_uuid)
 
     if (existingOrderOnThisCustomer) {
       return {
@@ -98,7 +92,7 @@ class OrderController {
     }
 
     const data = await makeOrderUtil(Order).create(
-      { customer_uuid, product_uuid, order_quantity },
+      { customer_uuid, product_uuid, order_quantity, bid_uuid },
       references
     )
 
@@ -116,7 +110,7 @@ class OrderController {
 
     const { references } = qs
 
-    const { customer_uuid, product_uuid, order_quantity } = body
+    const { customer_uuid, product_uuid, order_quantity, bid_uuid } = body
 
     const existingOrder = await makeOrderUtil(Order).getById(id)
 
@@ -130,7 +124,7 @@ class OrderController {
 
     const order = await makeOrderUtil(Order).updateById(
       id,
-      { customer_uuid, product_uuid, order_quantity },
+      { customer_uuid, product_uuid, order_quantity, bid_uuid },
       references
     )
 

@@ -29,20 +29,25 @@ Route.group(() => {
       [['/bids.show'], ['auth:customer,admin', 'credential:strict']],
       [
         ['/bids.store'],
-        ['auth:customer', 'credential:strict', 'validator:bid']
+        [
+          'auth:customer',
+          'credential:strict',
+          'validator:bid',
+          'broadcast:bid'
+        ]
       ],
       [['/bids.update'], ['auth:admin']],
       [['/bids.destroy'], ['auth:admin']]
     ]))
 
   Route.resource('/users', 'UserController')
-    .validator(new Map([[['/users.store'], ['StoreUser']]]))
+    .validator(new Map([[['store'], ['StoreUser']]]))
     .middleware(new Map([
-      [['/users.index'], ['auth:admin']],
-      [['/users.show'], ['auth:customer,admin']],
-      [['/users.store'], ['auth:guest', 'cron:token']],
-      [['/users.update'], ['auth:customer,admin']],
-      [['/users.destroy'], ['auth:admin']]
+      [['index'], ['auth:admin']],
+      [['show'], ['auth:customer,admin']],
+      [['store'], ['auth:guest', 'cron:token']],
+      [['update'], ['auth:customer,admin']],
+      [['destroy'], ['auth:admin']]
     ]))
 
   Route.post('/login', 'CredentialController.login').middleware([
@@ -63,6 +68,22 @@ Route.group(() => {
   // Route.get("/job", "CredentialController.job");
   // Route.post("/upload", "CredentialController.upload");
   // Route.get("/download", "CredentialController.download");
+
+  Route.get(
+    '/download/:section/:id',
+    'ImageController.downloadCredentialImage'
+  ).middleware('auth:customer,admin')
+  Route.get(
+    '/download/:section/:product_uuid/:id',
+    'ImageController.downloadProductImage'
+  ).middleware('auth:all')
+  Route.post('/upload', 'ImageController.uploadCredentialImage')
+    .middleware('auth:customer', 'credential')
+    .validator('StoreCredential')
+  Route.post(
+    '/upload/:product_uuid',
+    'ImageController.uploadProductImage'
+  ).middleware('auth:customer', 'credential:strict')
 
   Route.resource('/credentialRatings', 'CredentialRatingController')
     .validator(new Map([[['/credentialRatings.store'], ['StoreCredentialRating']]]))
@@ -92,7 +113,7 @@ Route.group(() => {
         ['auth:customer,admin', 'credential:strict', 'url']
       ],
       [['/customers.store'], ['auth:customer']],
-      [['/customers.update'], ['auth:customer,admin']],
+      [['/customers.update'], ['auth:customer,admin', 'broadcast:alert']],
       [['/customers.destroy'], ['auth:customer,admin']]
     ]))
 
@@ -101,7 +122,7 @@ Route.group(() => {
     .middleware(new Map([
       [['/orders.index'], ['auth:customer,admin', 'credential:strict']],
       [['/orders.show'], ['auth:customer,admin', 'credential:strict']],
-      [['/orders.store'], ['auth:customer', 'credential:strict']],
+      [['/orders.store'], ['auth:admin']],
       [['/orders.update'], ['auth:admin']],
       [['/orders.destroy'], ['auth:admin']]
     ]))
@@ -133,7 +154,7 @@ Route.group(() => {
       [['/productDetails.show'], ['auth:all']],
       [
         ['/productDetails.store'],
-        ['auth:customer,admin', 'credential:strict']
+        ['auth:customer,admin', 'credential:strict', 'cron:order']
       ],
       [['/productDetails.update'], ['auth:admin']],
       [['/productDetails.destroy'], ['auth:admin']]
@@ -155,7 +176,7 @@ Route.group(() => {
       [['/alerts.index'], ['auth:customer,admin']],
       [['/alerts.show'], ['auth:customer,admin']],
       [['/alerts.store'], ['auth:customer,admin', 'credential:strict']],
-      [['/alerts.update'], ['auth:customer,admin', 'credential:strict']],
+      [['/alerts.update'], ['auth:customer,admin']],
       [['/alerts.destroy'], ['auth:admin']]
     ]))
 

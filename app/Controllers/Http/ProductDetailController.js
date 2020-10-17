@@ -1,22 +1,22 @@
 'use strict'
 
-const ProductDetail = use('App/Models/ProductDetail')
-const Customer = use('App/Models/Customer')
-const Product = use('App/Models/Product')
+const ProductDetailModel = use('App/Models/ProductDetail')
+const CustomerModel = use('App/Models/Customer')
+const ProductModel = use('App/Models/Product')
+const CronModel = use('App/Models/CronJob')
 
 const makeProductDetailUtil = require('../../../util/ProductDetailUtil.func')
 const makeProductUtil = require('../../../util/ProductUtil.func')
 const makeCustomerUtil = require('../../../util/CustomerUtil.func')
+const makeCronUtil = require('../../../util/cronjobs/cronjob-util.func')
 
 class ProductDetailController {
   async index ({ request }) {
     const { references, page, per_page } = request.qs
 
-    const { rows, pages } = await makeProductDetailUtil(ProductDetail).getAll(
-      references,
-      page,
-      per_page
-    )
+    // eslint-disable-next-line
+    const { rows, pages } = await makeProductDetailUtil(
+      ProductDetailModel).getAll(references, page, per_page)
 
     return { status: 200, error: undefined, pages, data: rows }
   }
@@ -28,10 +28,8 @@ class ProductDetailController {
 
     const { references } = qs
 
-    const productDetail = await makeProductDetailUtil(ProductDetail).getById(
-      id,
-      references
-    )
+    const productDetail = await makeProductDetailUtil(ProductDetailModel).getById(id, references)
+
     return { status: 200, error: undefined, data: productDetail || {} }
   }
 
@@ -48,17 +46,20 @@ class ProductDetailController {
 
     const { references } = qs
 
-    const existingProduct = await makeCustomerUtil(Customer).findProductOnAuthUser(request.customer_uuid, uuid)
+    // eslint-disable-next-line
+    const existingProduct = await makeCustomerUtil(
+      CustomerModel).findProductOnAuthUser(request.customer_uuid, uuid)
 
     if (!existingProduct) {
       return {
         status: 404,
-        error: 'Product not found. product does not seem to exist.',
+        error:
+          'Product not found. these product does not seems like it belong to your or product does not seem to exist.',
         data: undefined
       }
     }
 
-    const productDetail = await makeProductDetailUtil(ProductDetail).create(
+    const productDetail = await makeProductDetailUtil(ProductDetailModel).create(
       {
         uuid,
         product_price,
@@ -69,7 +70,7 @@ class ProductDetailController {
       references
     )
 
-    const flaggedProduct = await makeProductUtil(Product).flagProductAsBiddable(uuid)
+    const flaggedProduct = await makeProductUtil(ProductModel).flagProductAsBiddable(uuid)
 
     if (!flaggedProduct) {
       return {
@@ -78,10 +79,16 @@ class ProductDetailController {
       }
     }
 
+    const cron = await makeCronUtil(CronModel).create(
+      { job_title: 'order', content: uuid },
+      ''
+    )
+
     return {
       status: 200,
       error: undefined,
-      data: productDetail
+      data: productDetail,
+      cron_uuid: cron.uuid
     }
   }
 
@@ -92,7 +99,7 @@ class ProductDetailController {
 
     const { references } = qs
 
-    const product = await makeProductDetailUtil(ProductDetail).getById(id)
+    const product = await makeProductDetailUtil(ProductDetailModel).getById(id)
 
     if (!product) {
       return {
@@ -109,7 +116,7 @@ class ProductDetailController {
       product_description
     } = body
 
-    const productDetail = await makeProductDetailUtil(ProductDetail).updateById(
+    const productDetail = await makeProductDetailUtil(ProductDetailModel).updateById(
       id,
       {
         product_price,
@@ -126,15 +133,7 @@ class ProductDetailController {
   async destroy ({ request }) {
     const { id } = request.params
 
-    const productDetail = await makeProductDetailUtil(ProductDetail).deleteById(id)
-
-    if (!productDetail) {
-      return {
-        status: 404,
-        error: 'Product not found. product you are looking for does not exist.',
-        data: undefined
-      }
-    }
+    await makeProductDetailUtil(ProductDetailModel).deleteById(id)
 
     return {
       status: 200,

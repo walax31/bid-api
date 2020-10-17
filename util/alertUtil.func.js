@@ -41,6 +41,20 @@ module.exports = function makeAlertUtil (AlertModel) {
         .then(response => response.first())
     },
     deleteById: uuid =>
-      AlertModel.find(uuid).then(response => response.delete())
+      AlertModel.find(uuid).then(response => response.delete()),
+    getAllValid: (user_uuid, references, page = 1, per_page = 5) =>
+      withReferences(references)
+        .where({
+          is_expired: false,
+          is_proceeded: false,
+          is_cancelled: false,
+          user_uuid
+        })
+        .paginate(page, per_page),
+    alertBelongToUser: (uuid, user_uuid) =>
+      AlertModel.query()
+        .where({ uuid, user_uuid })
+        .fetch()
+        .then(response => response.first())
   }
 }

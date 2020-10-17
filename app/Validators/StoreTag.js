@@ -10,7 +10,7 @@ class StoreTag {
 
   get messages () {
     return {
-      'tag_name.require': 'You must provide tag name.',
+      'tag_name.required': 'You must provide tag name.',
       'tag_name.unique': 'Provided tag name must be unique.'
     }
   }

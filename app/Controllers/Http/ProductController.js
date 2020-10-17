@@ -27,7 +27,9 @@ class ProductController {
         }
       }
       default: {
-        const biddableProducts = await makeProductUtil(Product).bulkHasBiddableFlag(references, page, per_page)
+        // eslint-disable-next-line
+        const biddableProducts = await makeProductUtil(
+          Product).bulkHasBiddableFlag(references, page, per_page)
 
         return {
           status: 200,
@@ -67,7 +69,7 @@ class ProductController {
     }
   }
 
-  async store ({ request }) {
+  async store ({ request, response }) {
     const { body, qs } = request
 
     const { product_name, end_date, stock } = body
@@ -84,11 +86,11 @@ class ProductController {
       references
     )
 
-    return {
+    response.send({
       status: 200,
       error: undefined,
       data: product
-    }
+    })
   }
 
   async update ({ request }) {
