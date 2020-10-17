@@ -64,22 +64,20 @@ Route.group(() => {
 
   Route.post('/logout', 'CredentialController.logout').middleware('auth:customer,admin')
 
-  // FIXME: Remove before production
-  // Route.get("/job", "CredentialController.job");
-  // Route.post("/upload", "CredentialController.upload");
-  // Route.get("/download", "CredentialController.download");
-
   Route.get(
     '/download/:section/:id',
     'ImageController.downloadCredentialImage'
   ).middleware('auth:customer,admin')
+
   Route.get(
     '/download/:section/:product_uuid/:id',
     'ImageController.downloadProductImage'
   ).middleware('auth:all')
+
   Route.post('/upload', 'ImageController.uploadCredentialImage')
     .middleware('auth:customer', 'credential')
     .validator('StoreCredential')
+
   Route.post(
     '/upload/:product_uuid',
     'ImageController.uploadProductImage'
