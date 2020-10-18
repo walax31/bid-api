@@ -18,6 +18,9 @@ class Broadcast {
     // call next to advance the request
     await next()
 
+    // eslint-disable-next-line
+    const { alert } = response._lazyBody.content
+
     if (response.response.statusCode === 200) {
       if (properties.find(property => property === 'bid')) {
         broadcastBid(
@@ -27,14 +30,10 @@ class Broadcast {
           // eslint-disable-next-line
           response._lazyBody.content.data.toJSON()
         )
-      } else if (
-        properties.find(property => property === 'alert') &&
-        // eslint-disable-next-line
-        response._lazyBody.content.alert
-      ) {
+      } else if (properties.find(property => property === 'alert') && alert) {
         broadcastAlert(
           Ws,
-          request.user_uuid,
+          alert.toJSON().user_uuid,
           'new:alert',
           // eslint-disable-next-line
           response._lazyBody.content.alert.toJSON()

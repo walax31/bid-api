@@ -1,6 +1,5 @@
 'use strict'
 
-const Drive = use('Drive')
 const CustomerModel = use('App/Models/Customer')
 const UserModel = use('App/Models/User')
 const AlertModel = use('App/Models/Alert')
@@ -88,45 +87,68 @@ class CustomerController {
 
     switch (request.role) {
       case 'admin': {
-        const { uuid } = await makeUserUtil(UserModel)
-          .hasSubmittionFlagged(id)
-          .then(response => response.toJSON())
+        try {
+          const { uuid } = await makeUserUtil(UserModel)
+            .hasSubmittionFlagged(id)
+            .then(response => response.toJSON().customer || {})
 
-        if (!uuid) {
+          if (!uuid) {
+            return {
+              status: 404,
+              error:
+                'Credential not found. this user never submitted credential.',
+              data: undefined
+            }
+          }
+
+          // eslint-disable-next-line
+          const validatedCustomer = await makeCustomerUtil(
+            CustomerModel).hasCredentialValidated(uuid)
+
+          if (validatedCustomer) {
+            return {
+              status: 403,
+              error:
+                'Access denied. this user already has their credential validated.',
+              data: undefined
+            }
+          }
+
+          // eslint-disable-next-line
+          const customer = await makeCustomerUtil(
+            CustomerModel).validateUserCredential(uuid, references)
+
+          const alert = await makeAlertUtil(AlertModel).create({
+            expiration_date: new Date(new Date().setHours(new Date().getHours() + 72)),
+            user_uuid: id,
+            title: 'Credential verified',
+            type: 'credential',
+            content: 'Your credential has been validated.',
+            reference: 'none',
+            accept: 'Thanks',
+            decline: 'none'
+          })
+
+          const { uuid: cron_uuid } = await makeCronUtil(CronModel)
+            .create({
+              job_title: 'alert',
+              content: alert.uuid
+            })
+            .then(query => query.toJSON())
+
           return {
-            status: 404,
-            error: 'User not found. this user never submitted credential.',
+            status: 200,
+            error: undefined,
+            data: customer,
+            alert,
+            cron_uuid
+          }
+        } catch (e) {
+          return {
+            status: 500,
+            error: e.toString(),
             data: undefined
           }
-        }
-
-        // eslint-disable-next-line
-        const { is_validated } = await makeCustomerUtil(
-          CustomerModel).validateUserCredential(uuid, references)
-
-        const alert = await makeAlertUtil(AlertModel).create({
-          expiration_date: new Date(new Date().setHours(new Date().getHours() + 72)),
-          user_uuid: id,
-          type: 'credential',
-          content: 'Your credential has been validated.',
-          reference: 'none',
-          accept: 'Thanks',
-          decline: 'none'
-        })
-
-        const { uuid: cron_uuid } = await makeCronUtil(CronModel)
-          .create({
-            job_title: 'alert',
-            content: alert.uuid
-          })
-          .then(query => query.toJSON())
-
-        return {
-          status: 200,
-          error: undefined,
-          data: { customer_uuid: uuid, is_validated },
-          alert,
-          cron_uuid
         }
       }
       case 'customer': {

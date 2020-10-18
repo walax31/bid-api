@@ -28,6 +28,9 @@ class CronInitiate {
     // call next to advance the request
     await next()
 
+    // eslint-disable-next-line
+    const { alert } = response._lazyBody.content
+
     if (properties.find(property => property === 'token')) {
       // eslint-disable-next-line
       if (response._lazyBody.content.tokens) {
@@ -145,11 +148,11 @@ class CronInitiate {
         // eslint-disable-next-line
         console.log('Cronjob was not created successfully.')
       }
-    } else if (properties.find(property => property === 'alert')) {
+    } else if (properties.find(property => property === 'alert') && alert) {
       // eslint-disable-next-line
       if (response._lazyBody.content.data) {
         // eslint-disable-next-line
-        const cron_uuid = response._lazyBody.content
+        // console.log(alert.toJSON())
       }
     }
   }

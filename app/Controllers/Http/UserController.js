@@ -1,8 +1,10 @@
 'use strict'
 
 const Env = use('Env')
-const User = use('App/Models/User')
+const UserModel = use('App/Models/User')
 const CronModel = use('App/Models/CronJob')
+const TokenModel = use('App/Models/Token')
+const Encryption = use('Encryption')
 
 const makeUserUtil = require('../../../util/UserUtil.func')
 const makeCronUtil = require('../../../util/cronjobs/cronjob-util.func')
@@ -12,7 +14,7 @@ class UserController {
   async index ({ request }) {
     const { references, page, per_page } = request.qs
 
-    const { rows, pages } = await makeUserUtil(User).getAll(
+    const { rows, pages } = await makeUserUtil(UserModel).getAll(
       references,
       page,
       per_page
@@ -32,8 +34,10 @@ class UserController {
       case 'customer': {
         if (request.user_uuid === id) {
           const data =
-            (await makeUserUtil(User).getById(request.user_uuid, references)) ||
-            {}
+            (await makeUserUtil(UserModel).getById(
+              request.user_uuid,
+              references
+            )) || {}
 
           return {
             status: 200,
@@ -48,7 +52,8 @@ class UserController {
         }
       }
       case 'admin': {
-        const data = (await makeUserUtil(User).getById(id, references)) || {}
+        const data =
+          (await makeUserUtil(UserModel).getById(id, references)) || {}
 
         return {
           status: 200,
@@ -72,7 +77,7 @@ class UserController {
 
     const { references } = qs
 
-    const data = await makeUserUtil(User).create(
+    const data = await makeUserUtil(UserModel).create(
       {
         username,
         email,
@@ -88,10 +93,16 @@ class UserController {
     })
 
     if (tokens) {
-      const { uuid } = await makeCronUtil(CronModel).create(
+      await makeCronUtil(CronModel).create(
         { job_title: 'token', content: tokens.refreshToken },
         ''
       )
+
+      const { uuid } = await TokenModel.query()
+        .where({ token: await Encryption.decrypt(tokens.refreshToken) })
+        .with('user')
+        .fetch()
+        .then(query => query.first().getRelated('user').toJSON())
 
       return {
         status: 200,
@@ -120,7 +131,7 @@ class UserController {
 
     switch (request.role) {
       case 'admin': {
-        const user = await makeUserUtil(User).updateById(
+        const user = await makeUserUtil(UserModel).updateById(
           id,
           { email },
           references
@@ -130,7 +141,7 @@ class UserController {
       }
       case 'customer': {
         if (request.user_uuid === id) {
-          const user = await makeUserUtil(User).updateById(
+          const user = await makeUserUtil(UserModel).updateById(
             request.user_uuid,
             { email },
             references
@@ -157,7 +168,7 @@ class UserController {
   async destroy ({ request }) {
     const { id } = request.params
 
-    const user = await makeUserUtil(User).deleteById(id)
+    const user = await makeUserUtil(UserModel).deleteById(id)
 
     return {
       status: 200,

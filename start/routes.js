@@ -97,7 +97,7 @@ Route.group(() => {
       [['index'], ['auth:customer,admin', 'credential:strict']],
       [['show'], ['auth:customer,admin', 'credential:strict']],
       [['store'], ['auth:customer']],
-      [['update'], ['auth:customer,admin', 'broadcast:alert']],
+      [['update'], ['auth:customer,admin', 'broadcast:alert', 'cron:alert']],
       [['destroy'], ['auth:customer,admin']]
     ]))
 
@@ -160,6 +160,8 @@ Route.group(() => {
       [['update'], ['auth:customer,admin']],
       [['destroy'], ['auth:admin']]
     ]))
+
+  Route.put('/alerts', 'AlertController.bulkRead').middleware('auth:customer,admin')
 
   Route.resource('/tags', 'TagController')
     .validator(new Map([[['store'], ['StoreTag']]]))

@@ -40,13 +40,55 @@ const API_ENDPOINT = '/api/v1/alerts'
  * 9. post (ref)
  * 10. put (no-ref)
  * 11. put (ref)
- * 12. delete
+ * 12. put (bulk no-ref)
+ * 13. delete
  * */
 
 const ALERT_ATTRIBUTE = {
+  title: 'title',
   type: 'bid',
   content: 'Your bid has been overbid by someone.',
   reference: 'product-uuid'
+}
+
+function generatePrerequisite (cronjob, alert) {
+  if (global.CronJobManager) {
+    global.CronJobManager.add(
+      cronjob.uuid,
+      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+      () =>
+        expireAlertUtil(
+          CronModel,
+          makeCronUtil,
+          cronjob.uuid,
+          AlertModel,
+          makeAlertUtil,
+          alert.uuid
+        ),
+      {
+        start: true,
+        timeZone: 'Asia/Bangkok'
+      }
+    )
+  } else {
+    global.CronJobManager = new CronJobManager(
+      cronjob.uuid,
+      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+      () =>
+        expireAlertUtil(
+          CronModel,
+          makeCronUtil,
+          cronjob.uuid,
+          AlertModel,
+          makeAlertUtil,
+          alert.uuid
+        ),
+      {
+        start: true,
+        timeZone: 'Asia/Bangkok'
+      }
+    )
+  }
 }
 
 async function cleanUp (alert) {
@@ -219,43 +261,7 @@ test('should return structured data with no references via put method.', async (
     content: alert.uuid
   })
 
-  if (global.CronJobManager) {
-    global.CronJobManager.add(
-      cronjob.uuid,
-      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
-      () =>
-        expireAlertUtil(
-          CronModel,
-          makeCronUtil,
-          cronjob.uuid,
-          AlertModel,
-          makeAlertUtil,
-          alert.uuid
-        ),
-      {
-        start: true,
-        timeZone: 'Asia/Bangkok'
-      }
-    )
-  } else {
-    global.CronJobManager = new CronJobManager(
-      cronjob.uuid,
-      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
-      () =>
-        expireAlertUtil(
-          CronModel,
-          makeCronUtil,
-          cronjob.uuid,
-          AlertModel,
-          makeAlertUtil,
-          alert.uuid
-        ),
-      {
-        start: true,
-        timeZone: 'Asia/Bangkok'
-      }
-    )
-  }
+  generatePrerequisite(cronjob, alert)
 
   const response = await client
     .put(`${API_ENDPOINT}/${alert.uuid}`)
@@ -283,43 +289,7 @@ test('should return structured data with references via put method.', async ({ c
     content: alert.uuid
   })
 
-  if (global.CronJobManager) {
-    global.CronJobManager.add(
-      cronjob.uuid,
-      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
-      () =>
-        expireAlertUtil(
-          CronModel,
-          makeCronUtil,
-          cronjob.uuid,
-          AlertModel,
-          makeAlertUtil,
-          alert.uuid
-        ),
-      {
-        start: true,
-        timeZone: 'Asia/Bangkok'
-      }
-    )
-  } else {
-    global.CronJobManager = new CronJobManager(
-      cronjob.uuid,
-      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
-      () =>
-        expireAlertUtil(
-          CronModel,
-          makeCronUtil,
-          cronjob.uuid,
-          AlertModel,
-          makeAlertUtil,
-          alert.uuid
-        ),
-      {
-        start: true,
-        timeZone: 'Asia/Bangkok'
-      }
-    )
-  }
+  generatePrerequisite(cronjob, alert)
 
   const response = await client
     .put(`${API_ENDPOINT}/${alert.uuid}`)
@@ -335,7 +305,50 @@ test('should return structured data with references via put method.', async ({ c
   await cleanUpUser(user)
 })
 
-// 12. delete
+// 12. put (bulk no-ref)
+test('should return bulk structured data with no references via put method.', async ({ client }) => {
+  const user = await makeTesterUserUtil(UserModel)
+
+  await makeTesterCustomerUtil(CustomerModel, user.uuid, true)
+
+  const alertPromises = new Array(5)
+    .fill(0)
+    // eslint-disable-next-line
+    .map((_) => makeTesterAlertUtil(AlertModel, user.uuid))
+
+  const alerts = await Promise.all(alertPromises)
+
+  const alertUuids = alerts.map(alert => alert.uuid)
+
+  const cronjobPromises = alerts.map(alert =>
+    makeCronUtil(CronModel).create({
+      job_title: 'alert',
+      content: alert.uuid
+    }))
+
+  const cronjobs = await Promise.all(cronjobPromises)
+
+  cronjobs.forEach((_, index) =>
+    generatePrerequisite(cronjobs[index], alerts[index]))
+
+  const response = await client
+    .put(API_ENDPOINT)
+    .loginVia(user, 'jwt')
+    .query({ list: alertUuids.join(',') })
+    .end()
+
+  const fakeAlerts = alerts.map(alert => ({ ...alert, is_read: 1 }))
+
+  response.assertStatus(200)
+  response.assertJSONSubset({ data: fakeAlerts })
+
+  const cleanUpPromises = alerts.map(alert => cleanUp(alert))
+
+  await Promise.all(cleanUpPromises)
+  await cleanUpUser(user)
+})
+
+// 13. delete
 test('should not return error message when delete object via delete method.', async ({ client }) => {
   const user = await makeTesterUserUtil(UserModel)
 

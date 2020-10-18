@@ -4,7 +4,7 @@ const performAuthentication = require('../../../util/authenticate.func')
 const makeCronUtil = require('../../../util/cronjobs/cronjob-util.func')
 
 const Encryption = use('Encryption')
-const Token = use('App/Models/Token')
+const TokenModel = use('App/Models/Token')
 const CronModel = use('App/Models/CronJob')
 
 class CredentialController {
@@ -17,10 +17,16 @@ class CredentialController {
     })
 
     if (tokens) {
-      const { uuid } = await makeCronUtil(CronModel).create(
+      await makeCronUtil(CronModel).create(
         { job_title: 'token', content: tokens.refreshToken },
         ''
       )
+
+      const { uuid } = await TokenModel.query()
+        .where({ token: await Encryption.decrypt(tokens.refreshToken) })
+        .with('user')
+        .fetch()
+        .then(query => query.first().getRelated('user').toJSON())
 
       return {
         status: 200,
@@ -55,11 +61,17 @@ class CredentialController {
         ''
       )
 
+      const { uuid: user_uuid } = await TokenModel.query()
+        .where({ token: await Encryption.decrypt(tokens.refreshToken) })
+        .with('user')
+        .fetch()
+        .then(query => query.first().getRelated('user').toJSON())
+
       return {
         status: 200,
         error: undefined,
         data: undefined,
-        tokens: { ...tokens, uuid }
+        tokens: { ...tokens, uuid: user_uuid }
       }
     }
 
@@ -75,7 +87,7 @@ class CredentialController {
     const refreshToken = request.header('refreshToken')
 
     const { data, error } = await performAuthentication(auth).logout(
-      Token,
+      TokenModel,
       Encryption,
       refreshToken
     )

@@ -56,7 +56,7 @@ module.exports = function makeUserUtil (UserModel) {
         .with('customer')
         .where({ uuid, is_submitted: true })
         .fetch()
-        .then(response => response.first().getRelated('customer')),
+        .then(response => response.first()),
     deleteById: uuid =>
       UserModel.find(uuid).then(response => response.delete())
   }

@@ -1,4 +1,4 @@
-"use strict";
+'use strict'
 
 /*
 |--------------------------------------------------------------------------
@@ -13,11 +13,11 @@
 |
 */
 
-const Ws = use("Ws");
+const Ws = use('Ws')
 
 // Ws.channel("chat", ({ socket }) => {
 //   console.log("user joined with %s socket id", socket.id);
 // });
 
-Ws.channel("alert:*", "AlertController");
-Ws.channel("product:*", "ProductController");
+Ws.channel('alert:*', 'AlertController')
+Ws.channel('product:*', 'ProductController')

@@ -18,6 +18,7 @@ const UserModel = use('App/Models/User')
  * */
 
 const ALERT_ATTRIBUTE = {
+  title: 'title',
   type: 'bid',
   content: 'Your bid has been overbid by someone.',
   reference: 'product uuid'
