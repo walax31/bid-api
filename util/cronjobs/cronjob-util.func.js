@@ -21,7 +21,7 @@ module.exports = function cronjobUtil (CronModel) {
         .where({ uuid })
         .fetch()
         .then(response => response.first()),
-    getByToken: (content, references) =>
+    getByContent: (content, references) =>
       withReferences(references)
         .where({ content })
         .fetch()
@@ -46,7 +46,7 @@ module.exports = function cronjobUtil (CronModel) {
         .fetch()
         .then(response => response.first())
     },
-    updateByToken: async (content, attributes, references) => {
+    updateByContent: async (content, attributes, references) => {
       const { uuid } = await CronModel.findBy('content', content).then(async cron => {
         cron.merge(attributes)
 

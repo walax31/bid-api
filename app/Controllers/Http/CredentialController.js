@@ -48,7 +48,7 @@ class CredentialController {
     const { tokens, error } = await performAuthentication(auth).getNewToken(refreshToken)
 
     if (tokens) {
-      const { uuid } = await makeCronUtil(CronModel).getByToken(
+      const { uuid } = await makeCronUtil(CronModel).getByContent(
         refreshToken,
         ''
       )
@@ -91,7 +91,7 @@ class CredentialController {
     )
 
     // eslint-disable-next-line
-    const { uuid } = await makeCronUtil(CronModel).updateByToken(refreshToken, {
+    const { uuid } = await makeCronUtil(CronModel).updateByContent(refreshToken, {
       job_active: false })
 
     global.CronJobManager.deleteJob(uuid)

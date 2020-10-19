@@ -82,7 +82,7 @@ class AlertController {
         }
       }
 
-      const cronjob = await makeCronUtil(CronModel).getByToken(id)
+      const cronjob = await makeCronUtil(CronModel).getByContent(id)
       if (is_proceeded || is_cancelled) {
         global.CronJobManager.deleteJob(cronjob.uuid)
       } else if (expiration_date) {
