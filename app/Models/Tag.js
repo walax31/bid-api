@@ -36,7 +36,7 @@ class Tag extends Model {
       'product_uuid',
       'uuid',
       'uuid'
-    ).pivotTable('product_tags')
+    ).pivotModel('App/Models/ProductTag')
   }
 }
 

@@ -91,8 +91,10 @@ class CredentialController {
     )
 
     // eslint-disable-next-line
-    const { uuid } = await makeCronUtil(CronModel).updateByContent(refreshToken, {
-      job_active: false })
+    const { uuid } = await makeCronUtil(CronModel).updateByContent(
+      refreshToken,
+      { job_active: false }
+    )
 
     global.CronJobManager.deleteJob(uuid)
 
