@@ -17,16 +17,14 @@ class CredentialController {
     })
 
     if (tokens) {
-      await makeCronUtil(CronModel).create(
-        { job_title: 'token', content: tokens.refreshToken },
-        ''
-      )
+      const { uuid } = await makeCronUtil(CronModel)
+        .create({ job_title: 'token', content: tokens.refreshToken })
+        .then(query => query.toJSON())
 
-      const { uuid } = await TokenModel.query()
+      await TokenModel.query()
         .where({ token: await Encryption.decrypt(tokens.refreshToken) })
         .with('user')
         .fetch()
-        .then(query => query.first().getRelated('user').toJSON())
 
       return {
         status: 200,
@@ -61,7 +59,7 @@ class CredentialController {
         ''
       )
 
-      const { uuid: user_uuid } = await TokenModel.query()
+      await TokenModel.query()
         .where({ token: await Encryption.decrypt(tokens.refreshToken) })
         .with('user')
         .fetch()
@@ -71,7 +69,7 @@ class CredentialController {
         status: 200,
         error: undefined,
         data: undefined,
-        tokens: { ...tokens, uuid: user_uuid }
+        tokens: { ...tokens, uuid }
       }
     }
 
@@ -86,7 +84,7 @@ class CredentialController {
   async logout ({ auth, request }) {
     const refreshToken = request.header('refreshToken')
 
-    const { data, error } = await performAuthentication(auth).logout(
+    const { token, error } = await performAuthentication(auth).logout(
       TokenModel,
       Encryption,
       refreshToken
@@ -101,7 +99,7 @@ class CredentialController {
     return {
       status: 200,
       error,
-      data
+      data: token
     }
   }
 }

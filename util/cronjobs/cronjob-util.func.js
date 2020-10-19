@@ -47,14 +47,16 @@ module.exports = function cronjobUtil (CronModel) {
         .then(response => response.first())
     },
     updateByToken: async (content, attributes, references) => {
-      await CronModel.findBy('content', content).then(async cron => {
+      const { uuid } = await CronModel.findBy('content', content).then(async cron => {
         cron.merge(attributes)
 
         await cron.save()
+
+        return cron.toJSON()
       })
 
       return withReferences(references)
-        .where({ content })
+        .where({ uuid })
         .fetch()
         .then(response => response.first())
     },

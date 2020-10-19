@@ -60,7 +60,7 @@ Route.group(() => {
     'cron:token'
   )
 
-  Route.post('/logout', 'CredentialController.logout').middleware('auth:customer,admin')
+  Route.get('/logout', 'CredentialController.logout').middleware('auth:customer,admin')
 
   Route.get(
     '/download/:section/:id',

@@ -93,16 +93,14 @@ class UserController {
     })
 
     if (tokens) {
-      await makeCronUtil(CronModel).create(
-        { job_title: 'token', content: tokens.refreshToken },
-        ''
-      )
+      const { uuid } = await makeCronUtil(CronModel)
+        .create({ job_title: 'token', content: tokens.refreshToken }, '')
+        .then(query => query.toJSON())
 
-      const { uuid } = await TokenModel.query()
+      await TokenModel.query()
         .where({ token: await Encryption.decrypt(tokens.refreshToken) })
         .with('user')
         .fetch()
-        .then(query => query.first().getRelated('user').toJSON())
 
       return {
         status: 200,

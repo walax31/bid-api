@@ -71,7 +71,7 @@ test('should be able to logout.', async ({ client, assert }) => {
   response.assertJSONSubset({ error: undefined })
 
   const nextResponse = await client
-    .post('/api/v1/logout')
+    .get('/api/v1/logout')
     .loginVia(user, 'jwt')
     .header('refreshToken', response.body.tokens.refreshToken)
     .end()

@@ -60,7 +60,7 @@ module.exports = function performAuthentication (auth) {
 
         //   if (error) throw new Error(error);
 
-        const { data, error } = await withRefreshTokenRevoked(
+        const { token, error } = await withRefreshTokenRevoked(
           TokenModel,
           Encryption,
           refreshToken
@@ -71,7 +71,7 @@ module.exports = function performAuthentication (auth) {
         // await auth.authenticator("jwt").revokeTokens([refreshToken]);
         // await auth.authenticator("jwt").revokeTokens();
 
-        return { data }
+        return { token }
       } catch (error) {
         return { error }
       }
