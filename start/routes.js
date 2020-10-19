@@ -162,6 +162,7 @@ Route.group(() => {
     ]))
 
   Route.put('/alerts', 'AlertController.bulkRead').middleware('auth:customer,admin')
+  Route.patch('/alerts', 'AlertController.bulkRead').middleware('auth:customer,admin')
 
   Route.resource('/tags', 'TagController')
     .validator(new Map([[['store'], ['StoreTag']]]))
