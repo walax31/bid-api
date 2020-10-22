@@ -4,16 +4,79 @@ const makeTesterUserUtil = require('../../util/testerUtil/autogenUserInstance.fu
 const makeTesterCustomerUtil = require('../../util/testerUtil/autogenCustomerInstance.func')
 const makeTesterAdminUtil = require('../../util/testerUtil/autogenAdminInstance.func')
 const makeTesterAddressUtil = require('../../util/testerUtil/autogenAddressInstance.func')
+const makeCronUtil = require('../../util/cronjobs/cronjob-util.func')
+const makeAlertUtil = require('../../util/alertUtil.func')
+const expireAlertUtil = require('../../util/cronjobs/expire-alert-util.func')
+const CronJobManager = require('cron-job-manager')
 
 const { test, trait } = use('Test/Suite')('Customer Controller')
 const UserModel = use('App/Models/User')
 const CustomerModel = use('App/Models/Customer')
 const AddressModel = use('App/Models/Address')
+const AlertModel = use('App/Models/Alert')
+const CronModel = use('App/Models/CronJob')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
 
 const urlEndPoint = '/api/v1/customers'
+
+async function generatePrerequisite (admin, user) {
+  const alert = await makeAlertUtil(AlertModel)
+    .create({
+      title: '',
+      user_uuid: admin.uuid,
+      type: 'verification',
+      content: '...',
+      reference: user.uuid,
+      accept: 'approve',
+      decline: 'reject'
+    })
+    .then(query => query.toJSON())
+
+  const cronjob = await makeCronUtil(CronModel).create({
+    job_title: 'alert',
+    content: alert.uuid
+  })
+
+  if (global.CronJobManager) {
+    global.CronJobManager.add(
+      cronjob.uuid,
+      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+      () =>
+        expireAlertUtil(
+          CronModel,
+          makeCronUtil,
+          cronjob.uuid,
+          AlertModel,
+          makeAlertUtil,
+          alert.uuid
+        ),
+      {
+        start: true,
+        timeZone: 'Asia/Bangkok'
+      }
+    )
+  } else {
+    global.CronJobManager = new CronJobManager(
+      cronjob.uuid,
+      new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+      () =>
+        expireAlertUtil(
+          CronModel,
+          makeCronUtil,
+          cronjob.uuid,
+          AlertModel,
+          makeAlertUtil,
+          alert.uuid
+        ),
+      {
+        start: true,
+        timeZone: 'Asia/Bangkok'
+      }
+    )
+  }
+}
 
 test('should return structured response with empty data array via get method.', async ({ client }) => {
   const admin = await makeTesterAdminUtil(UserModel)
@@ -97,6 +160,7 @@ test('should return structured response with references in an array via get meth
 })
 
 test('should return structured data with no references via post method.', async ({ client }) => {
+  const admin = await makeTesterAdminUtil(UserModel)
   const user = await makeTesterUserUtil(UserModel)
 
   const customerData = {
@@ -114,9 +178,11 @@ test('should return structured data with no references via post method.', async 
   response.assertJSONSubset({ data: customerData })
 
   await UserModel.find(user.uuid).then(query => query.delete())
+  await UserModel.find(admin.uuid).then(query => query.delete())
 })
 
 test('should return structured data with references via post method.', async ({ client }) => {
+  const admin = await makeTesterAdminUtil(UserModel)
   const user = await makeTesterUserUtil(UserModel)
 
   const customerData = {
@@ -135,6 +201,7 @@ test('should return structured data with references via post method.', async ({ 
   response.assertJSONSubset({ data: { user: { uuid: user.uuid } } })
 
   await UserModel.find(user.uuid).then(query => query.delete())
+  await UserModel.find(admin.uuid).then(query => query.delete())
 })
 
 test('should return structured data with no references via put method.', async ({ client }) => {
@@ -145,9 +212,12 @@ test('should return structured data with no references via put method.', async (
 
   await makeTesterAddressUtil(AddressModel, uuid)
 
+  generatePrerequisite(admin, user)
+
   const response = await client
     .put(`${urlEndPoint}/${user.uuid}`)
     .loginVia(admin, 'jwt')
+    .send({ is_validated: true })
     .end()
 
   response.assertStatus(200)
@@ -165,9 +235,12 @@ test('should return structured data with references via put method.', async ({ c
 
   const address = await makeTesterAddressUtil(AddressModel, uuid)
 
+  await generatePrerequisite(admin, user)
+
   const response = await client
     .put(`${urlEndPoint}/${user.uuid}`)
     .loginVia(admin, 'jwt')
+    .send({ is_validated: true })
     .query({ references: 'user,address' })
     .end()
 
