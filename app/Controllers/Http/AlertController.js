@@ -7,7 +7,7 @@ const makeAlertUtil = require('../../../util/alertUtil.func')
 const makeCronUtil = require('../../../util/cronjobs/cronjob-util.func')
 
 class AlertController {
-  async index ({ request }) {
+  async index ({ request, response }) {
     const { references = '', page, per_page } = request.qs
 
     const { rows, pages } = await makeAlertUtil(AlertModel).getAllValid(
@@ -17,15 +17,15 @@ class AlertController {
       per_page
     )
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       pages,
       data: rows
-    }
+    })
   }
 
-  async show ({ request }) {
+  async show ({ request, response }) {
     const { params, qs, user_uuid } = request
 
     const { id } = params
@@ -38,28 +38,28 @@ class AlertController {
       references
     )
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data: alert || {}
-    }
+    })
   }
 
-  async store ({ request }) {
+  async store ({ request, response }) {
     const { qs, body } = request
 
     const { references } = qs
 
     const alert = await makeAlertUtil(AlertModel).create(body, references)
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data: alert
-    }
+    })
   }
 
-  async update ({ request }) {
+  async update ({ request, response }) {
     const { params, qs, body } = request
 
     const { id } = params
@@ -75,11 +75,11 @@ class AlertController {
       )
 
       if (!alert) {
-        return {
+        return response.status(403).send({
           status: 403,
           error: 'Access denied. this alert does not belong to you.',
           data: undefined
-        }
+        })
       }
 
       const cronjob = await makeCronUtil(CronModel).getByContent(id)
@@ -96,11 +96,13 @@ class AlertController {
       references
     )
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
-      data: alert
-    }
+      data: alert,
+      alert,
+      broadcastType: 'remove'
+    })
   }
 
   async bulkRead ({ request, response }) {
@@ -129,27 +131,31 @@ class AlertController {
     }
 
     const alertPromises = alerts.map(alert =>
-      makeAlertUtil(AlertModel).updateById(alert, { is_read: true }))
+      makeAlertUtil(AlertModel)
+        .updateById(alert, { is_read: true })
+        .then(query => query.toJSON()))
 
     const results = await Promise.all(alertPromises)
 
     return {
       status: 200,
       error: undefined,
-      data: results
+      data: results,
+      alerts: results,
+      broadcastType: 'edit'
     }
   }
 
-  async destroy ({ request }) {
+  async destroy ({ request, response }) {
     const { id } = request.params
 
     await makeAlertUtil(AlertModel).deleteById(id)
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data: { message: `Alert ${id} is successfully removed.` }
-    }
+    })
   }
 }
 

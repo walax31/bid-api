@@ -59,6 +59,8 @@ class ProductDetailController {
       }
     }
 
+    const { end_date } = existingProduct.toJSON()
+
     const productDetail = await makeProductDetailUtil(ProductDetailModel).create(
       {
         uuid,
@@ -88,7 +90,8 @@ class ProductDetailController {
       status: 200,
       error: undefined,
       data: productDetail,
-      cron_uuid: cron.uuid
+      cron_uuid: cron.uuid,
+      end_date
     }
   }
 

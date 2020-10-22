@@ -2,10 +2,12 @@
 
 const performAuthentication = require('../../../util/authenticate.func')
 const makeCronUtil = require('../../../util/cronjobs/cronjob-util.func')
+const makeCustomerUtil = require('../../../util/CustomerUtil.func')
 
 const Encryption = use('Encryption')
 const TokenModel = use('App/Models/Token')
 const CronModel = use('App/Models/CronJob')
+const CustomerModel = use('App/Models/Customer')
 
 class CredentialController {
   async login ({ auth, request }) {
@@ -17,20 +19,24 @@ class CredentialController {
     })
 
     if (tokens) {
-      const { uuid } = await makeCronUtil(CronModel)
-        .create({ job_title: 'token', content: tokens.refreshToken })
-        .then(query => query.toJSON())
+      const { uuid: cron_uuid } = await makeCronUtil(CronModel).create({
+        job_title: 'token',
+        content: tokens.refreshToken
+      })
+      // .then(query => query.toJSON())
 
-      await TokenModel.query()
+      const { uuid } = await TokenModel.query()
         .where({ token: await Encryption.decrypt(tokens.refreshToken) })
         .with('user')
         .fetch()
+        .then(query => query.first().getRelated('user').toJSON())
 
       return {
         status: 200,
         error: undefined,
         data: undefined,
-        tokens: { ...tokens, uuid }
+        tokens: { ...tokens, uuid },
+        cron_uuid
       }
     }
 
@@ -48,18 +54,17 @@ class CredentialController {
     const { tokens, error } = await performAuthentication(auth).getNewToken(refreshToken)
 
     if (tokens) {
-      const { uuid } = await makeCronUtil(CronModel).getByContent(
-        refreshToken,
-        ''
-      )
+      const { uuid: cron_uuid } = await makeCronUtil(CronModel)
+        .getByContent(refreshToken, '')
+        .then(query => query.toJSON())
 
       await makeCronUtil(CronModel).updateById(
-        uuid,
+        cron_uuid,
         { content: tokens.refreshToken },
         ''
       )
 
-      await TokenModel.query()
+      const { uuid } = await TokenModel.query()
         .where({ token: await Encryption.decrypt(tokens.refreshToken) })
         .with('user')
         .fetch()
@@ -69,7 +74,8 @@ class CredentialController {
         status: 200,
         error: undefined,
         data: undefined,
-        tokens: { ...tokens, uuid }
+        tokens: { ...tokens, uuid },
+        cron_uuid
       }
     }
 
@@ -103,6 +109,49 @@ class CredentialController {
       error,
       data: token
     }
+  }
+
+  async authenticationCheck ({ request, response }) {
+    if (request.user_uuid) {
+      return response.status(200).send({
+        status: 200,
+        error: undefined,
+        data: undefined
+      })
+    }
+
+    return response.status(403).send({
+      status: 403,
+      error: 'Access denied. authentication failed.',
+      data: undefined
+    })
+  }
+
+  async validationCheck ({ request, response }) {
+    if (!request.customer_uuid) {
+      return response.status(403).send({
+        status: 403,
+        error: 'Access denied.',
+        data: undefined
+      })
+    }
+    // eslint-disable-next-line
+    const validatedCustomer = await makeCustomerUtil(
+      CustomerModel).hasCredentialValidated(request.customer_uuid)
+
+    if (!validatedCustomer) {
+      return response.status(403).send({
+        status: 403,
+        error: 'Access denied.',
+        data: undefined
+      })
+    }
+
+    return response.send({
+      status: 200,
+      error: undefined,
+      data: undefined
+    })
   }
 }
 

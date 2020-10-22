@@ -93,7 +93,7 @@ class UserController {
     })
 
     if (tokens) {
-      const { uuid } = await makeCronUtil(CronModel)
+      await makeCronUtil(CronModel)
         .create({ job_title: 'token', content: tokens.refreshToken }, '')
         .then(query => query.toJSON())
 
@@ -106,7 +106,7 @@ class UserController {
         status: 200,
         error: undefined,
         data,
-        tokens: { ...tokens, uuid }
+        tokens: { ...tokens, uuid: data.toJSON().uuid }
       }
     }
 
