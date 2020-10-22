@@ -55,12 +55,16 @@ Route.group(() => {
     'cron:token'
   ])
 
-  Route.post('/authenticate', 'CredentialController.reAuthenticate').middleware(
-    'auth:guest',
-    'cron:token'
-  )
+  Route.post(
+    '/authenticate',
+    'CredentialController.reAuthenticate'
+  ).middleware(['auth:guest', 'cron:token'])
 
   Route.get('/logout', 'CredentialController.logout').middleware('auth:customer,admin')
+
+  Route.get('/check', 'CredentialController.authenticationCheck').middleware('auth:all')
+
+  Route.get('/validation', 'CredentialController.validationCheck').middleware('auth:all')
 
   Route.get(
     '/download/:section/:id',
@@ -73,13 +77,18 @@ Route.group(() => {
   ).middleware('auth:all')
 
   Route.post('/upload', 'ImageController.uploadCredentialImage')
-    .middleware('auth:customer', 'credential')
+    .middleware([
+      'auth:customer',
+      'credential',
+      'cron:alert',
+      'broadcast:alert'
+    ])
     .validator('StoreCredential')
 
   Route.post(
     '/upload/:product_uuid',
     'ImageController.uploadProductImage'
-  ).middleware('auth:customer', 'credential:strict')
+  ).middleware(['auth:customer', 'credential:strict'])
 
   Route.resource('/credentialRatings', 'CredentialRatingController')
     .validator(new Map([[['store'], ['StoreCredentialRating']]]))
@@ -97,7 +106,7 @@ Route.group(() => {
       [['index'], ['auth:customer,admin', 'credential:strict']],
       [['show'], ['auth:customer,admin', 'credential:strict']],
       [['store'], ['auth:customer']],
-      [['update'], ['auth:customer,admin', 'broadcast:alert', 'cron:alert']],
+      [['update'], ['auth:customer,admin', 'cron:alert', 'broadcast:alert']],
       [['destroy'], ['auth:customer,admin']]
     ]))
 
@@ -151,18 +160,24 @@ Route.group(() => {
       [['destroy'], ['auth:customer', 'credential:strict']]
     ]))
 
+  Route.put('/alerts/read', 'AlertController.bulkRead').middleware([
+    'auth:customer,admin',
+    'broadcast:alert'
+  ])
+  Route.patch('/alerts/read', 'AlertController.bulkRead').middleware([
+    'auth:customer,admin',
+    'broadcast:alert'
+  ])
+
   Route.resource('/alerts', 'AlertController')
     .validator(new Map([[['store'], ['StoreAlert']]]))
     .middleware(new Map([
       [['index'], ['auth:customer,admin']],
       [['show'], ['auth:customer,admin']],
       [['store'], ['auth:customer,admin', 'credential:strict']],
-      [['update'], ['auth:customer,admin']],
+      [['update'], ['auth:customer,admin', 'broadcast:alert']],
       [['destroy'], ['auth:admin']]
     ]))
-
-  Route.put('/alerts', 'AlertController.bulkRead').middleware('auth:customer,admin')
-  Route.patch('/alerts', 'AlertController.bulkRead').middleware('auth:customer,admin')
 
   Route.resource('/tags', 'TagController')
     .validator(new Map([[['store'], ['StoreTag']]]))
