@@ -8,7 +8,7 @@ class ProductSchema extends Schema {
     this.create('products', table => {
       table.uuid('uuid').unique()
       table.string('product_name').notNullable()
-      table.time('end_date').notNullable().default(this.fn.now())
+      table.timestamp('end_date').notNullable().default(this.fn.now())
       table.integer('stock').notNullable().unsigned()
       table.boolean('is_biddable').notNullable().default(false)
       table.string('product_image').unique()

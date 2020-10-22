@@ -294,7 +294,7 @@ test('should return structured data with references via put method.', async ({ c
   const response = await client
     .put(`${API_ENDPOINT}/${alert.uuid}`)
     .loginVia(user, 'jwt')
-    .send({ is_proceeded: 1 })
+    .send({ is_proceeded: true })
     .query({ references: 'user' })
     .end()
 
@@ -332,7 +332,7 @@ test('should return bulk structured data with no references via put method.', as
     generatePrerequisite(cronjobs[index], alerts[index]))
 
   const response = await client
-    .put(API_ENDPOINT)
+    .put(`${API_ENDPOINT}/read`)
     .loginVia(user, 'jwt')
     .query({ list: alertUuids.join(',') })
     .end()

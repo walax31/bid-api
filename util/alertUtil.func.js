@@ -19,6 +19,11 @@ module.exports = function makeAlertUtil (AlertModel) {
         .where({ uuid, user_uuid })
         .fetch()
         .then(response => response.first()),
+    getByReference: (uuid, reference, references) =>
+      withReferences(references)
+        .where({ user_uuid: uuid, reference })
+        .fetch()
+        .then(response => response.first()),
     create: async (attributes, references) => {
       const { uuid } = await AlertModel.create(attributes).then(response =>
         response.toJSON())

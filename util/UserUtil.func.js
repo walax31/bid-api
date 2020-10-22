@@ -58,6 +58,11 @@ module.exports = function makeUserUtil (UserModel) {
         .fetch()
         .then(response => response.first()),
     deleteById: uuid =>
-      UserModel.find(uuid).then(response => response.delete())
+      UserModel.find(uuid).then(response => response.delete()),
+    getAllAdminId: () =>
+      UserModel.query()
+        .where({ is_admin: true })
+        .fetch()
+        .then(response => response.toJSON())
   }
 }

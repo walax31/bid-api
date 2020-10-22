@@ -1,8 +1,8 @@
-"use strict";
+'use strict'
 
 /** @type {import('@adonisjs/framework/src/Env')} */
-const Env = use("Env");
-const ms = require("ms");
+const Env = use('Env')
+const ms = require('ms')
 
 module.exports = {
   /*
@@ -17,7 +17,7 @@ module.exports = {
   | Available Serializers - lucid, database
   |
   */
-  authenticator: "jwt",
+  authenticator: 'jwt',
 
   /*
   |--------------------------------------------------------------------------
@@ -29,11 +29,11 @@ module.exports = {
   |
   */
   session: {
-    serializer: "lucid",
-    model: "App/Models/User",
-    scheme: "session",
-    uid: "email",
-    password: "password",
+    serializer: 'lucid',
+    model: 'App/Models/User',
+    scheme: 'session',
+    uid: 'email',
+    password: 'password'
   },
 
   /*
@@ -50,11 +50,11 @@ module.exports = {
   |
   */
   basic: {
-    serializer: "lucid",
-    model: "App/Models/User",
-    scheme: "basic",
-    uid: "email",
-    password: "password",
+    serializer: 'lucid',
+    model: 'App/Models/User',
+    scheme: 'basic',
+    uid: 'email',
+    password: 'password'
   },
 
   /*
@@ -67,16 +67,16 @@ module.exports = {
   |
   */
   jwt: {
-    serializer: "lucid",
-    model: "App/Models/User",
-    scheme: "jwt",
-    uid: "username",
-    password: "password",
+    serializer: 'lucid',
+    model: 'App/Models/User',
+    scheme: 'jwt',
+    uid: 'username',
+    password: 'password',
     options: {
-      secret: Env.get("APP_KEY"),
-      expiresIn: ms("60"),
+      secret: Env.get('APP_KEY'),
+      expiresIn: ms('600')
       // notBefore: ms("1h"),
-    },
+    }
   },
 
   /*
@@ -88,10 +88,10 @@ module.exports = {
   |
   */
   api: {
-    serializer: "lucid",
-    model: "App/Models/User",
-    scheme: "api",
-    uid: "username",
-    password: "password",
-  },
-};
+    serializer: 'lucid',
+    model: 'App/Models/User',
+    scheme: 'api',
+    uid: 'username',
+    password: 'password'
+  }
+}
