@@ -20,6 +20,8 @@ class Broadcast {
 
     // eslint-disable-next-line
     const { alert } = response._lazyBody.content
+    // eslint-disable-next-line
+    const { alerts } = response._lazyBody.content
 
     if (response.response.statusCode === 200) {
       if (properties.find(property => property === 'bid')) {
@@ -31,15 +33,31 @@ class Broadcast {
           response._lazyBody.content.data.toJSON()
         )
       } else if (properties.find(property => property === 'alert') && alert) {
-        broadcastAlert(
-          Ws,
-          alert.toJSON().user_uuid,
-          'new:alert',
-          // eslint-disable-next-line
-          response._lazyBody.content.alert.toJSON()
-        )
         // eslint-disable-next-line
-        response._lazyBody.content.alert = undefined
+        const { broadcastType = 'new' } = response._lazyBody.content
+
+        broadcastAlert(Ws, alert.user_uuid, `${broadcastType}:alert`, alert)
+        // eslint-disable-next-line
+        response._lazyBody.content.broadcastType = undefined
+      } else if (
+        properties.find(property => property === 'alert') &&
+        alerts &&
+        alerts.length
+      ) {
+        // eslint-disable-next-line
+        const { broadcastType = 'new' } = response._lazyBody.content
+        console.log(alerts)
+
+        alerts.forEach(alertInstance => {
+          broadcastAlert(
+            Ws,
+            alertInstance.user_uuid,
+            `${broadcastType}:alert`,
+            alertInstance
+          )
+        })
+        // eslint-disable-next-line
+        response._lazyBody.content.broadcastType = undefined
       }
     }
   }

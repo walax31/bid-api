@@ -60,7 +60,7 @@ class Auth {
    * @param {Request} ctx.request
    * @param {Function} next
    */
-  async wsHandle ({ request }, next) {
+  async wsHandle ({ request, auth }, next) {
     // call next to advance the request
     await next()
   }
