@@ -11,6 +11,11 @@ class Product extends Model {
     this.addHook('beforeCreate', async productInstance => {
       productInstance.uuid = uuidv4()
     })
+    this.addHook('beforeSave', async productInstance => {
+      if (productInstance.dirty.end_date) {
+        productInstance.end_date = new Date(productInstance.dirty.end_date)
+      }
+    })
   }
 
   static get incrementing () {
