@@ -40,7 +40,9 @@ const namedMiddleware = {
   // logger: "App/Middleware/Logger",
   validator: 'App/Middleware/Validator',
   cron: 'App/Middleware/CronInitiate',
-  broadcast: 'App/Middleware/Broadcast'
+  broadcast: 'App/Middleware/Broadcast',
+  broadcastHandler: 'App/Middleware/BroadcastHandler',
+  cronjobHandler: 'App/Middleware/CronjobHandler'
 }
 
 /*

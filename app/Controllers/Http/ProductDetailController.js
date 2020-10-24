@@ -90,8 +90,16 @@ class ProductDetailController {
       status: 200,
       error: undefined,
       data: productDetail,
-      cron_uuid: cron.uuid,
-      end_date
+      // cron_uuid: cron.uuid,
+      // end_date,
+      cronjobProperties: [
+        {
+          cronjobType: 'order',
+          uuid: cron.uuid,
+          cronjobDate: new Date(end_date),
+          cronjobReferences: { order_quantity: 1 }
+        }
+      ]
     }
   }
 

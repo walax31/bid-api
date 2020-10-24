@@ -45,20 +45,20 @@ Route.group(() => {
     .middleware(new Map([
       [['index'], ['auth:admin']],
       [['show'], ['auth:customer,admin']],
-      [['store'], ['auth:guest', 'cron:token']],
+      [['store'], ['auth:guest', 'cronjobHandler']],
       [['update'], ['auth:customer,admin']],
       [['destroy'], ['auth:admin']]
     ]))
 
   Route.post('/login', 'CredentialController.login').middleware([
     'auth:guest',
-    'cron:token'
+    'cronjobHandler'
   ])
 
   Route.post(
     '/authenticate',
     'CredentialController.reAuthenticate'
-  ).middleware(['auth:guest', 'cron:token'])
+  ).middleware(['auth:guest', 'cronjobHandler'])
 
   Route.get('/logout', 'CredentialController.logout').middleware('auth:customer,admin')
 
@@ -80,8 +80,8 @@ Route.group(() => {
     .middleware([
       'auth:customer',
       'credential',
-      'cron:alert',
-      'broadcast:alert'
+      'cronjobHandler',
+      'broadcastHandler'
     ])
     .validator('StoreCredential')
 
@@ -106,7 +106,10 @@ Route.group(() => {
       [['index'], ['auth:customer,admin', 'credential:strict']],
       [['show'], ['auth:customer,admin', 'credential:strict']],
       [['store'], ['auth:customer']],
-      [['update'], ['auth:customer,admin', 'cron:alert', 'broadcast:alert']],
+      [
+        ['update'],
+        ['auth:customer,admin', 'cronjobHandler', 'broadcastHandler']
+      ],
       [['destroy'], ['auth:customer,admin']]
     ]))
 
@@ -145,7 +148,10 @@ Route.group(() => {
     .middleware(new Map([
       [['index'], ['auth:all']],
       [['show'], ['auth:all']],
-      [['store'], ['auth:customer,admin', 'credential:strict', 'cron:order']],
+      [
+        ['store'],
+        ['auth:customer,admin', 'credential:strict', 'cronjobHandler']
+      ],
       [['update'], ['auth:admin']],
       [['destroy'], ['auth:admin']]
     ]))
@@ -162,11 +168,11 @@ Route.group(() => {
 
   Route.put('/alerts/read', 'AlertController.bulkRead').middleware([
     'auth:customer,admin',
-    'broadcast:alert'
+    'broadcastHandler'
   ])
   Route.patch('/alerts/read', 'AlertController.bulkRead').middleware([
     'auth:customer,admin',
-    'broadcast:alert'
+    'broadcastHandler'
   ])
 
   Route.resource('/alerts', 'AlertController')
@@ -175,7 +181,7 @@ Route.group(() => {
       [['index'], ['auth:customer,admin']],
       [['show'], ['auth:customer,admin']],
       [['store'], ['auth:customer,admin', 'credential:strict']],
-      [['update'], ['auth:customer,admin', 'broadcast:alert']],
+      [['update'], ['auth:customer,admin', 'broadcastHandler']],
       [['destroy'], ['auth:admin']]
     ]))
 

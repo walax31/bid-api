@@ -153,14 +153,25 @@ class ImageController {
         const cronjobs = await Promise.all(cronjobPromises)
 
         const customer = await makeCustomerUtil(CustomerModel).updateById(customer_uuid, { path_to_credential: fileList.length ? fileList.join(',') : undefined })
-        console.log(alerts, cronjobs)
 
         return response.send({
           status: 200,
           error: undefined,
           data: customer,
-          alerts,
-          cronjobs
+          // alerts,
+          // cronjobs
+          broadcastProps: alerts.map(alert => ({
+            broadcastContent: alert,
+            broadcastType: 'new',
+            broadcastChannel: 'alert',
+            broadcastTopic: alert.user_uuid
+          })),
+          cronjobProperties: cronjobs.map((cronjob, index) => ({
+            cronjobType: 'alert',
+            uuid: cronjob.uuid,
+            cronjobDate: new Date(new Date().setHours(new Date().getHours() + 24)),
+            cronjobReferences: { alert: alerts[index] }
+          }))
         })
       } catch (error) {
         return response.status(400).send({
@@ -219,16 +230,16 @@ class ImageController {
 
         const product = await makeProductUtil(ProductModel).updateById(product_uuid, { product_image: fileList.length ? fileList.join(',') : undefined })
 
-        response.send({ status: 200, error: undefined, data: product })
+        return response.send({ status: 200, error: undefined, data: product })
       } catch (error) {
-        response.status(400).send({
+        return response.status(400).send({
           status: 400,
           error: error.toString(),
           data: undefined
         })
       }
     } else {
-      response.status(403).send({
+      return response.status(403).send({
         status: 403,
         error: 'Access denied. product does not belong to customer.',
         data: undefined

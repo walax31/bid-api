@@ -100,8 +100,16 @@ class AlertController {
       status: 200,
       error: undefined,
       data: alert,
-      alert,
-      broadcastType: 'remove'
+      // alert,
+      // broadcastType: 'remove'
+      broadcastProps: [
+        {
+          broadcastContent: alert,
+          broadcastType: 'remove',
+          broadcastChannel: 'alert',
+          broadcastTopic: alert.user_uuid
+        }
+      ]
     })
   }
 
@@ -125,7 +133,7 @@ class AlertController {
     if (unverifiedAlerts.find(alert => alert === undefined)) {
       return response.status(403).send({
         status: 403,
-        error: 'Access denied. alerts do not belong to user.',
+        error: 'Access denied. alert(s) do not belong to user.',
         data: undefined
       })
     }
@@ -141,8 +149,14 @@ class AlertController {
       status: 200,
       error: undefined,
       data: results,
-      alerts: results,
-      broadcastType: 'edit'
+      // alerts: results,
+      // broadcastType: 'edit'
+      broadcastProps: results.map(alert => ({
+        broadcastContent: alert,
+        broadcastType: 'edit',
+        broadcastChannel: 'alert',
+        broadcastTopic: alert.user_uuid
+      }))
     }
   }
 

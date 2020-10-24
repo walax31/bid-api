@@ -54,7 +54,15 @@ class BidController {
     return {
       status: 200,
       error: undefined,
-      data: bid
+      data: bid,
+      broadcastProps: [
+        {
+          broadcastContent: bid.toJSON(),
+          broadcastType: 'new',
+          broadcastChannel: 'product',
+          broadcastTopic: product_uuid
+        }
+      ]
     }
   }
 

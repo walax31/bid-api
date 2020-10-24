@@ -93,7 +93,7 @@ class UserController {
     })
 
     if (tokens) {
-      await makeCronUtil(CronModel)
+      const { uuid: cron_uuid } = await makeCronUtil(CronModel)
         .create({ job_title: 'token', content: tokens.refreshToken }, '')
         .then(query => query.toJSON())
 
@@ -106,7 +106,16 @@ class UserController {
         status: 200,
         error: undefined,
         data,
-        tokens: { ...tokens, uuid: data.toJSON().uuid }
+        tokens: { ...tokens, uuid: data.toJSON().uuid },
+        cronjobProperties: [
+          {
+            cronjobType: 'token',
+            uuid: cron_uuid,
+            // cronjobDate: new Date(new Date().setDate(new Date().getDate() + 7)),
+            cronjobDate: new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+            cronjobReferences: { refreshToken: tokens.refreshToken }
+          }
+        ]
       }
     }
 

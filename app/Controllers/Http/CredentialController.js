@@ -36,7 +36,15 @@ class CredentialController {
         error: undefined,
         data: undefined,
         tokens: { ...tokens, uuid },
-        cron_uuid
+        // cron_uuid,
+        cronjobProperties: [
+          {
+            cronjobType: 'token',
+            uuid: cron_uuid,
+            cronjobDate: new Date(new Date().setDate(new Date().getDate() + 7)),
+            cronjobReferences: { refreshToken: tokens.refreshToken }
+          }
+        ]
       }
     }
 
@@ -75,7 +83,15 @@ class CredentialController {
         error: undefined,
         data: undefined,
         tokens: { ...tokens, uuid },
-        cron_uuid
+        // cron_uuid,
+        cronjobProperties: [
+          {
+            cronjobType: 'token',
+            uuid: cron_uuid,
+            cronjobDate: new Date(new Date().setDate(new Date().getDate() + 7)),
+            cronjobReferences: { refreshToken: tokens.refreshToken }
+          }
+        ]
       }
     }
 

@@ -1,4 +1,4 @@
-"use strict";
+'use strict'
 
 module.exports = {
   /*
@@ -20,7 +20,7 @@ module.exports = {
     | is over 1mb it will not be processed.
     |
     */
-    limit: "1mb",
+    limit: '1mb',
 
     /*
     |--------------------------------------------------------------------------
@@ -44,11 +44,11 @@ module.exports = {
     |
     */
     types: [
-      "application/json",
-      "application/json-patch+json",
-      "application/vnd.api+json",
-      "application/csp-report",
-    ],
+      'application/json',
+      'application/json-patch+json',
+      'application/vnd.api+json',
+      'application/csp-report'
+    ]
   },
 
   /*
@@ -59,9 +59,7 @@ module.exports = {
   |
   |
   */
-  raw: {
-    types: ["text/*"],
-  },
+  raw: { types: ['text/*'] },
 
   /*
   |--------------------------------------------------------------------------
@@ -71,9 +69,7 @@ module.exports = {
   |
   |
   */
-  form: {
-    types: ["application/x-www-form-urlencoded"],
-  },
+  form: { types: ['application/x-www-form-urlencoded'] },
 
   /*
   |--------------------------------------------------------------------------
@@ -84,7 +80,7 @@ module.exports = {
   |
   */
   files: {
-    types: ["multipart/form-data"],
+    types: ['multipart/form-data'],
 
     /*
     |--------------------------------------------------------------------------
@@ -101,7 +97,7 @@ module.exports = {
     | Also this value is considered when `autoProcess` is set to true.
     |
     */
-    maxSize: "20mb",
+    maxSize: '20mb',
 
     /*
     |--------------------------------------------------------------------------
@@ -116,7 +112,7 @@ module.exports = {
     | to be autoprocessed.
     */
     // autoProcess: true,
-    autoProcess: false,
+    autoProcess: false
 
     /*
     |--------------------------------------------------------------------------
@@ -148,5 +144,5 @@ module.exports = {
     | }
     |
     */
-  },
-};
+  }
+}
