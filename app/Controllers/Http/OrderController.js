@@ -1,37 +1,41 @@
 'use strict'
 
-const Order = use('App/Models/Order')
-const Customer = use('App/Models/Customer')
-const Product = use('App/Models/Product')
+const OrderModel = use('App/Models/Order')
+const CustomerModel = use('App/Models/Customer')
+const ProductModel = use('App/Models/Product')
 
 const makeOrderUtil = require('../../../util/OrderUtil.func')
 const makeCustomerUtil = require('../../../util/CustomerUtil.func')
 const makeProductUtil = require('../../../util/ProductUtil.func')
 
 class OrderController {
-  async index ({ request }) {
+  async index ({ request, response }) {
     const { references } = request.qs
 
     switch (request.role) {
       case 'admin': {
-        const orders = await makeOrderUtil(Order).getAll(references)
+        const orders = await makeOrderUtil(OrderModel).getAll(references)
 
-        return { status: 200, error: undefined, data: orders }
+        return response.send({ status: 200, error: undefined, data: orders })
       }
       case 'customer': {
-        const customerOrders = await makeOrderUtil(Order).getAll(
+        const customerOrders = await makeOrderUtil(OrderModel).getAll(
           references,
           request.customer_uuid
         )
 
-        return { status: 200, error: undefined, data: customerOrders }
+        return response.send({
+          status: 200,
+          error: undefined,
+          data: customerOrders
+        })
       }
       default:
-        return { status: 200, error: undefined, data: undefined }
+        return response.send({ status: 200, error: undefined, data: undefined })
     }
   }
 
-  async show ({ request }) {
+  async show ({ request, response }) {
     const { params, qs } = request
 
     const { id } = params
@@ -40,25 +44,33 @@ class OrderController {
 
     switch (request.role) {
       case 'admin': {
-        const order = await makeOrderUtil(Order).getById(id, references)
+        const order = await makeOrderUtil(OrderModel).getById(id, references)
 
-        return { status: 200, error: undefined, data: order || {} }
+        return response.send({
+          status: 200,
+          error: undefined,
+          data: order || {}
+        })
       }
       case 'customer': {
-        const customerOrder = await makeOrderUtil(Order).getById(
+        const customerOrder = await makeOrderUtil(OrderModel).getById(
           id,
           references,
           request.customer_uuid
         )
 
-        return { status: 200, error: undefined, data: customerOrder || {} }
+        return response.send({
+          status: 200,
+          error: undefined,
+          data: customerOrder || {}
+        })
       }
       default:
-        return { status: 200, error: undefined, data: undefined }
+        return response.send({ status: 200, error: undefined, data: undefined })
     }
   }
 
-  async store ({ request }) {
+  async store ({ request, response }) {
     const { body, qs } = request
 
     const { customer_uuid, product_uuid, order_quantity, bid_uuid } = body
@@ -66,44 +78,44 @@ class OrderController {
     const { references } = qs
 
     // eslint-disable-next-line
-    const existingBidOnYourProduct = await makeProductUtil(Product)
+    const existingBidOnYourProduct = await makeProductUtil(ProductModel)
       .findExistingBidOnThisProductViaCustomer(customer_uuid, product_uuid)
       .then(query => query.toJSON())
 
     if (!existingBidOnYourProduct) {
-      return {
+      return response.status(404).send({
         status: 404,
         error: 'Bid not found. this user never put a bid on your product.',
         data: undefined
-      }
+      })
     }
 
     // eslint-disable-next-line
     const existingOrderOnThisCustomer = await makeCustomerUtil(
-      Customer).findExistingOrder(customer_uuid, product_uuid)
+      CustomerModel).findExistingOrder(customer_uuid, product_uuid)
 
     if (existingOrderOnThisCustomer) {
-      return {
+      return response.status(500).send({
         status: 500,
         error:
           'Duplicate order. order on this specific user has already existed.',
         data: undefined
-      }
+      })
     }
 
-    const data = await makeOrderUtil(Order).create(
+    const data = await makeOrderUtil(OrderModel).create(
       { customer_uuid, product_uuid, order_quantity, bid_uuid },
       references
     )
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data
-    }
+    })
   }
 
-  async update ({ request }) {
+  async update ({ request, response }) {
     const { body, params, qs } = request
 
     const { id } = params
@@ -112,43 +124,43 @@ class OrderController {
 
     const { customer_uuid, product_uuid, order_quantity, bid_uuid } = body
 
-    const existingOrder = await makeOrderUtil(Order).getById(id)
+    const existingOrder = await makeOrderUtil(OrderModel).getById(id)
 
     if (!existingOrder) {
-      return {
+      return response.status(404).send({
         status: 404,
         error: 'Order not found. order you are looking for does not exist.',
         data: undefined
-      }
+      })
     }
 
-    const order = await makeOrderUtil(Order).updateById(
+    const order = await makeOrderUtil(OrderModel).updateById(
       id,
       { customer_uuid, product_uuid, order_quantity, bid_uuid },
       references
     )
 
-    return { status: 200, error: undefined, data: order }
+    return response.send({ status: 200, error: undefined, data: order })
   }
 
-  async destroy ({ request }) {
+  async destroy ({ request, response }) {
     const { id } = request.params
 
-    const order = await makeOrderUtil(Order).deleteById(id)
+    const order = await makeOrderUtil(OrderModel).deleteById(id)
 
     if (!order) {
-      return {
+      return response.status(404).send({
         status: 404,
         error: 'Order not found. order you are looking for does not exist.',
         data: undefined
-      }
+      })
     }
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data: 'Order is successfully removed.'
-    }
+    })
   }
 }
 

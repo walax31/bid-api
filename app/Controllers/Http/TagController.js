@@ -2,13 +2,13 @@
 
 const makeTagUtil = require('../../../util/tagUtil.func')
 
-const Tag = use('App/Models/Tag')
+const TagModel = use('App/Models/Tag')
 
 class TagController {
   async index ({ request }) {
     const { references, page, per_page } = request.qs
 
-    const { rows, pages } = await makeTagUtil(Tag).getAll(
+    const { rows, pages } = await makeTagUtil(TagModel).getAll(
       references,
       page,
       per_page
@@ -29,7 +29,7 @@ class TagController {
 
     const { references } = qs
 
-    const tag = await makeTagUtil(Tag).getById(id, references)
+    const tag = await makeTagUtil(TagModel).getById(id, references)
 
     return {
       status: 200,
@@ -45,13 +45,33 @@ class TagController {
 
     const { references } = qs
 
-    const tag = await makeTagUtil(Tag).create({ tag_name }, references)
+    const tag = await makeTagUtil(TagModel).create({ tag_name }, references)
 
     return {
       status: 200,
       error: undefined,
       data: tag
     }
+  }
+
+  async getTagSort ({ request, response }) {
+    const { limit = 10 } = request.qs
+
+    const tags = await TagModel.query()
+      .withCount('products as products')
+      .fetch()
+      .then(query => query.toJSON())
+
+    const sortedTags = await tags
+      // eslint-disable-next-line
+      .sort((a, b) => b.__meta__.products.length - a.__meta__.products.length)
+      .slice(0, limit)
+
+    return response.send({
+      status: 200,
+      error: undefined,
+      data: sortedTags.map(sortedTag => sortedTag.tag_name)
+    })
   }
 
   async update ({ request }) {
@@ -63,7 +83,11 @@ class TagController {
 
     const { tag_name } = body
 
-    const tag = await makeTagUtil(Tag).updateById(id, { tag_name }, references)
+    const tag = await makeTagUtil(TagModel).updateById(
+      id,
+      { tag_name },
+      references
+    )
 
     return {
       status: 200,
@@ -75,7 +99,7 @@ class TagController {
   async destroy ({ request }) {
     const { id } = request.params
 
-    const tag = await makeTagUtil(Tag).deleteById(id)
+    const tag = await makeTagUtil(TagModel).deleteById(id)
 
     return {
       status: 200,

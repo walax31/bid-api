@@ -12,7 +12,7 @@ class CustomerSchema extends Schema {
       table.string('path_to_credential').unique()
       table.boolean('is_validated').notNullable().default(false)
       table.boolean('is_rejected').notNullable().default(false)
-      table.uuid('user_uuid').notNullable()
+      table.uuid('user_uuid').notNullable().unique()
       table.timestamps()
 
       table

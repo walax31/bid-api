@@ -10,6 +10,8 @@ class UserSchema extends Schema {
       table.string('username', 80).notNullable().unique()
       table.string('email', 254).notNullable().unique()
       table.string('password', 60).notNullable()
+      table.string('profile_path')
+      table.string('description')
       table.boolean('is_admin').notNullable().default(false)
       table.boolean('is_submitted').notNullable().default(false)
       table.boolean('is_banned').notNullable().default(false)

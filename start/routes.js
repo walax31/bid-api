@@ -67,16 +67,21 @@ Route.group(() => {
   Route.get('/validation', 'CredentialController.validationCheck').middleware('auth:all')
 
   Route.get(
-    '/download/:section/:id',
+    '/download/credential/:id',
     'ImageController.downloadCredentialImage'
   ).middleware('auth:customer,admin')
 
   Route.get(
-    '/download/:section/:product_uuid/:id',
+    '/download/product/:product_uuid/:id',
     'ImageController.downloadProductImage'
   ).middleware('auth:all')
 
-  Route.post('/upload', 'ImageController.uploadCredentialImage')
+  Route.get(
+    '/download/profile/:id',
+    'ImageController.downloadProfileImage'
+  ).middleware('auth:all')
+
+  Route.post('/upload/credential', 'ImageController.uploadCredentialImage')
     .middleware([
       'auth:customer',
       'credential',
@@ -86,9 +91,14 @@ Route.group(() => {
     .validator('StoreCredential')
 
   Route.post(
-    '/upload/:product_uuid',
+    '/upload/product/:product_uuid',
     'ImageController.uploadProductImage'
   ).middleware(['auth:customer', 'credential:strict'])
+
+  Route.post(
+    '/upload/profile',
+    'ImageController.uploadProfileImage'
+  ).middleware('auth:customer')
 
   Route.resource('/credentialRatings', 'CredentialRatingController')
     .validator(new Map([[['store'], ['StoreCredentialRating']]]))
@@ -132,6 +142,26 @@ Route.group(() => {
       [['update'], ['auth:admin']],
       [['destroy'], ['auth:admin']]
     ]))
+
+  Route.post(
+    '/products/specifications/:id',
+    'ProductController.addSpecification'
+  ).middleware(['auth:customer', 'credential:strict'])
+
+  Route.delete(
+    '/products/specifications/:id/:type/:name',
+    'ProductController.removeSpecification'
+  ).middleware(['auth:customer', 'credential:strict'])
+
+  Route.post('/products/tags/:id', 'ProductController.addTag').middleware([
+    'auth:customer',
+    'credential:strict'
+  ])
+
+  Route.delete(
+    '/products/tags/:id/:tag_name',
+    'ProductController.removeTag'
+  ).middleware(['auth:customer', 'credential:strict'])
 
   Route.resource('/products', 'ProductController')
     .validator(new Map([[['store'], ['StoreProduct']]]))
@@ -185,6 +215,8 @@ Route.group(() => {
       [['destroy'], ['auth:admin']]
     ]))
 
+  Route.get('/tags/sort', 'TagController.getTagSort')
+
   Route.resource('/tags', 'TagController')
     .validator(new Map([[['store'], ['StoreTag']]]))
     .middleware(new Map([
@@ -194,4 +226,6 @@ Route.group(() => {
       [['update'], ['auth:admin']],
       [['destroy'], ['auth:admin']]
     ]))
+
+  Route.resource('/specifications', 'SpecificationController').middleware('auth:customer')
 }).prefix('api/v1')

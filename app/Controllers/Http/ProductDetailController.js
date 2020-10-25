@@ -11,17 +11,17 @@ const makeCustomerUtil = require('../../../util/CustomerUtil.func')
 const makeCronUtil = require('../../../util/cronjobs/cronjob-util.func')
 
 class ProductDetailController {
-  async index ({ request }) {
+  async index ({ request, response }) {
     const { references, page, per_page } = request.qs
 
     // eslint-disable-next-line
     const { rows, pages } = await makeProductDetailUtil(
       ProductDetailModel).getAll(references, page, per_page)
 
-    return { status: 200, error: undefined, pages, data: rows }
+    return response.send({ status: 200, error: undefined, pages, data: rows })
   }
 
-  async show ({ request }) {
+  async show ({ request, response }) {
     const { params, qs } = request
 
     const { id } = params
@@ -30,18 +30,21 @@ class ProductDetailController {
 
     const productDetail = await makeProductDetailUtil(ProductDetailModel).getById(id, references)
 
-    return { status: 200, error: undefined, data: productDetail || {} }
+    return response.send({
+      status: 200,
+      error: undefined,
+      data: productDetail || {}
+    })
   }
 
-  async store ({ request }) {
+  async store ({ request, response }) {
     const { body, qs } = request
 
     const {
       uuid,
       product_price,
       product_bid_start,
-      product_bid_increment,
-      product_description
+      product_bid_increment
     } = body
 
     const { references } = qs
@@ -51,12 +54,12 @@ class ProductDetailController {
       CustomerModel).findProductOnAuthUser(request.customer_uuid, uuid)
 
     if (!existingProduct) {
-      return {
+      return response.status(404).send({
         status: 404,
         error:
           'Product not found. these product does not seems like it belong to your or product does not seem to exist.',
         data: undefined
-      }
+      })
     }
 
     const { end_date } = existingProduct.toJSON()
@@ -66,8 +69,7 @@ class ProductDetailController {
         uuid,
         product_price,
         product_bid_start,
-        product_bid_increment,
-        product_description
+        product_bid_increment
       },
       references
     )
@@ -75,10 +77,10 @@ class ProductDetailController {
     const flaggedProduct = await makeProductUtil(ProductModel).flagProductAsBiddable(uuid)
 
     if (!flaggedProduct) {
-      return {
+      return response.status(500).send({
         status: 500,
         error: 'Internal error. failed to flag product as biddable.'
-      }
+      })
     }
 
     const cron = await makeCronUtil(CronModel).create(
@@ -86,7 +88,7 @@ class ProductDetailController {
       ''
     )
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data: productDetail,
@@ -100,10 +102,10 @@ class ProductDetailController {
           cronjobReferences: { order_quantity: 1 }
         }
       ]
-    }
+    })
   }
 
-  async update ({ request }) {
+  async update ({ request, response }) {
     const { body, params, qs } = request
 
     const { id } = params
@@ -113,44 +115,38 @@ class ProductDetailController {
     const product = await makeProductDetailUtil(ProductDetailModel).getById(id)
 
     if (!product) {
-      return {
+      return response.status(404).send({
         status: 404,
         error: 'Product not found. product you are looking for does not exist.',
         data: undefined
-      }
+      })
     }
 
-    const {
-      product_price,
-      product_bid_start,
-      product_bid_increment,
-      product_description
-    } = body
+    const { product_price, product_bid_start, product_bid_increment } = body
 
     const productDetail = await makeProductDetailUtil(ProductDetailModel).updateById(
       id,
       {
         product_price,
         product_bid_start,
-        product_bid_increment,
-        product_description
+        product_bid_increment
       },
       references
     )
 
-    return { status: 200, error: undefined, data: productDetail }
+    return response.send({ status: 200, error: undefined, data: productDetail })
   }
 
-  async destroy ({ request }) {
+  async destroy ({ request, response }) {
     const { id } = request.params
 
     await makeProductDetailUtil(ProductDetailModel).deleteById(id)
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data: `productDetail ${id} is successfully removed.`
-    }
+    })
   }
 }
 

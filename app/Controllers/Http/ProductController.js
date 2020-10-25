@@ -1,47 +1,60 @@
 'use strict'
 
-const Product = use('App/Models/Product')
-const Customer = use('App/Models/Customer')
+const ProductModel = use('App/Models/Product')
+const CustomerModel = use('App/Models/Customer')
+const TagModel = use('App/Models/Tag')
+const SpecificationModel = use('App/Models/Specification')
 const Drive = use('Drive')
 
 const makeProductUtil = require('../../../util/ProductUtil.func')
 const makeCustomerUtil = require('../../../util/CustomerUtil.func')
 
+const AVIALABLE_TYPE = [
+  'color',
+  'size',
+  'width',
+  'height',
+  'volumn',
+  'weight',
+  'brand',
+  'model'
+]
+
 class ProductController {
-  async index ({ request }) {
+  async index ({ request, response }) {
     const { references, page, per_page } = request.qs
 
     switch (request.role) {
       case 'admin': {
-        const products = await makeProductUtil(Product).getAll(
+        const products = await makeProductUtil(ProductModel).getAll(
           references,
           page,
           per_page
         )
 
-        return {
+        return response.send({
           status: 200,
           error: undefined,
           pages: products.pages,
           data: products.rows
-        }
+        })
       }
       default: {
         // eslint-disable-next-line
         const biddableProducts = await makeProductUtil(
-          Product).bulkHasBiddableFlag(references, page, per_page)
+          ProductModel).bulkHasBiddableFlag(references, page, per_page)
 
-        return {
+        return response.send({
           status: 200,
           error: undefined,
           pages: biddableProducts.pages,
           data: biddableProducts.rows
-        }
+        })
       }
     }
   }
 
-  async show ({ request }) {
+  async show ({ request, response }) {
     const { params, qs } = request
 
     const { id } = params
@@ -50,21 +63,25 @@ class ProductController {
 
     switch (request.role) {
       case 'admin': {
-        const product = await makeProductUtil(Product).getById(id, references)
-
-        return { status: 200, error: undefined, data: product || {} }
-      }
-      default: {
-        const biddableProduct = await makeProductUtil(Product).hasBiddableFlag(
+        const product = await makeProductUtil(ProductModel).getById(
           id,
           references
         )
 
-        return {
+        return response.send({
+          status: 200,
+          error: undefined,
+          data: product || {}
+        })
+      }
+      default: {
+        const biddableProduct = await makeProductUtil(ProductModel).hasBiddableFlag(id, references)
+
+        return response.send({
           status: 200,
           error: undefined,
           data: biddableProduct || {}
-        }
+        })
       }
     }
   }
@@ -76,7 +93,7 @@ class ProductController {
 
     const { references } = qs
 
-    const product = await makeProductUtil(Product).create(
+    const product = await makeProductUtil(ProductModel).create(
       {
         customer_uuid: request.customer_uuid,
         product_name,
@@ -86,14 +103,165 @@ class ProductController {
       references
     )
 
-    response.send({
+    return response.send({
       status: 200,
       error: undefined,
       data: product
     })
   }
 
-  async update ({ request }) {
+  async addTag ({ request, response }) {
+    const { body, qs, params } = request
+
+    const { tag_name } = body
+
+    const { references } = qs
+
+    const { id } = params
+
+    try {
+      const tag = await TagModel.findOrCreate({ tag_name }, { tag_name })
+
+      const product = await ProductModel.findOrFail(id)
+
+      await product.tags().attach([tag.uuid])
+
+      const taggedProduct = await makeProductUtil(ProductModel).getById(
+        id,
+        references
+      )
+
+      return response.send({
+        status: 200,
+        error: undefined,
+        data: taggedProduct
+      })
+    } catch (e) {
+      return response.status(403).send({
+        status: 404,
+        error: e.toString(),
+        data: undefined
+      })
+    }
+  }
+
+  async removeTag ({ request, response }) {
+    const { qs, params } = request
+
+    const { references } = qs
+
+    const { id, tag_name } = params
+
+    try {
+      const tag = await TagModel.findByOrFail({ tag_name })
+
+      const product = await ProductModel.findOrFail(id)
+
+      await product.tags().detach([tag.uuid])
+
+      const taggedProduct = await makeProductUtil(ProductModel).getById(
+        id,
+        references
+      )
+
+      return response.send({
+        status: 200,
+        error: undefined,
+        data: taggedProduct
+      })
+    } catch (e) {
+      return response.status(404).send({
+        status: 404,
+        error: e.toString(),
+        data: undefined
+      })
+    }
+  }
+
+  async addSpecification ({ request, response }) {
+    const { body, qs, params } = request
+
+    const { name, type } = body
+
+    const { references } = qs
+
+    const { id } = params
+
+    if (!AVIALABLE_TYPE.find(spec => spec === type)) {
+      return response
+        .status(404)
+        .send({ status: 404, error: 'Type not found.', data: undefined })
+    }
+
+    try {
+      const specification = await SpecificationModel.findOrCreate(
+        {
+          name,
+          type
+        },
+        { name, type }
+      )
+
+      const product = await ProductModel.findOrFail(id)
+
+      await product.specifications().attach([specification.uuid])
+
+      const specifiedProduct = await makeProductUtil(ProductModel).getById(
+        id,
+        references
+      )
+
+      return response.send({
+        status: 200,
+        error: undefined,
+        data: specifiedProduct
+      })
+    } catch (e) {
+      return response.status(404).send({
+        status: 404,
+        error: e.toString(),
+        data: undefined
+      })
+    }
+  }
+
+  async removeSpecification ({ request, response }) {
+    const { qs, params } = request
+
+    const { references } = qs
+
+    const { id, name, type } = params
+
+    try {
+      const specification = await SpecificationModel.findByOrFail({
+        name,
+        type
+      })
+
+      const product = await ProductModel.findOrFail(id)
+
+      await product.specifications().detach([specification.uuid])
+
+      const specifiedProduct = await makeProductUtil(ProductModel).getById(
+        id,
+        references
+      )
+
+      return response.send({
+        status: 200,
+        error: undefined,
+        data: specifiedProduct
+      })
+    } catch (e) {
+      return response.status(404).send({
+        status: 404,
+        error: e.toString(),
+        data: undefined
+      })
+    }
+  }
+
+  async update ({ request, response }) {
     const { body, params, qs } = request
 
     const { id } = params
@@ -104,22 +272,22 @@ class ProductController {
 
     switch (request.role) {
       case 'admin': {
-        const product = await makeProductUtil(Product).updateById(
+        const product = await makeProductUtil(ProductModel).updateById(
           id,
           { product_name, end_date, stock },
           references
         )
 
-        return { status: 200, error: undefined, data: product }
+        return response.send({ status: 200, error: undefined, data: product })
       }
       case 'customer': {
-        const { product_image } = await makeCustomerUtil(Customer)
+        const { product_image } = await makeCustomerUtil(CustomerModel)
           .findProductOnAuthUser(request.customer_uuid, id)
-          .then(response => response.toJSON())
+          .then(query => query.toJSON())
 
-        const productExist = await makeCustomerUtil(Customer)
+        const productExist = await makeCustomerUtil(CustomerModel)
           .findProductOnAuthUser(request.customer_uuid, id)
-          .then(response => response.toJSON())
+          .then(query => query.toJSON())
 
         if (productExist) {
           const fileList = []
@@ -134,17 +302,18 @@ class ProductController {
                 size: '2mb',
                 extnames: ['png', 'gif', 'jpeg', 'jpg']
               },
-              async file => {
+              // eslint-disable-next-line
+              async (file) => {
                 if (
                   !(file.extname === 'png') &&
                   !(file.extname === 'jpg') &&
                   !(file.extname === 'jpeg')
                 ) {
-                  return {
+                  return response.status(422).send({
                     status: 422,
                     error: 'Validation failed. contain illegal file type.',
                     data: undefined
-                  }
+                  })
                 }
 
                 await Drive.disk('s3').put(
@@ -159,11 +328,13 @@ class ProductController {
             await request.multipart.process()
           } catch (error) {
             if (!error.message === 'unsupported content-type') {
-              return { status: 500, error, data: undefined }
+              return response
+                .status(500)
+                .send({ status: 500, error, data: undefined })
             }
           }
 
-          const product = await makeProductUtil(Product).updateById(
+          const product = await makeProductUtil(ProductModel).updateById(
             id,
             {
               product_name: new_product_name,
@@ -175,60 +346,60 @@ class ProductController {
             references
           )
 
-          return { status: 200, error: undefined, data: product }
+          return response.send({ status: 200, error: undefined, data: product })
         }
 
-        return {
+        return response.status(403).send({
           status: 403,
           error: 'Access denied. id param does not match authenticated uuid.',
           data: undefined
-        }
+        })
       }
       default:
-        return {
+        return response.send({
           status: 200,
           error: undefined,
           data: undefined
-        }
+        })
     }
   }
 
-  async destroy ({ request }) {
+  async destroy ({ request, response }) {
     const { id } = request.params
 
     switch (request.role) {
       case 'admin': {
-        await makeProductUtil(Product).deleteById(id)
+        await makeProductUtil(ProductModel).deleteById(id)
 
-        return {
+        return response.send({
           status: 200,
           error: undefined,
           data: { message: `product ${id} is successfully removed.` }
-        }
+        })
       }
       case 'customer': {
         if (request.customer_uuid === id) {
-          await makeProductUtil(Product).deleteById(id)
+          await makeProductUtil(ProductModel).deleteById(id)
 
-          return {
+          return response.send({
             status: 200,
             error: undefined,
             data: { message: `product ${id} is successfully removed.` }
-          }
+          })
         }
 
-        return {
+        return response.status(403).send({
           status: 403,
           error: 'Access denied. id param does not match authenticated uuid.',
           data: undefined
-        }
+        })
       }
       default:
-        return {
+        return response.send({
           status: 200,
           error: undefined,
           data: undefined
-        }
+        })
     }
   }
 }

@@ -11,7 +11,7 @@ const makeCronUtil = require('../../../util/cronjobs/cronjob-util.func')
 const performAuthentication = require('../../../util/authenticate.func')
 
 class UserController {
-  async index ({ request }) {
+  async index ({ request, response }) {
     const { references, page, per_page } = request.qs
 
     const { rows, pages } = await makeUserUtil(UserModel).getAll(
@@ -20,10 +20,10 @@ class UserController {
       per_page
     )
 
-    return { status: 200, error: undefined, pages, data: rows }
+    return response.send({ status: 200, error: undefined, pages, data: rows })
   }
 
-  async show ({ request }) {
+  async show ({ request, response }) {
     const { params, qs } = request
 
     const { id } = params
@@ -39,38 +39,38 @@ class UserController {
               references
             )) || {}
 
-          return {
+          return response.send({
             status: 200,
             error: undefined,
             data
-          }
+          })
         }
-        return {
+        return response.status(403).send({
           status: 403,
           error: 'Access denied. id param does not match authenticated id.',
           data: undefined
-        }
+        })
       }
       case 'admin': {
         const data =
           (await makeUserUtil(UserModel).getById(id, references)) || {}
 
-        return {
+        return response.send({
           status: 200,
           error: undefined,
           data
-        }
+        })
       }
       default:
-        return {
+        return response.send({
           status: 200,
           error: undefined,
           data: undefined
-        }
+        })
     }
   }
 
-  async store ({ auth, request }) {
+  async store ({ auth, request, response }) {
     const { body, qs } = request
 
     const { username, email, password, key } = body
@@ -102,7 +102,7 @@ class UserController {
         .with('user')
         .fetch()
 
-      return {
+      return response.send({
         status: 200,
         error: undefined,
         data,
@@ -111,30 +111,29 @@ class UserController {
           {
             cronjobType: 'token',
             uuid: cron_uuid,
-            // cronjobDate: new Date(new Date().setDate(new Date().getDate() + 7)),
-            cronjobDate: new Date(new Date().setMinutes(new Date().getMinutes() + 1)),
+            cronjobDate: new Date(new Date().setDate(new Date().getDate() + 7)),
             cronjobReferences: { refreshToken: tokens.refreshToken }
           }
         ]
-      }
+      })
     }
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data,
       tokens: undefined
-    }
+    })
   }
 
-  async update ({ request }) {
+  async update ({ request, response }) {
     const { body, params, qs } = request
 
     const { id } = params
 
     const { references } = qs
 
-    const { email } = body
+    const { email, description } = body
 
     switch (request.role) {
       case 'admin': {
@@ -144,44 +143,44 @@ class UserController {
           references
         )
 
-        return { status: 200, error: undefined, data: user }
+        return response.send({ status: 200, error: undefined, data: user })
       }
       case 'customer': {
         if (request.user_uuid === id) {
           const user = await makeUserUtil(UserModel).updateById(
             request.user_uuid,
-            { email },
+            { email, description },
             references
           )
 
-          return { status: 200, error: undefined, data: user }
+          return response.send({ status: 200, error: undefined, data: user })
         }
 
-        return {
+        return response.status(403).send({
           status: 403,
           error: 'Access denied. id param does not match authenticated uuid.',
           data: undefined
-        }
+        })
       }
       default:
-        return {
+        return response.send({
           status: 200,
           error: undefined,
           data: undefined
-        }
+        })
     }
   }
 
-  async destroy ({ request }) {
+  async destroy ({ request, response }) {
     const { id } = request.params
 
     const user = await makeUserUtil(UserModel).deleteById(id)
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data: { message: `${user} is successfully removed.` }
-    }
+    })
   }
 }
 

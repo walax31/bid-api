@@ -28,11 +28,11 @@ class ImageController {
   async downloadCredentialImage ({ request, response }) {
     const { params, role, customer_uuid } = request
 
-    const { id, section } = params
+    const { id } = params
 
     switch (role) {
       case 'admin': {
-        const file = await Drive.disk('s3').getSignedUrl(`${section}/${id}`)
+        const file = await Drive.disk('s3').getSignedUrl(`credential/${id}`)
 
         return response.send({
           status: 200,
@@ -40,21 +40,19 @@ class ImageController {
         })
       }
       case 'customer': {
-        if (section === 'credential') {
-          // eslint-disable-next-line
-          const customer = await makeCustomerUtil(
-            CustomerModel).credentialBelongToCustomer(customer_uuid, id)
+        // eslint-disable-next-line
+        const customer = await makeCustomerUtil(
+          CustomerModel).credentialBelongToCustomer(customer_uuid, id)
 
-          if (!customer) {
-            return response.status(403).send({
-              status: 403,
-              error: 'Access denied. credential does not belong to customer.',
-              data: undefined
-            })
-          }
+        if (!customer) {
+          return response.status(403).send({
+            status: 403,
+            error: 'Access denied. credential does not belong to customer.',
+            data: undefined
+          })
         }
 
-        const file = await Drive.disk('s3').getSignedUrl(`${section}/${id}`)
+        const file = await Drive.disk('s3').getSignedUrl(`credential/${id}`)
 
         return response.send({
           status: 200,
@@ -71,9 +69,20 @@ class ImageController {
   }
 
   async downloadProductImage ({ request, response }) {
-    const { section, product_uuid, id } = request.params
+    const { product_uuid, id } = request.params
 
-    const file = await Drive.disk('s3').getSignedUrl(`${section}/${product_uuid}/${id}`)
+    const file = await Drive.disk('s3').getSignedUrl(`product/${product_uuid}/${id}`)
+
+    return response.send({
+      status: 200,
+      data: file
+    })
+  }
+
+  async downloadProfileImage ({ request, response }) {
+    const { id } = request.params
+
+    const file = await Drive.disk('s3').getSignedUrl(`profile/${id}`)
 
     return response.send({
       status: 200,
@@ -158,8 +167,6 @@ class ImageController {
           status: 200,
           error: undefined,
           data: customer,
-          // alerts,
-          // cronjobs
           broadcastProps: alerts.map(alert => ({
             broadcastContent: alert,
             broadcastType: 'new',
@@ -242,6 +249,41 @@ class ImageController {
       return response.status(403).send({
         status: 403,
         error: 'Access denied. product does not belong to customer.',
+        data: undefined
+      })
+    }
+  }
+
+  async uploadProfileImage ({ request, response }) {
+    const { user_uuid } = request
+
+    const fileList = []
+
+    try {
+      request.multipart.file(
+        'profile_image',
+        { types: ['image'], size: '2mb', extnames: ['png', 'jpg', 'jpeg'] },
+        async file => {
+          validateFileExtension(file)
+
+          await Drive.disk('s3').put(
+            `profile/${user_uuid}.${file.extname}`,
+            file.stream
+          )
+
+          fileList.push(`${user_uuid}.${file.extname}`)
+        }
+      )
+
+      await request.multipart.process()
+
+      const profile = await makeUserUtil(UserModel).updateById(user_uuid, { profile_path: fileList.join(',') })
+
+      return response.send({ status: 200, data: profile })
+    } catch (e) {
+      return response.status(500).send({
+        status: 500,
+        error: e.toString(),
         data: undefined
       })
     }

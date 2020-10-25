@@ -10,7 +10,6 @@ class ProductDetailSchema extends Schema {
       table.integer('product_price').notNullable().unsigned()
       table.integer('product_bid_start').notNullable().unsigned()
       table.integer('product_bid_increment').notNullable().unsigned()
-      table.string('product_description').notNullable()
       table.timestamps()
 
       table

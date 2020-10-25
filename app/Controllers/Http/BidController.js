@@ -3,12 +3,9 @@
 const Bid = use('App/Models/Bid')
 
 const makeBidUtil = require('../../../util/BidUtil.func')
-// const broadcast = require('../../../util/ws/broadcast-product.util.func')
-
-// const Ws = use('Ws')
 
 class BidController {
-  async index ({ request }) {
+  async index ({ request, response }) {
     const { references, page, per_page } = request.qs
 
     const { rows, pages } = await makeBidUtil(Bid).getAll(
@@ -17,15 +14,15 @@ class BidController {
       per_page
     )
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       pages,
       data: rows
-    }
+    })
   }
 
-  async show ({ request }) {
+  async show ({ request, response }) {
     const { params, qs } = request
 
     const { id } = params
@@ -34,10 +31,10 @@ class BidController {
 
     const bid = await makeBidUtil(Bid).getById(id, references)
 
-    return { status: 200, error: undefined, data: bid || {} }
+    return response.send({ status: 200, error: undefined, data: bid || {} })
   }
 
-  async store ({ request }) {
+  async store ({ request, response }) {
     const { body, qs } = request
 
     const { bid_amount, product_uuid } = body
@@ -49,9 +46,7 @@ class BidController {
       references
     )
 
-    // broadcast(Ws, product_uuid, 'product:newBid', bid.toJSON())
-
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data: bid,
@@ -63,10 +58,10 @@ class BidController {
           broadcastTopic: product_uuid
         }
       ]
-    }
+    })
   }
 
-  async update ({ request }) {
+  async update ({ request, response }) {
     const { body, params, qs } = request
 
     const { id } = params
@@ -81,10 +76,10 @@ class BidController {
       references
     )
 
-    return { status: 200, error: undefined, data: bid }
+    return response.send({ status: 200, error: undefined, data: bid })
   }
 
-  async destroy ({ request }) {
+  async destroy ({ request, response }) {
     const { id } = request.params
 
     const bid = await makeBidUtil(Bid).deleteById(id)
@@ -97,11 +92,11 @@ class BidController {
       }
     }
 
-    return {
+    return response.send({
       status: 404,
       error: 'Bid not found. bid you are looking for does not exist.',
       data: undefined
-    }
+    })
   }
 }
 

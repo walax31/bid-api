@@ -83,7 +83,6 @@ class CredentialController {
         error: undefined,
         data: undefined,
         tokens: { ...tokens, uuid },
-        // cron_uuid,
         cronjobProperties: [
           {
             cronjobType: 'token',

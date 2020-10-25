@@ -4,13 +4,11 @@ const CustomerModel = use('App/Models/Customer')
 const UserModel = use('App/Models/User')
 const AlertModel = use('App/Models/Alert')
 const CronModel = use('App/Models/CronJob')
-// const Ws = use('Ws')
 
 const makeCustomerUtil = require('../../../util/CustomerUtil.func')
 const makeUserUtil = require('../../../util/UserUtil.func')
 const makeAlertUtil = require('../../../util/alertUtil.func')
 const makeCronUtil = require('../../../util/cronjobs/cronjob-util.func')
-// const broadcastAlert = require('../../../util/ws/broadcast-alert.util.func')
 
 class CustomerController {
   async index ({ request, response }) {
@@ -158,14 +156,10 @@ class CustomerController {
 
           global.CronJobManager.deleteJob(cronjob.uuid)
 
-          // broadcastAlert(Ws, request.user_uuid, 'remove:alert', previousAlert)
-
           return response.send({
             status: 200,
             error: undefined,
             data: customer,
-            // alert,
-            // cron,
             broadcastProps: [
               {
                 broadcastContent: alert,
@@ -189,8 +183,6 @@ class CustomerController {
               }
             ]
           })
-
-          // eslint-disable-next-line
         } catch (e) {
           return response.status(500).send({
             status: 500,
