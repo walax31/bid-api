@@ -11,8 +11,7 @@ class StoreProductDetail {
       uuid: 'required',
       product_price: 'required',
       product_bid_start: 'required',
-      product_bid_increment: 'required',
-      product_description: 'required'
+      product_bid_increment: 'required'
     }
   }
 
@@ -23,8 +22,7 @@ class StoreProductDetail {
       'product_bid_start.required':
         'You must provide a starting price for the product.',
       'product_bid_increment.required':
-        'You must provide an incrementing price for the product.',
-      'product_description.required': 'You must provide a product desciption.'
+        'You must provide an incrementing price for the product.'
     }
   }
 
