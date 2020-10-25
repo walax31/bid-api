@@ -59,6 +59,16 @@ class Product extends Model {
       'uuid'
     ).pivotModel('App/Models/ProductTag')
   }
+
+  specifications () {
+    return this.belongsToMany(
+      'App/Models/Specification',
+      'product_uuid',
+      'specification_uuid',
+      'uuid',
+      'uuid'
+    ).pivotModel('App/Models/ProductSpecification')
+  }
 }
 
 module.exports = Product

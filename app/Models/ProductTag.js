@@ -32,15 +32,6 @@ class ProductTag extends Model {
   static get createdAtColumn () {
     return null
   }
-
-  // ! TODO: Figure out whether we need to specify this or not
-  tag () {
-    return this.belongsTo('App/Models/Tag', 'tag_uuid', 'uuid')
-  }
-
-  product () {
-    return this.belongsTo('App/Models/Product', 'product_uuid', 'uuid')
-  }
 }
 
 module.exports = ProductTag
