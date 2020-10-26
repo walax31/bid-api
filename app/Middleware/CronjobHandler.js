@@ -48,7 +48,7 @@ class CronjobHandler {
     // eslint-disable-next-line
     const { cronjobProperties } = response._lazyBody.content
 
-    if (response.response.statusCode === 200) {
+    if (response.response.statusCode === 200 && cronjobProperties) {
       cronjobProperties.forEach(prop => {
         switch (prop.cronjobType) {
           case 'token': {

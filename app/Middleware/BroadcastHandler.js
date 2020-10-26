@@ -27,10 +27,10 @@ class BroadcastHandler {
      * broadcastChannel: string
      * broadcastTopic: string
      * */
+    // eslint-disable-next-line
+    const { broadcastProps } = response._lazyBody.content
 
-    if (response.response.statusCode === 200) {
-      // eslint-disable-next-line
-      const { broadcastProps } = response._lazyBody.content
+    if (response.response.statusCode === 200 && broadcastProps) {
       broadcastProps.forEach(prop => {
         switch (prop.broadcastChannel) {
           case 'alert': {

@@ -5,7 +5,7 @@ const Address = use('App/Models/Address')
 const makeAddressUtil = require('../../../util/addressUtil.func')
 
 class AddressController {
-  async index ({ request }) {
+  async index ({ request, response }) {
     const { references, page, per_page } = request.qs
 
     const { rows, pages } = await makeAddressUtil(Address).getAll(
@@ -14,15 +14,15 @@ class AddressController {
       per_page
     )
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       pages,
       data: rows
-    }
+    })
   }
 
-  async show ({ request }) {
+  async show ({ request, response }) {
     const { params, qs } = request
 
     const { id } = params
@@ -31,14 +31,14 @@ class AddressController {
 
     const address = await makeAddressUtil(Address).getById(id, references)
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data: address || {}
-    }
+    })
   }
 
-  async store ({ request }) {
+  async store ({ request, response }) {
     const { body, qs, customer_uuid } = request
 
     const {
@@ -67,14 +67,14 @@ class AddressController {
       references
     )
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data: address
-    }
+    })
   }
 
-  async update ({ request }) {
+  async update ({ request, response }) {
     const { body, params, qs, customer_uuid } = request
 
     const { id } = params
@@ -98,11 +98,11 @@ class AddressController {
     )
 
     if (!address) {
-      return {
+      return response.status(404).send({
         status: 404,
         error: 'Address not found. Could not find your existing address.',
         data: undefined
-      }
+      })
     }
 
     const data = await makeAddressUtil(Address).updateById(
@@ -119,14 +119,14 @@ class AddressController {
       references
     )
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data
-    }
+    })
   }
 
-  async destroy ({ request }) {
+  async destroy ({ request, response }) {
     const { id } = request.params
 
     const existingAddress = await makeAddressUtil(Address).getById(
@@ -136,21 +136,21 @@ class AddressController {
     )
 
     if (!existingAddress) {
-      return {
+      return response.status(404).send({
         status: 404,
         error:
           'Address not found. address you were looking for does not exist.',
         data: undefined
-      }
+      })
     }
 
     await makeAddressUtil(Address).deleteById(id)
 
-    return {
+    return response.send({
       status: 200,
       error: undefined,
       data: { message: `Address ${id} was successfully removed.` }
-    }
+    })
   }
 }
 
