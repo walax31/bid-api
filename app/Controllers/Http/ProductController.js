@@ -21,7 +21,7 @@ const AVIALABLE_TYPE = [
 ]
 
 class ProductController {
-  async index ({ request, response }) {
+  async index({ request, response }) {
     const { references, page, per_page } = request.qs
 
     switch (request.role) {
@@ -42,7 +42,8 @@ class ProductController {
       default: {
         // eslint-disable-next-line
         const biddableProducts = await makeProductUtil(
-          ProductModel).bulkHasBiddableFlag(references, page, per_page)
+          ProductModel
+        ).bulkHasBiddableFlag(references, page, per_page)
 
         return response.send({
           status: 200,
@@ -54,7 +55,7 @@ class ProductController {
     }
   }
 
-  async show ({ request, response }) {
+  async show({ request, response }) {
     const { params, qs } = request
 
     const { id } = params
@@ -75,7 +76,9 @@ class ProductController {
         })
       }
       default: {
-        const biddableProduct = await makeProductUtil(ProductModel).hasBiddableFlag(id, references)
+        const biddableProduct = await makeProductUtil(
+          ProductModel
+        ).hasBiddableFlag(id, references)
 
         return response.send({
           status: 200,
@@ -86,7 +89,25 @@ class ProductController {
     }
   }
 
-  async store ({ request, response }) {
+  async getByTags({ request, response }) {
+    const { tags = '', references = '', page = 1, per_page = 10 } = request.qs
+
+    const { rows, pages } = await makeProductUtil(ProductModel).getByTags(
+      tags,
+      references,
+      page,
+      per_page
+    )
+
+    return response.send({
+      status: 200,
+      error: undefined,
+      pages,
+      data: rows
+    })
+  }
+
+  async store({ request, response }) {
     const { body, qs } = request
 
     const { product_name, end_date, stock } = body
@@ -110,7 +131,7 @@ class ProductController {
     })
   }
 
-  async addTag ({ request, response }) {
+  async addTag({ request, response }) {
     const { body, qs, params } = request
 
     const { tag_name } = body
@@ -145,7 +166,7 @@ class ProductController {
     }
   }
 
-  async removeTag ({ request, response }) {
+  async removeTag({ request, response }) {
     const { qs, params } = request
 
     const { references } = qs
@@ -178,7 +199,7 @@ class ProductController {
     }
   }
 
-  async addSpecification ({ request, response }) {
+  async addSpecification({ request, response }) {
     const { body, qs, params } = request
 
     const { name, type } = body
@@ -187,7 +208,7 @@ class ProductController {
 
     const { id } = params
 
-    if (!AVIALABLE_TYPE.find(spec => spec === type)) {
+    if (!AVIALABLE_TYPE.find((spec) => spec === type)) {
       return response
         .status(404)
         .send({ status: 404, error: 'Type not found.', data: undefined })
@@ -225,7 +246,7 @@ class ProductController {
     }
   }
 
-  async removeSpecification ({ request, response }) {
+  async removeSpecification({ request, response }) {
     const { qs, params } = request
 
     const { references } = qs
@@ -261,7 +282,7 @@ class ProductController {
     }
   }
 
-  async update ({ request, response }) {
+  async update({ request, response }) {
     const { body, params, qs } = request
 
     const { id } = params
@@ -283,11 +304,11 @@ class ProductController {
       case 'customer': {
         const { product_image } = await makeCustomerUtil(CustomerModel)
           .findProductOnAuthUser(request.customer_uuid, id)
-          .then(query => query.toJSON())
+          .then((query) => query.toJSON())
 
         const productExist = await makeCustomerUtil(CustomerModel)
           .findProductOnAuthUser(request.customer_uuid, id)
-          .then(query => query.toJSON())
+          .then((query) => query.toJSON())
 
         if (productExist) {
           const fileList = []
@@ -364,7 +385,7 @@ class ProductController {
     }
   }
 
-  async destroy ({ request, response }) {
+  async destroy({ request, response }) {
     const { id } = request.params
 
     switch (request.role) {
