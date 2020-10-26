@@ -163,6 +163,8 @@ Route.group(() => {
     'ProductController.removeTag'
   ).middleware(['auth:customer', 'credential:strict'])
 
+  Route.get('/products/tags', 'ProductController.getByTags')
+
   Route.resource('/products', 'ProductController')
     .validator(new Map([[['store'], ['StoreProduct']]]))
     .middleware(new Map([
